@@ -22,8 +22,8 @@ create table if not exists public.leaderboard (
   name        text not null check (char_length(name) between 1 and 40),
   avatar_url  text,
   prestige    int    not null default 0 check (prestige between 0 and 1000),
-  max_level   int    not null default 1 check (max_level between 1 and 50),
-  peak_level  int    not null default 1 check (peak_level between 1 and 50),
+  max_level   int    not null default 1 check (max_level between 1 and 100),
+  peak_level  int    not null default 1 check (peak_level between 1 and 100),
   total_coins bigint not null default 0 check (total_coins >= 0),
   difficulty  text,
   updated_at  timestamptz not null default now()
@@ -36,6 +36,12 @@ drop policy if exists "leaderboard_update_own" on public.leaderboard;
 create policy "leaderboard_select_all" on public.leaderboard for select to anon, authenticated using (true);
 create policy "leaderboard_insert_own" on public.leaderboard for insert to authenticated with check (auth.uid() = user_id);
 create policy "leaderboard_update_own" on public.leaderboard for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Topes de nivel: Fácil 30, Normal 50, Difícil 100 (para tablas creadas con el tope viejo de 50).
+alter table public.leaderboard drop constraint if exists leaderboard_max_level_check;
+alter table public.leaderboard drop constraint if exists leaderboard_peak_level_check;
+alter table public.leaderboard add constraint leaderboard_max_level_check check (max_level between 1 and 100);
+alter table public.leaderboard add constraint leaderboard_peak_level_check check (peak_level between 1 and 100);
 
 create index if not exists leaderboard_rank_idx on public.leaderboard (prestige desc, max_level desc, total_coins desc);
 

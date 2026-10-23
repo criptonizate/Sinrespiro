@@ -945,21 +945,21 @@
       <div class="branch-opts">
         <button class="branch-card" id="diffFacil">
           <div class="name"><span class="icon-badge"></span>Fácil</div>
-          <div class="desc">Drenaje y anomalías más suaves y +15% de monedas, pero ya exige mejorar con cabeza. Las mejoras de monedas hacen mucha diferencia. Si morís 3 veces seguidas en un nivel, el drenaje baja otro 20%. Es la mejor forma de juntar puntos de prestigio.</div>
+          <div class="desc">Llega hasta el nivel 30. Drenaje y fugas más suaves: es donde hacés tus primeros prestigios. Si morís 3 veces seguidas en un nivel, el drenaje baja otro 20%.</div>
         </button>
         <button class="branch-card" id="diffNormal">
           <div class="name"><span class="icon-badge"></span>Normal</div>
-          <div class="desc">El balance pensado como punto de partida: bastante más duro que Fácil. Se vuelve mucho más accesible con las mejoras de prestigio ✦ que juntás en Fácil.</div>
+          <div class="desc">Llega hasta el nivel 50. Más drenaje, pero +25% de monedas y de puntos de prestigio ✦. Cuando el próximo prestigio pide más del nivel 30, se juega acá.</div>
         </button>
         <button class="branch-card" id="diffDificil">
           <div class="name"><span class="icon-badge"></span>Difícil</div>
-          <div class="desc">El drenaje y las anomalías hacen el triple de daño, pero ganás +50% de monedas y de puntos de prestigio. Se vuelve mucho más manejable una vez que ya hiciste algún prestigio.</div>
+          <div class="desc">Llega hasta el nivel 100: el final del juego. Drenaje mucho más fuerte, +60% de monedas y +50% de puntos de prestigio ✦. Superar el nivel 100 lleva unos 30 prestigios.</div>
         </button>
       </div>
     </div>
     <div class="overlay hidden" id="offlineOverlay">
       <h2>Volviste</h2>
-      <p class="sub">Mientras no estabas, tu sobreviviente siguió juntando monedas por su cuenta.</p>
+      <p class="sub">Mientras no estabas, tu sobreviviente siguió juntando monedas por su cuenta, más despacio que jugando.</p>
       <div class="rows">
         <div class="row"><span class="k">Tiempo fuera</span><span class="n" id="offlineTime">0 min</span></div>
         <div class="row"><span class="k">Ritmo aplicado</span><span class="n" id="offlineRate">20%</span></div>
@@ -1159,8 +1159,9 @@
 */
 (function(){
   const els = id => document.getElementById(id);
-  const fmt = n => (Math.round(n*10)/10).toFixed(n%1===0?0:1);
-  const fmtCoins = n => Math.floor(n).toLocaleString('es-AR');
+  const fmtBig = n => { const a = Math.abs(n), f = v => v.toFixed(2).replace('.', ','); return a >= 1e12 ? f(n/1e12) + ' B' : a >= 1e9 ? f(n/1e9) + ' mil M' : a >= 1e6 ? f(n/1e6) + ' M' : null; };
+  const fmt = n => fmtBig(n) || (Math.round(n*10)/10).toFixed(n%1===0?0:1);
+  const fmtCoins = n => fmtBig(n) || Math.floor(n).toLocaleString('es-AR');
   const rand = (a,b) => a + Math.random()*(b-a);
 
   const iconShield = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3 L19 6 V11 C19 16 16 19.5 12 21 C8 19.5 5 16 5 11 V6 Z"/></svg>';
@@ -1195,23 +1196,27 @@
   const iconLoop = '<svg class="icon" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.7-6"/><path d="M20 4 L20 9 L15 9"/></svg>';
 
   const REGULAR_UPGRADES = {
-    maxHp:      { name:'Blindaje vital',    base:15, unlock:1,  icon:iconHeart, desc:l => `Sube la vida máxima a ${10 + (l+1)*3}.` },
-    coinRate:   { name:'Extracción pasiva', base:25, unlock:3,  icon:iconPeso,   desc:l => `Genera ${(0.6+(l+1)*0.35).toFixed(2)} monedas/seg en reposo.` },
+    maxHp:      { name:'Blindaje vital',    base:15, unlock:1,  icon:iconHeart, desc:l => `+8% de vida máxima (nivel ${l+1}). Se acumula con cada nivel.` },
+    coinRate:   { name:'Extracción pasiva', base:25, unlock:3,  icon:iconPeso,   desc:l => `Producción base de ${(0.6+(l+1)*0.35).toFixed(2)} monedas/seg. Cada nivel de la cueva paga 6,5% más.` },
     antitox:    { name:'Antitoxina',        base:90, unlock:5,  icon:iconDrop,   desc:l => `Reduce el daño de fugas de veneno en ${Math.min(90,(l+1)*15)}%.` },
     aislante:   { name:'Aislante térmico',  base:220, unlock:8,  icon:iconSnow,   desc:l => `Reduce el daño de anomalías de frío en ${Math.min(90,(l+1)*15)}%.` },
     blindajeRad:{ name:'Blindaje de radiación', base:450, unlock:11, icon:iconRad, desc:l => `Reduce el daño de fugas radiactivas en ${Math.min(90,(l+1)*15)}%.` },
     harvest:    { name:'Cosecha',          base:1500, unlock:999, reqPrestige:3, max:8, icon:iconCoins, desc:l => `El bono por superar cada nivel sube a +${(l+1)*25}% extra.` },
-    accel:      { name:'Aceleración',       base:700, unlock:14, icon:iconFastFwd,   desc:l => `La generación llega a su máximo en ${Math.max(6, 25-(l+1)*3)}s de vida en vez de 25s.` },
+    accel:      { name:'Aceleración',       base:700, unlock:14, max:7, icon:iconFastFwd,   desc:l => `La generación llega a su máximo en ${Math.max(6, 25-(l+1)*3)}s de vida en vez de 25s.` },
   };
   const REGEN_UNLOCK = 1;
   const ANTIDOTE_MINOR_UNLOCK = 2;
   const ANTIDOTE_MAJOR_UNLOCK = 6;
   const REVIVE_UNLOCK = 17;
   const PRESTIGE_UNLOCK = 20;
-  const MAX_LEVEL = 50;
+  const MAX_LEVEL = 100;
+  // Cada dificultad llega hasta un nivel: Fácil 30, Normal 50 y Difícil 100, el final del juego.
+  const LEVEL_CAP = { facil:30, normal:50, dificil:100 };
+  const DIFF_NAMES = { facil:'Fácil', normal:'Normal', dificil:'Difícil' };
+  function levelCap(){ return LEVEL_CAP[state.difficulty] || 50; }
   const HAZARD_UNLOCK = { poison: 5, cold: 8, rad: 11 };
   const HAZARD2_LEVEL = 25;
-  const OFFLINE_CAP_BASE = 7200;
+  const OFFLINE_CAP_BASE = 3600;
   const PRESTIGE_UNLOCKS = { 1:'Escudo y mejoras de prestigio', 2:'Desafíos', 3:'Cosecha (más bono por nivel)' };
   const MILESTONES = [
     { lvl:2,  text:'Antídoto menor' },
@@ -1224,7 +1229,10 @@
     { lvl:17, text:'Reanimador' },
     { lvl:20, text:'Prestigio' },
     { lvl:25, text:'Doble peligro: dos fugas a la vez' },
-    { lvl:50, text:'Nivel máximo' },
+    { lvl:30, text:'Tope de Fácil (para seguir, pasá a Normal)' },
+    { lvl:50, text:'Tope de Normal (para seguir, pasá a Difícil)' },
+    { lvl:75, text:'Fosa sin fondo' },
+    { lvl:100, text:'El final: superar el nivel 100 en Difícil' },
   ];
 
   const ACHIEVEMENTS = [
@@ -1235,7 +1243,9 @@
     { id:'level20',   name:'Umbral',   desc:'Alcanzá el nivel 20.',  check:s => s.maxLevelEverReached>=20, cepa:'Cepa Umbral', prog:s=>[s.maxLevelEverReached,20] },
     { id:'level30',   name:'Abismal',        desc:'Alcanzá el nivel 30.',  check:s => s.maxLevelEverReached>=30, cepa:'Cepa Abisal', prog:s=>[s.maxLevelEverReached,30] },
     { id:'level40',   name:'Terminal',       desc:'Alcanzá el nivel 40.',  check:s => s.maxLevelEverReached>=40, cepa:'Cepa Terminal', prog:s=>[s.maxLevelEverReached,40] },
-    { id:'level50',   name:'Último aliento', desc:'Alcanzá el nivel 50, el máximo.', check:s => s.maxLevelEverReached>=50, cepa:'Cepa Definitiva', prog:s=>[s.maxLevelEverReached,50] },
+    { id:'level50',   name:'Último aliento', desc:'Alcanzá el nivel 50, el tope de Normal.', check:s => s.maxLevelEverReached>=50, cepa:'Cepa Definitiva', prog:s=>[s.maxLevelEverReached,50] },
+    { id:'level75',   name:'Fosa sin fondo', desc:'Alcanzá el nivel 75.', check:s => s.maxLevelEverReached>=75, cepa:'Cepa Abismal', prog:s=>[s.maxLevelEverReached,75] },
+    { id:'win100',    name:'Sin Respiro',    desc:'Superá el nivel 100 en Difícil: el final del juego.', check:s => !!(s.stats && s.stats.won100), cepa:'Cepa Primordial' },
     { id:'survive60', name:'Maratonista',    desc:'Sobreviví 60s en una sola corrida.',  check:s => Object.values(s.levelBestTimes).some(t=>t>=60), cepa:'Cepa Longeva' },
     { id:'survive120',name:'Eterno',         desc:'Sobreviví 120s en una sola corrida.', check:s => Object.values(s.levelBestTimes).some(t=>t>=120), cepa:'Cepa Eterna' },
     { id:'coins1000', name:'Fortuna inicial',desc:'Acumulá 1.000 monedas históricas.',   check:s => s.totalCoinsEarned>=1000,  cepa:'Cepa Próspera', prog:s=>[s.totalCoinsEarned,1000] },
@@ -1324,6 +1334,7 @@
     if(s.soundOn===undefined) s.soundOn = true;
     if(s.musicOn===undefined) s.musicOn = true;
     if(s.difficulty===undefined) s.difficulty = 'normal';
+    if((s.level || 1) > (LEVEL_CAP[s.difficulty] || 50)) s.level = LEVEL_CAP[s.difficulty] || 50;
     if(s.difficultyChosen===undefined) s.difficultyChosen = true;
     if(s.characterChosen===undefined) s.characterChosen = true;
     if(!s.treeBought || typeof s.treeBought !== 'object') s.treeBought = {};
@@ -1363,18 +1374,18 @@
   }
 
   const PERKS = {
-    piel:        { name:'Piel gruesa',      icon:iconHeart, effect:c => `+${c*8}% de vida máxima permanente` },
-    metabolismo: { name:'Metabolismo lento',icon:iconPulse,  effect:c => `-${Math.min(50,c*4)}% de drenaje permanente` },
+    piel:        { name:'Piel gruesa',      icon:iconHeart, effect:c => `+${Math.round((Math.pow(1.08, c) - 1) * 100)}% de vida máxima permanente` },
+    metabolismo: { name:'Metabolismo lento',icon:iconPulse,  effect:c => `-${Math.round((1 - Math.max(0.35, Math.pow(0.96, c))) * 100)}% de drenaje permanente` },
     reflejos:    { name:'Reflejos',         icon:iconClock,  effect:c => `Las fugas tardan ${c*15}% más en aparecer` },
-    bolsillos:   { name:'Bolsillos grandes',icon:iconPeso,   effect:c => `+${c*15}% de generación de monedas` },
-    inmunidad:   { name:'Inmunidad parcial',icon:iconShield, effect:c => `-${Math.min(70,c*8)}% extra de daño de cualquier fuga` },
+    bolsillos:   { name:'Bolsillos grandes',icon:iconPeso,   effect:c => `+${Math.round((Math.pow(1.15, c) - 1) * 100)}% de generación de monedas` },
+    inmunidad:   { name:'Inmunidad parcial',icon:iconShield, effect:c => `-${Math.round((1 - Math.max(0.3, Math.pow(0.92, c))) * 100)}% extra de daño de cualquier fuga` },
   };
   function perkCount(id){ return (state.perks && state.perks[id]) || 0; }
-  function perkMaxHpMult(){ return 1 + 0.08*perkCount('piel'); }
-  function perkDrainMult(){ return Math.max(0.5, 1 - 0.04*perkCount('metabolismo')); }
+  function perkMaxHpMult(){ return Math.pow(1.08, perkCount('piel')); }
+  function perkDrainMult(){ return Math.max(0.35, Math.pow(0.96, perkCount('metabolismo'))); }
   function perkHazardDelayMult(){ return 1 + 0.15*perkCount('reflejos'); }
-  function perkCoinMult(){ return 1 + 0.15*perkCount('bolsillos'); }
-  function perkHazardResistMult(){ return Math.max(0.3, 1 - 0.08*perkCount('inmunidad')); }
+  function perkCoinMult(){ return Math.pow(1.15, perkCount('bolsillos')); }
+  function perkHazardResistMult(){ return Math.max(0.3, Math.pow(0.92, perkCount('inmunidad'))); }
 
   function achCount(){ return Object.keys(state.achievements).length; }
   function achMult(){ return 1 + achCount()*0.03; }
@@ -1382,18 +1393,18 @@
   function chalMult(){ return 1 + 0.02*Object.keys(state.challengesDone||{}).length; }
   function overdriveDuration(){ return OVERDRIVE_DURATION + essLvl('sobrecarga'); }
   function overdriveCooldown(){ return OVERDRIVE_COOLDOWN - 5*essLvl('sobrecarga'); }
-  function computeMaxHp(){ if(challenge==='cristal') return 10; return (10 + state.upgrades.maxHp*3) * perkMaxHpMult() * (1 + 0.06*petLv('salud')); }
-  const DIFFICULTY_DRAIN_MULT = { facil: 0.7, normal: 1.0, dificil: 3.0 };
-  const DIFFICULTY_COIN_MULT = { facil: 1.15, normal: 1.0, dificil: 1.5 };
-  const DIFFICULTY_ESS_MULT = { facil: 1.0, normal: 1.0, dificil: 1.5 };
+  function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult(); }
+  const DIFFICULTY_DRAIN_MULT = { facil: 0.95, normal: 1.2, dificil: 1.6 };
+  const DIFFICULTY_COIN_MULT = { facil: 1.0, normal: 1.25, dificil: 1.6 };
+  const DIFFICULTY_ESS_MULT = { facil: 1.0, normal: 1.25, dificil: 1.5 };
   const DIFFICULTY_HAZ_MULT = { facil: 0.65, normal: 1.0, dificil: 1.0 };
 
   function computeDrain(){
-    const lvl = Math.min(state.level, MAX_LEVEL);
-    let base = 0.75 + (lvl-1)*0.08;
-    let reduction = Math.min(state.upgrades.regen,3)*0.15;
-    if(state.upgrades.regenBranch==='mitigacion') reduction += state.upgrades.regenPost*0.12;
-    let drain = Math.max(0.15, base-reduction);
+    const lvl = Math.min(state.level, levelCap());
+    // El drenaje crece 7% por nivel; Resistencia y Mitigación lo bajan en porcentaje.
+    let drain = 0.75 * Math.pow(1.07, lvl - 1);
+    drain *= Math.pow(0.92, Math.min(state.upgrades.regen, 3));
+    if(state.upgrades.regenBranch==='mitigacion') drain *= Math.pow(0.95, state.upgrades.regenPost);
     drain *= DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0;
     drain *= perkDrainMult();
     if(gasPhase === 'act' && screen === 'running') drain *= 1 + 0.35 * (1 - 0.1*petLv('inmu'));
@@ -1405,16 +1416,16 @@
     return drain;
   }
   function computeHealPerSec(){
-    return (state.upgrades.regenBranch==='regeneracion' ? state.upgrades.regenPost*0.15 : 0) + 0.06*petLv('regen');
+    return state.upgrades.regenBranch==='regeneracion' ? computeMaxHp() * 0.0008 * state.upgrades.regenPost : 0;
   }
-  function computeCoinRate(){ return (0.6 + state.upgrades.coinRate*0.35) * perkCoinMult() * achMult() * chalMult() * (1 + 0.1*essLvl('eco')) * (1 + 0.10*ppLvl('dividendos')) * (1 + 0.06*petLv('eco')) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1); }
+  function computeCoinRate(){ return (0.6 + state.upgrades.coinRate*0.35) * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * perkCoinMult() * achMult() * chalMult() * (1 + 0.1*essLvl('eco')) * (1 + 0.10*ppLvl('dividendos')) * (1 + 0.06*petLv('eco')) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1); }
   function computeGrowthDivisor(){ return Math.max(6, 25 - state.upgrades.accel*3); }
   function computeGrowth(){ return 1 + Math.min(state.elapsed/computeGrowthDivisor(), 3); }
   function computeEffectiveRate(){ return computeCoinRate()*computeGrowth()*(overdriveActive ? 3 : 1)*(state.elapsed < boostUntil ? 2 : 1); }
-  function computeTarget(){ return (15 + (Math.min(state.level, MAX_LEVEL)-1)*4) * (1 - 0.05*ppLvl('ritmo')); }
-  function costFor(type){ return Math.round(REGULAR_UPGRADES[type].base * Math.pow(1.45, state.upgrades[type])); }
+  function computeTarget(){ return Math.min(150, 20 + (Math.min(state.level, levelCap())-1)*5) * (1 - 0.05*ppLvl('ritmo')); }
+  function costFor(type){ return Math.round(REGULAR_UPGRADES[type].base * Math.pow(type === 'maxHp' || type === 'coinRate' ? 1.25 : 1.45, state.upgrades[type])); }
   function regenCost(){ return Math.round(20 * Math.pow(1.45, state.upgrades.regen)); }
-  function regenPostCost(){ return Math.round(35 * Math.pow(1.45, state.upgrades.regenPost)); }
+  function regenPostCost(){ return Math.round(35 * Math.pow(1.25, state.upgrades.regenPost)); }
   function shieldCost(){ return Math.round(600 * Math.pow(1.5, state.consumables.shield)); }
   function reviveCost(){ return Math.round(1200 * Math.pow(1.6, state.consumables.revive)); }
   function antidoteMinorCost(){ return Math.round(30 * Math.pow(1.3, state.consumables.antidoteMinor)); }
@@ -1424,10 +1435,13 @@
     if(challenge==='sinres') return 1;
     return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu'));
   }
-  function hazardMagnitude(){ return (0.4 + state.level*0.12) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
+  function hazardMagnitude(){ return 0.6 * Math.pow(1.07, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
 
   function isShielded(){ return state.elapsed < shieldUntil; }
-  function prestigeReq(){ return Math.min(MAX_LEVEL, PRESTIGE_UNLOCK + 5*Math.min(state.prestige, 6)); }
+  // Cada prestigio pide unos 2,7 niveles más: el 1° en el nivel 20 y el 30° en el 100.
+  function prestigeReq(){ return Math.min(MAX_LEVEL, PRESTIGE_UNLOCK + Math.round(state.prestige * 80 / 30)); }
+  // Si el próximo prestigio pide más nivel del que llega esta dificultad, hay que subir de dificultad.
+  function prestigeNeedsDiff(){ const r = prestigeReq(); return r > levelCap() ? ['facil','normal','dificil'].find(d => LEVEL_CAP[d] >= r) : null; }
   function canPrestige(){ return state.peakLevel >= prestigeReq(); }
   function ppLvl(id){ return (state.ppTree && state.ppTree[id]) || 0; }
   function prestigePoints(){ return Math.max(2, Math.round((state.peakLevel - 12) * (DIFFICULTY_ESS_MULT[state.difficulty] || 1))); }
@@ -1509,7 +1523,7 @@
       prestige: state.prestige, max_level: Math.min(MAX_LEVEL, state.maxLevelEverReached), peak_level: Math.min(MAX_LEVEL, state.peakLevel),
       total_coins: Math.floor(state.totalCoinsEarned), difficulty: state.difficulty, updated_at: now
     });
-    if(r2.error) throw r2.error;
+    if(r2.error) console.warn('ranking no actualizado', r2.error);
     cloudLastJson = js;
   }
   async function runCloud(){
@@ -1794,7 +1808,7 @@
     if(level === 10) showToast('★ Mitad de camino al prestigio');
     if(level === 15) showToast('★ Faltan 5 niveles para el prestigio');
     if(PRESTIGE_UNLOCK === level) showToast('★ ¡Ya podés hacer prestigio!');
-    if(MAX_LEVEL === level) showToast('★ Llegaste al nivel máximo');
+    if(level === levelCap()) showToast('★ Llegaste al tope de ' + DIFF_NAMES[state.difficulty] + ' (nivel ' + level + ')');
   }
 
   function recordLevelTime(){
@@ -1859,7 +1873,7 @@
 
   // ---- Esencia ----
   const ESSENCE_NODES = {
-    hibernacion:{ name:'Hibernación',          base:3, max:5, icon:iconMoon,    desc:l => `Progreso sin conexión: ${20+(l+1)*10}% de tu ritmo y tope de ${(2+(l+1)*0.5).toString().replace('.',',')} h.` },
+    hibernacion:{ name:'Hibernación',          base:3, max:6, icon:iconMoon,    desc:l => `Sin conexión: ${10+(l+1)*5}% de tu ritmo durante hasta ${(1+(l+1)*0.5).toString().replace('.',',')} h.` },
     semilla:    { name:'Semilla de capital',   base:3, max:5, icon:iconSeed,    desc:l => `Cada prestigio empieza con ${(l+1)*60} monedas.` },
     reserva:    { name:'Reserva de antídotos', base:4, max:3, icon:iconVial,    desc:l => `Cada corrida empieza con ${l+1} antídoto${l+1>1?'s':''} menor${l+1>1?'es':''} de regalo.` },
     eco:        { name:'Eco de monedas',       base:4, max:5, icon:iconPeso,    desc:l => `+${(l+1)*10}% de generación de monedas.` },
@@ -2068,7 +2082,7 @@
     { id:'hazards',   kind:'hazard',    minLevel:5, goals:[2,3],          text:n => `Superá ${n} niveles con una fuga activa` },
   ];
   function questDef(id){ return QUEST_POOL.find(q => q.id === id); }
-  function questReward(){ return 40 + state.maxLevelEverReached*8; }
+  function questReward(){ return Math.round((40 + state.maxLevelEverReached*8) * Math.pow(1.065, Math.min(state.maxLevelEverReached, MAX_LEVEL) - 1)); }
   function ensureQuests(){
     const today = todayStr();
     if(state.quests && state.quests.date === today) return;
@@ -2174,7 +2188,7 @@
   function completeChallenge(){
     const id = challenge; challenge = null;
     const first = !state.challengesDone[id];
-    const reward = state.level * 25;
+    const reward = Math.round(state.level * 25 * Math.pow(1.065, state.level - 1));
     state.coins += reward; state.totalCoinsEarned += reward;
     if(first){
       state.challengesDone[id] = true;
@@ -2190,7 +2204,7 @@
   }
 
   // ---- Progreso sin conexión ----
-  function offlineRate(){ return 0.2 + 0.1*essLvl('hibernacion'); }
+  function offlineRate(){ return 0.1 + 0.05*essLvl('hibernacion'); }
   function offlineCap(){ return OFFLINE_CAP_BASE + 1800*essLvl('hibernacion'); }
   function computeOffline(){
     if(!state.lastSeen || state.maxLevelEverReached < 2) return null;
@@ -2208,7 +2222,7 @@
     els('offlineTime').textContent = fmtDuration(o.secs);
     els('offlineRate').textContent = Math.round(offlineRate()*100) + '%';
     els('offlineCoins').textContent = '+' + fmtCoins(o.coins);
-    els('offlineNote').textContent = o.secs > o.used + 1 ? 'Se cuentan hasta ' + fmtDuration(offlineCap()) + ' de ausencia. La Esencia puede subir el ritmo y el tope.' : 'La Esencia (Hibernación) sube el ritmo y el tope de tiempo.';
+    els('offlineNote').textContent = o.secs > o.used + 1 ? 'Se cuentan hasta ' + fmtDuration(offlineCap()) + ' de ausencia. Con Hibernación (árbol → Esencia) podés ampliar el tiempo y el ritmo.' : 'Con Hibernación (árbol → Esencia) podés ampliar el tiempo y el ritmo.';
     playBeep(780, 0.15);
     setScreen('offline');
   }
@@ -2229,6 +2243,9 @@
       pct = (state.maxLevelEverReached - prevLvl) / (next.lvl - prevLvl) * 100;
     } else if(canPrestige()){
       html = 'Podés hacer <b>prestigio</b> para ganar un beneficio y ✦' + prestigePoints() + ' puntos de prestigio.'; pct = 100;
+    } else if(prestigeNeedsDiff()){
+      html = `Próximo prestigio en el <b>nivel ${prestigeReq()}</b>: ${DIFF_NAMES[state.difficulty]} llega hasta el ${levelCap()}. Pasá a <b>${DIFF_NAMES[prestigeNeedsDiff()]}</b> desde el menú.`;
+      pct = Math.min(100, state.peakLevel / prestigeReq() * 100);
     } else {
       html = `Próximo objetivo · <b>nivel ${prestigeReq()}</b> para el próximo prestigio (vas por el ${state.peakLevel})`;
       pct = Math.min(100, state.peakLevel / prestigeReq() * 100);
@@ -2595,13 +2612,14 @@
     if(state.elapsed >= computeTarget()){
       recordLevelTime();
       if(challenge){ completeChallenge(); return; }
+      if(state.difficulty === 'dificil' && state.level >= LEVEL_CAP.dificil && !state.stats.won100){ state.stats.won100 = true; setTimeout(() => showToast('🏆 ¡Superaste el nivel 100 en Difícil! Ganaste Sin Respiro.'), 2800); }
       state.consecutiveDeathsThisLevel = 0;
-      const bonus = Math.round((20 + state.level*10) * (1 + 0.25*state.upgrades.harvest)) + (petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0);
+      const bonus = Math.round((20 + state.level*10) * Math.pow(1.065, state.level - 1) * (1 + 0.25*state.upgrades.harvest) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1)) + (petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0);
       state.coins += bonus; state.totalCoinsEarned += bonus;
       state.stats.levelsDone += 1; bumpQuest('level', 1);
       if(hazards.some(h => h.phase === 'active')){ state.stats.hazardLevels += 1; bumpQuest('hazard', 1); }
       const prevMax = state.maxLevelEverReached;
-      if(state.level < MAX_LEVEL) state.level += 1;
+      if(state.level < levelCap()) state.level += 1;
       state.maxLevelEverReached = Math.max(state.maxLevelEverReached, state.level);
       state.peakLevel = Math.max(state.peakLevel, state.level);
       state.stats.maxLevelDiff[state.difficulty] = Math.max(state.stats.maxLevelDiff[state.difficulty]||1, state.level);
@@ -2617,7 +2635,7 @@
       }
       els('completeTitle').textContent = 'Nivel superado';
       els('completeBonus').textContent = fmtCoins(bonus);
-      els('completeNext').textContent = state.level >= MAX_LEVEL ? 'Nivel máximo' : state.level;
+      els('completeNext').textContent = state.level >= levelCap() ? 'Tope de ' + DIFF_NAMES[state.difficulty] + ' (' + levelCap() + ')' : state.level;
       setScreen('complete');
       return;
     }
@@ -2876,6 +2894,7 @@
   }
   function initMascots(){ buildMascots(); }
   function afterDifficulty(){
+    if(state.level > levelCap()) state.level = levelCap();
     if(!state.characterChosen){
       returnScreen = 'ready';
       els('closeCharacterBtn').textContent = 'Continuar';
@@ -2953,10 +2972,10 @@
       const readyHeal = computeHealPerSec();
       els('readyRegenRow').classList.toggle('hidden', readyHeal <= 0);
       if(readyHeal > 0) els('readyRegen').textContent = readyHeal.toFixed(2) + '/seg';
-      els('readyTarget').textContent = target + 's';
+      els('readyTarget').textContent = fmt(target) + 's';
       els('levelSelectNum').textContent = state.level;
       els('levelDownBtn').disabled = state.level <= 1;
-      els('levelUpBtn').disabled = state.level >= Math.max(1, state.peakLevel);
+      els('levelUpBtn').disabled = state.level >= Math.min(levelCap(), Math.max(1, state.peakLevel));
 
       const goalCard = els('prestigeGoalCard');
       if(state.peakLevel < 5){
@@ -2973,7 +2992,7 @@
           goalCard.classList.remove('ready');
           const remaining = prestigeReq() - state.peakLevel;
           els('prestigeGoalTitle').textContent = 'Objetivo: Prestigio';
-          els('prestigeGoalSub').textContent = `Te fal${remaining===1?'ta':'tan'} ${remaining} nivel${remaining===1?'':'es'} para desbloquear un beneficio permanente.`;
+          els('prestigeGoalSub').textContent = prestigeNeedsDiff() ? `El próximo prestigio pide el nivel ${prestigeReq()} y ${DIFF_NAMES[state.difficulty]} llega hasta el ${levelCap()}: pasá a ${DIFF_NAMES[prestigeNeedsDiff()]}.` : `Te fal${remaining===1?'ta':'tan'} ${remaining} nivel${remaining===1?'':'es'} para desbloquear un beneficio permanente.`;
           const progress = Math.max(0, Math.min(100, (state.peakLevel-5)/(prestigeReq()-5)*100));
           els('prestigeGoalProgress').style.width = progress + '%';
         }
@@ -2984,7 +3003,7 @@
     const canP = canPrestige();
     els('menuPrestigeBtn').disabled = !canP;
     const perksOwned = Object.values(state.perks||{}).reduce((a,b)=>a+b,0);
-    els('prestigeMenuSub').textContent = canP ? ('listo · ' + perksOwned + ' beneficio' + (perksOwned===1?'':'s') + ' acumulado' + (perksOwned===1?'':'s')) : ('bloqueado hasta nivel ' + prestigeReq() + ' (vas por el ' + state.peakLevel + ')');
+    els('prestigeMenuSub').textContent = canP ? ('listo · ' + perksOwned + ' beneficio' + (perksOwned===1?'':'s') + ' acumulado' + (perksOwned===1?'':'s')) : (prestigeNeedsDiff() ? 'nivel ' + prestigeReq() + ': pasá a ' + DIFF_NAMES[prestigeNeedsDiff()] : 'bloqueado hasta nivel ' + prestigeReq() + ' (vas por el ' + state.peakLevel + ')');
 
     els('soundLabel').textContent = 'Sonido: ' + (state.soundOn ? 'activado' : 'desactivado');
     els('soundIconBadge').innerHTML = state.soundOn ? iconSound : iconMute;
@@ -3079,7 +3098,7 @@
       if(state.upgrades.regenBranch === null){
         if(state.upgrades.regen < 3){
           const cost = regenCost();
-          const desc = `Reduce la pérdida de vida por segundo en ${((state.upgrades.regen+1)*0.15).toFixed(2)}.`;
+          const desc = `-8% de pérdida de vida por segundo (nivel ${state.upgrades.regen+1}/3).`;
           return { icon:iconShield, locked:false, cost:'$'+fmtCoins(cost), affordable: state.coins>=cost, badge: state.upgrades.regen, onClick: buyRegenQuick, name:'Resistencia', desc };
         }
         return { icon:iconShield, locked:false, cost:'elegir', affordable:true, badge:'★', onClick: openBranchFromQuickBuy, name:'Resistencia', desc:'Lista para especializarse: Mitigación o Regeneración. Tocá para elegir.' };
@@ -3087,8 +3106,8 @@
       const cost = regenPostCost();
       const branchName = state.upgrades.regenBranch === 'mitigacion' ? 'Mitigación avanzada' : 'Regeneración celular';
       const desc = state.upgrades.regenBranch === 'mitigacion'
-        ? `Reduce aún más la pérdida de vida por segundo (nivel ${state.upgrades.regenPost}).`
-        : `Cura ${(state.upgrades.regenPost*0.15).toFixed(2)} de vida por segundo, incluso durante anomalías.`;
+        ? `-5% de pérdida de vida por segundo por nivel (nivel ${state.upgrades.regenPost}).`
+        : `Cura ${fmt(computeHealPerSec())} de vida por segundo (0,08% de tu vida máxima por nivel), incluso durante anomalías.`;
       return { icon: state.upgrades.regenBranch === 'mitigacion' ? iconShield : iconHeartPlus, locked:false, cost:'$'+fmtCoins(cost), affordable: state.coins>=cost, badge: state.upgrades.regenPost, onClick: buyRegenPostQuick, name:branchName, desc };
     }
     if(id === 'antidoteMinor'){
@@ -3577,7 +3596,7 @@
     } else if(id === 'regen'){
       I.name = 'Resistencia'; I.icon = iconShield; I.lvl = state.upgrades.regen; I.max = 3; I.maxed = I.lvl >= 3;
       I.cost = regenCost();
-      I.desc = I.maxed ? 'Al máximo. Ahora podés elegir cómo especializarla (permanente).' : 'Próximo nivel: reduce la pérdida de vida por segundo en ' + ((I.lvl+1)*0.15).toFixed(2) + '.';
+      I.desc = I.maxed ? 'Al máximo. Ahora podés elegir cómo especializarla (permanente).' : 'Próximo nivel: -8% de pérdida de vida por segundo (' + (I.lvl+1) + '/3).';
       I.can = !I.maxed && coins >= I.cost; I.btnOn = I.can;
       I.buy = () => { if(state.upgrades.regen < 3 && state.coins >= regenCost()){ state.coins -= regenCost(); state.upgrades.regen += 1; bumpQuest('buy', 1); save(); render(); } };
     } else if(id === 'regenMit' || id === 'regenReg'){
@@ -3589,14 +3608,14 @@
       if(!I.locked){
         if(br === null){
           I.ck = 'free'; I.costText = 'gratis'; I.btn = treePending === id ? 'Tocá de nuevo para confirmar' : 'Elegir (permanente)'; I.can = true; I.btnOn = true;
-          I.desc = (mit ? 'Reduce aún más la pérdida de vida por segundo.' : 'Cura vida por segundo, incluso durante anomalías.') + ' Es una elección permanente: solo podés seguir una de las dos.';
+          I.desc = (mit ? 'Cada nivel baja otro 5% la pérdida de vida por segundo.' : 'Cada nivel cura 0,08% de tu vida máxima por segundo, incluso durante anomalías.') + ' Es una elección permanente: solo podés seguir una de las dos.';
           I.buy = () => {
             if(treePending !== id){ treePending = id; return; }
             treePending = null; state.upgrades.regenBranch = key; save(); render();
           };
         } else {
           I.lvl = state.upgrades.regenPost; I.cost = regenPostCost();
-          I.desc = 'Próximo nivel: ' + (mit ? 'reduce aún más la pérdida de vida por segundo (nivel ' + (I.lvl+1) + ').' : 'cura ' + ((I.lvl+1)*0.15).toFixed(2) + ' de vida por segundo, incluso durante anomalías.');
+          I.desc = 'Próximo nivel: ' + (mit ? '-5% más de pérdida de vida por segundo (nivel ' + (I.lvl+1) + ').' : 'cura ' + fmt(computeMaxHp() * 0.0008 * (I.lvl+1)) + ' de vida por segundo, incluso durante anomalías.');
           I.can = coins >= I.cost; I.btnOn = I.can; I.buy = () => buyRegenPostQuick();
         }
       }
@@ -3979,7 +3998,7 @@
       state.level -= 1; state.consecutiveDeathsThisLevel = 0; save(); render();
     });
     els('levelUpBtn').addEventListener('click', () => {
-      if(screen !== 'ready' || state.level >= Math.max(1, state.peakLevel)) return;
+      if(screen !== 'ready' || state.level >= Math.min(levelCap(), Math.max(1, state.peakLevel))) return;
       state.level += 1; state.consecutiveDeathsThisLevel = 0; save(); render();
     });
 
