@@ -2419,7 +2419,7 @@
     nextHazardTime = (challenge === 'sinres' || isBoss()) ? rand(4,6) : rand(11,17) * perkHazardDelayMult();
     nextHazard2Time = Infinity;
     gasPhase = ''; nextGasTime = state.level >= 8 ? rand(35, 55) : Infinity;
-    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; nextPickupAt = rand(3, 6); clearPickups();
+    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; pickupsThisRun = 0; nextPickupAt = computeTarget() * rand(0.2, 0.45); clearPickups();
     event = null;
     const gift = essLvl('reserva');
     if(gift > 0 && state.consumables.antidoteMinor < gift) state.consumables.antidoteMinor = gift;
@@ -2583,7 +2583,7 @@
     misterio: { w:20, cls:'pk-mist', icon:'?', tip:'Cápsula misteriosa: puede ser buena… o no' },
     toxica:   { w:20, cls:'pk-tox',  icon:'☣', tip:'Espora tóxica: reventala antes de que te alcance' },
   };
-  let regenBoostUntil = 0, nextPickupAt = Infinity;
+  let regenBoostUntil = 0, nextPickupAt = Infinity, pickupsThisRun = 0;
   function clearPickups(){ if(sceneEls) sceneEls.sc.querySelectorAll('.pk').forEach(p => p.remove()); }
   function spawnPickup(){
     const sc = sceneEls && sceneEls.sc; if(!sc || sc.querySelectorAll('.pk').length >= 2) return;
@@ -2692,7 +2692,8 @@
       updateEventBtn();
     }
 
-    if(state.elapsed >= nextPickupAt){ spawnPickup(); nextPickupAt = state.elapsed + rand(6, 11); }
+    // Como mucho 2 cápsulas por partida: una en la primera mitad del nivel y otra en la segunda.
+    if(state.elapsed >= nextPickupAt){ spawnPickup(); pickupsThisRun++; nextPickupAt = pickupsThisRun < 2 ? Math.max(state.elapsed + 8, computeTarget() * rand(0.55, 0.85)) : Infinity; }
 
     const gained = computeEffectiveRate()*0.1;
     state.coins += gained;
