@@ -711,6 +711,30 @@
   .diff-save{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--gold);}
   .branch-card.cur{border-color:var(--safe);}
 
+  /* ===== Paneles laterales y tarjetas de la columna ===== */
+  body.wide{gap:16px;}
+  .side{display:none;width:250px;flex:none;position:sticky;top:24px;align-self:flex-start;max-height:calc(var(--vhp,100vh) - 48px);overflow:hidden;flex-direction:column;gap:10px;}
+  body.wide .side{display:flex;}
+  .side-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:0;}
+  .side-box h3{margin:0 0 8px;font-size:12px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
+  .side-sub{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin:10px 0 4px;}
+  .sq{margin-bottom:7px;} .sq-t{font-size:12px;line-height:1.3;} .sq.done .sq-t{color:var(--gold);} .sq .progress{margin-top:3px;}
+  .side-note{font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:6px;} .side-note.gold{color:var(--gold);}
+  .side-btn{margin-top:8px;width:100%;padding:8px;border-radius:10px;background:var(--gold-dim);color:var(--gold);font-weight:600;font-size:12.5px;} .side-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .sp-row{display:flex;align-items:center;gap:10px;font-size:13px;} .sp-pic .pet-svg{width:48px;height:44px;transform:none;}
+  .sr{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);} .sr.me{color:var(--gold);font-weight:600;}
+  .sr-p{font-family:var(--mono);width:20px;color:var(--muted);text-align:right;flex:none;} .sr-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sr-v{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none;}
+  .sr-gap{text-align:center;color:var(--muted);font-size:11px;}
+  .side-journal{flex:1;overflow:hidden;}
+  .sj{display:flex;gap:7px;font-size:12px;line-height:1.3;padding:4px 0;border-bottom:1px solid var(--line);} .sj span{flex:none;width:16px;text-align:center;}
+  .col-info{display:grid;gap:8px;margin-top:8px;}
+  .ci-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;}
+  .ci-card:empty{display:none;}
+  #bossCard{border-color:rgba(255,92,77,.35);} .ci-h{font-size:12.5px;} .ci-h b{color:#ff8a7e;} .ci-s{font-size:11.5px;margin-top:3px;color:var(--muted);} .ci-s.ok{color:var(--safe);} .ci-s.warn{color:var(--gold);}
+  .run-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px 8px;}
+  .rs{text-align:center;min-width:0;} .rs b{display:block;font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .rs span{font-size:9.5px;color:var(--muted);}
+  @media (max-height: 720px){ .run-sum{display:none !important;} }
+
   /* ===== Habilidades del compañero ===== */
   .pet-slot.abfx .pet-in{animation:petAbJump .9s ease-out !important;}
   @keyframes petAbJump{0%{transform:translateY(0) scale(1);}30%{transform:translateY(-14px) scale(1.25);}60%{transform:translateY(-4px) scale(1.1);}100%{transform:translateY(0) scale(1);}}
@@ -772,6 +796,7 @@
 </style>
 </head>
 <body>
+<aside class="side" id="sideL"></aside>
 <div id="app">
   <div id="loading" class="loading">tomando aire…</div>
 
@@ -849,6 +874,8 @@
     </div>
 
     <div class="milestone-card"><div class="ms-text"></div><div class="progress"><div class="progress-fill ms-fill" style="width:0%"></div></div></div>
+
+    <div class="col-info" id="colInfo"><div class="ci-card" id="bossCard"></div><div class="ci-card run-sum" id="runSum"></div></div>
 
     <div class="action">
       <div class="group-label consum-title">consumibles</div>
@@ -1178,6 +1205,7 @@
   <div class="flash-layer" id="flashLayer"></div>
   <div class="qb-tooltip" id="qbTooltip"></div>
 </div>
+<aside class="side" id="sideR"></aside>
 
 <script>
 /* ÍNDICE DEL CÓDIGO (buscá estos títulos):
@@ -1880,6 +1908,7 @@
         const ea = 1 + petEssBonus();
         state.essence += ea; state.stats.essenceEarned += ea;
         showToast('★ Objetivo cumplido: ' + a.cepa + ' · ◆ +' + ea + ' Esencia');
+        logEvent('★', 'Logro: ' + a.cepa);
         playBeep(880, 0.18); setTimeout(()=>playBeep(1180,0.2),120);
       }
     });
@@ -2202,6 +2231,7 @@
         state.coins += r; state.totalCoinsEarned += r;
         const eq = 2 + petEssBonus();
         showToast('★ Misión cumplida: +' + fmtCoins(r) + ' monedas · ◆ +' + eq + ' Esencia');
+        logEvent('🎯', 'Misión cumplida · +$' + fmtCoins(r));
         state.essence += eq; state.stats.essenceEarned += eq;
         floatText('+' + fmtCoins(r), 'gold');
         playBeep(900, 0.15);
@@ -2428,7 +2458,7 @@
     nextHazardTime = (challenge === 'sinres' || isBoss()) ? rand(4,6) : rand(11,17) * perkHazardDelayMult();
     nextHazard2Time = Infinity;
     gasPhase = ''; nextGasTime = state.level >= 8 ? rand(35, 55) : Infinity;
-    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; pickupsThisRun = 0; nextPickupAt = computeTarget() * rand(0.2, 0.45); clearPickups();
+    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; pickupsThisRun = 0; runStats = { coins:0, caps:0, dmg:0 }; panelsAt = 0; nextPickupAt = computeTarget() * rand(0.2, 0.45); clearPickups();
     event = null;
     const gift = essLvl('reserva');
     if(gift > 0 && state.consumables.antidoteMinor < gift) state.consumables.antidoteMinor = gift;
@@ -2611,19 +2641,20 @@
     if(!state.notifiedKeys.pk){ state.notifiedKeys.pk = true; showToast('¡Tocá las cápsulas que vienen por el camino! Pueden traer vida, monedas… o algo tóxico que te pega si no la tocás a tiempo.'); }
   }
   function collectPickup(type, b){
-    state.stats.pickups = (state.stats.pickups || 0) + 1;
+    state.stats.pickups = (state.stats.pickups || 0) + 1; runStats.caps++;
     b.style.left = getComputedStyle(b).left; b.classList.add('got'); setTimeout(() => b.remove(), 320);
     const mh = computeMaxHp();
     if(type === 'misterio') type = Math.random() < 0.3 ? 'trampa' : (Math.random() < 0.5 ? 'x2' : 'cura');
     if(type === 'vida'){ regenBoostUntil = state.elapsed + 6; floatText('Regeneración +3%/s · 6s', 'good'); heroPop('heal'); playBeep(880, 0.12); }
-    else if(type === 'monedas'){ const c = Math.round(computeEffectiveRate() * 12); state.coins += c; state.totalCoinsEarned += c; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
+    else if(type === 'monedas'){ const c = Math.round(computeEffectiveRate() * 12); state.coins += c; state.totalCoinsEarned += c; runStats.coins += c; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
     else if(type === 'x2'){ boostUntil = state.elapsed + 8; floatText('¡Monedas x2 · 8s!', 'gold'); heroPop('boost'); playBeep(1100, 0.12); }
     else if(type === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25); floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
-    else if(type === 'trampa'){ state.hp -= mh * 0.15; floatText('¡Era una trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
-    else { const c = Math.round(computeEffectiveRate() * 3); state.coins += c; state.totalCoinsEarned += c; floatText('Espora reventada +' + fmtCoins(c), 'gold'); playBeep(600, 0.08, 'square'); }
+    else if(type === 'trampa'){ state.hp -= mh * 0.15; runStats.dmg += mh * 0.15; floatText('¡Era una trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
+    else { const c = Math.round(computeEffectiveRate() * 3); state.coins += c; state.totalCoinsEarned += c; runStats.coins += c; floatText('Espora reventada +' + fmtCoins(c), 'gold'); playBeep(600, 0.08, 'square'); }
+    logEvent('❔', 'Cápsula: ' + ({ vida:'regeneración por 6 s', monedas:'bolsa de monedas', x2:'monedas ×2 por 8 s', cura:'curación del 25%', trampa:'¡era una trampa! (-15% vida)' }[type] || 'espora reventada'));
     render();
   }
-  function toxicHit(){ state.hp -= computeMaxHp() * 0.12; floatText('Espora tóxica -12% vida', 'bad'); impact(); }
+  function toxicHit(){ const d = computeMaxHp() * 0.12; state.hp -= d; runStats.dmg += d; floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)'); }
 
   let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
   function tick(){
@@ -2633,7 +2664,7 @@
     state.stats.timePlayed += 0.1;
     bumpQuest('time', 0.1);
     const shielded = isShielded();
-    if(!shielded) state.hp -= computeDrain()*0.1;
+    if(!shielded){ const dd = computeDrain()*0.1; state.hp -= dd; runStats.dmg += dd; }
     state.hp = Math.min(computeMaxHp(), state.hp + computeHealPerSec()*0.1);
 
     if(overdriveActive && sessionClock >= overdriveEndsAt){
@@ -2667,7 +2698,7 @@
         updateHazardBanner();
         impact();
       }
-      if(h.phase === 'active' && !shielded) state.hp -= hazardMagnitude()*hazardResist(h.type)*0.1;
+      if(h.phase === 'active' && !shielded){ const hd = hazardMagnitude()*hazardResist(h.type)*0.1; state.hp -= hd; runStats.dmg += hd; }
     });
 
     if(!gasPhase && state.elapsed >= nextGasTime){
@@ -2707,6 +2738,7 @@
     const gained = computeEffectiveRate()*0.1;
     state.coins += gained;
     state.totalCoinsEarned += gained;
+    runStats.coins += gained;
 
     const ratio = Math.max(0,state.hp)/computeMaxHp();
     if(ratio < 0.3 && !enteredCritical){ enteredCritical = true; vibrate([90,50,90]); playBeep(300,0.25,'sawtooth'); }
@@ -2717,7 +2749,7 @@
       if(petAb('gato') && Math.random() < 0.10 + 0.04*petLv('hab')){
         state.hp = computeMaxHp()*0.4;
         showToast('Siete vidas: ¡tu gatito te salvó!');
-        petAbFx('gato', '¡7 vidas!'); heroPop('heal');
+        petAbFx('gato', '¡7 vidas!'); heroPop('heal'); logEvent('🐱', 'Siete vidas: tu gatito te salvó');
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save(); render();
         return;
@@ -2726,7 +2758,7 @@
         state.consumables.revive -= 1;
         state.stats.revivesUsed += 1;
         state.hp = computeMaxHp()*0.5;
-        showToast('Reanimador activado');
+        showToast('Reanimador activado'); logEvent('💗', 'Reanimador activado');
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save();
         render();
@@ -2739,6 +2771,7 @@
         showToast('Desafío fallido — no perdiste nada');
       } else {
         state.consecutiveDeathsThisLevel += 1;
+        logEvent('✝', 'Caíste en el nivel ' + state.level + ' a los ' + fmt(state.elapsed) + ' s');
         state.stats.deaths += 1;
         if(state.level >= 5 && state.elapsed >= computeTarget()*0.5 && !state.essenceLevels[state.level]){
           state.essenceLevels[state.level] = true;
@@ -2767,7 +2800,8 @@
       const squirrelBonus = petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0;
       if(squirrelBonus) petAbFx('ardilla', '+' + fmtCoins(squirrelBonus));
       const bonus = Math.round((beatBoss ? 3 : 1) * (60 + state.level*30) * Math.pow(1.065, state.level - 1) * (1 + 0.25*state.upgrades.harvest) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1)) + squirrelBonus;
-      state.coins += bonus; state.totalCoinsEarned += bonus;
+      state.coins += bonus; state.totalCoinsEarned += bonus; runStats.coins += bonus;
+      logEvent(beatBoss ? '☣' : '✓', (beatBoss ? 'Superaste la epidemia ' + beatBoss : 'Nivel ' + state.level + ' superado') + ' · +$' + fmtCoins(bonus));
       if(beatBoss){
         state.stats.bossesBeaten = (state.stats.bossesBeaten || 0) + 1;
         if(!state.bossBeat[state.level]){ state.bossBeat[state.level] = true; gainEssence(1, 'epidemia superada'); }
@@ -3092,6 +3126,99 @@
     mascotEls.forEach(m => { const cc = 'mascot c-' + m.dataset.ch + ' ' + c; if(m.className !== cc) m.className = cc; });
   }
 
+  // ---- Paneles: objetivos, compañero, ranking en vivo, bitácora, próxima epidemia y resumen de la partida ----
+  const journal = [];
+  let runStats = { coins:0, caps:0, dmg:0 }, panelsAt = 0;
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+  function logEvent(icon, text){ journal.unshift({ icon, text }); if(journal.length > 12) journal.pop(); panelsAt = 0; }
+  function sideObjectivesHTML(){
+    const quests = state.quests ? state.quests.list.map(q => {
+      const d = questDef(q.id), pct = Math.min(100, q.progress / q.goal * 100);
+      return '<div class="sq' + (q.done ? ' done' : '') + '"><div class="sq-t">' + (q.done ? '✓ ' : '') + esc(d.text(q.goal)) + '</div><div class="progress"><div class="progress-fill" style="width:' + pct.toFixed(0) + '%"></div></div></div>';
+    }).join('') : '';
+    const req = prestigeReq(), nd = prestigeNeedsDiff();
+    const pr = canPrestige() ? '<b>¡Ya podés hacer prestigio!</b> Ganás ✦' + prestigePoints()
+      : nd ? 'Necesitás el nivel ' + req + ': pasá a <b>' + DIFF_NAMES[nd] + '</b>'
+      : 'Nivel <b>' + state.peakLevel + '</b> de <b>' + req + '</b>';
+    return '<h3>Objetivos</h3><div class="side-sub">Misiones de hoy</div>' + quests
+      + '<div class="side-sub">Prestigio ' + (state.prestige + 1) + '</div><div class="sq"><div class="sq-t">' + pr + '</div><div class="progress"><div class="progress-fill" style="width:' + Math.min(100, state.peakLevel / req * 100).toFixed(0) + '%"></div></div></div>'
+      + '<div class="side-note">' + DIFF_NAMES[state.difficulty] + ' · llega hasta el nivel ' + levelCap() + '</div>';
+  }
+  function sidePetHTML(){
+    if(!petOn()) return '<h3>Compañero</h3><div class="side-note">Todavía no elegiste uno. Es gratis: tocá el «?» que camina con vos o entrá al árbol de mejoras.</div>';
+    const a = state.pet.animal, P = PET_ANIMALS[a], ab = PET_AB[a], lv = petLv('hab'), max = PET_UP.hab.max, c = petAbCost(a);
+    return '<h3>Compañero</h3><div class="sp-row"><span class="sp-pic" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span><div><b>' + P.name + '</b><div class="side-note" style="margin-top:2px">' + esc(ab.name) + ' · nivel ' + lv + '/' + max + '</div></div></div>'
+      + '<div class="side-note">' + esc(ab.desc(Math.max(1, lv))) + '</div>'
+      + (lv < max ? '<button class="side-btn" data-act="petup"' + (state.essence >= c && screen !== 'running' ? '' : ' disabled') + '>' + (screen === 'running' ? 'Mejorar al terminar la partida' : 'Mejorar · ◆' + c) + '</button>' : '<div class="side-note gold">Al máximo ★</div>');
+  }
+  let rankCache = null, rankAt = 0, rankBusy = false;
+  async function refreshRank(){
+    if(!sb || rankBusy || Date.now() - rankAt < 60000) return;
+    rankBusy = true; rankAt = Date.now();
+    try{
+      const r = await withTimeout(sb.from('leaderboard').select('user_id,name,prestige,max_level,total_coins').order('prestige', { ascending:false }).order('max_level', { ascending:false }).order('total_coins', { ascending:false }).limit(100), 8000);
+      if(r && !r.error){ rankCache = r.data; panelsAt = 0; }
+    }catch(e){}
+    rankBusy = false;
+  }
+  function sideRankHTML(){
+    if(!sb) return '<h3>Ranking</h3><div class="side-note">No disponible.</div>';
+    refreshRank();
+    if(!rankCache) return '<h3>Ranking</h3><div class="side-note">cargando…</div>';
+    // tu fila con los valores de ahora, sin esperar a la próxima sincronización
+    let rows = rankCache.filter(r => !authUser || r.user_id !== authUser.id);
+    if(authUser) rows.push({ name: playerName(), prestige: state.prestige, max_level: state.maxLevelEverReached, total_coins: Math.floor(state.totalCoinsEarned), me: true });
+    rows.sort((a, b) => b.prestige - a.prestige || b.max_level - a.max_level || b.total_coins - a.total_coins);
+    const row = (r, i) => '<div class="sr' + (r.me ? ' me' : '') + '"><span class="sr-p">' + (i + 1) + '</span><span class="sr-n">' + esc(r.name) + '</span><span class="sr-v">✦' + r.prestige + ' · nv ' + r.max_level + '</span></div>';
+    const meI = rows.findIndex(r => r.me);
+    let h = '<h3>Ranking</h3>' + rows.slice(0, 5).map(row).join('');
+    if(meI >= 5) h += '<div class="sr-gap">…</div>' + row(rows[meI], meI);
+    if(meI > 0){
+      const o = rows[meI - 1], dp = o.prestige - state.prestige, dl = o.max_level - state.maxLevelEverReached;
+      const msg = dp > 0 ? (dp === 1 ? 'Te falta 1 prestigio' : 'Te faltan ' + dp + ' prestigios') : dl > 0 ? (dl === 1 ? 'Te falta 1 nivel' : 'Te faltan ' + dl + ' niveles') : 'Te faltan $' + fmtCoins(Math.max(0, o.total_coins - state.totalCoinsEarned));
+      h += '<div class="side-note gold">' + msg + ' para pasar a ' + esc(o.name) + '</div>';
+    } else if(meI === 0 && rows.length > 1) h += '<div class="side-note gold">¡Vas primero! 🏆</div>';
+    if(!authUser) h += '<div class="side-note">Entrá con Google para aparecer.</div>';
+    return h;
+  }
+  function sideJournalHTML(){
+    return '<h3>Bitácora</h3>' + (journal.length ? journal.map(j => '<div class="sj"><span>' + j.icon + '</span>' + esc(j.text) + '</div>').join('') : '<div class="side-note">Acá vas a ver lo que pasa en tus partidas.</div>');
+  }
+  // Próxima epidemia: cuánto aguantarías con tus mejoras de ahora y qué conviene mejorar.
+  function bossCardHTML(){
+    const L = state.level, next = isBoss() ? L : Math.ceil(L / 5) * 5;
+    if(next > levelCap()) return '';
+    const keep = state.level; let hp, drain, heal, haz, target, resLow;
+    try{
+      state.level = next;
+      hp = computeMaxHp(); drain = computeDrain(); heal = computeHealPerSec(); target = computeTarget();
+      const types = Object.keys(HAZARD_UNLOCK).filter(t => next >= HAZARD_UNLOCK[t]);
+      haz = types.length ? hazardMagnitude() * types.reduce((t, k) => t + hazardResist(k), 0) / types.length : 0;
+      resLow = types.some(k => hazardResist(k) > 0.35);
+    }finally{ state.level = keep; }
+    const den = drain - heal + haz, t = den > 0 ? (hp + 6 * haz) / den : Infinity, ok = t >= target;
+    const name = BOSSES[(next / 5 - 1) % BOSSES.length];
+    const head = isBoss() ? '☣ Ahora: <b>' + name + '</b>' : '☣ En ' + (next - L) + ' nivel' + (next - L === 1 ? '' : 'es') + ': <b>' + name + '</b> (nivel ' + next + ')';
+    const tip = haz > drain * 0.4 && resLow ? 'tus resistencias (Antitoxina, Aislante, Blindaje)' : 'Blindaje vital o Resistencia';
+    const verdict = ok ? '✅ Con tus mejoras de ahora lo aguantás.' : '⚠ Aguantarías ~' + fmt(Math.max(0, t)) + ' s de ' + fmt(target) + ' s. Mejorá ' + tip + '.';
+    return '<div class="ci-h">' + head + '</div><div class="ci-s ' + (ok ? 'ok' : 'warn') + '">' + verdict + '</div>';
+  }
+  function runSumHTML(){
+    const best = state.levelBestTimes[state.level] || 0;
+    return [['💰', '$' + fmtCoins(runStats.coins), 'esta partida'], ['❔', runStats.caps + '/' + pickupsThisRun, 'cápsulas'], ['💔', fmt(runStats.dmg), 'daño recibido'], ['⏱', fmt(best) + 's', 'récord del nivel']]
+      .map(c => '<div class="rs"><b>' + c[0] + ' ' + c[1] + '</b><span>' + c[2] + '</span></div>').join('');
+  }
+  function renderPanels(){
+    const now = Date.now();
+    if(now - panelsAt < 500) return;
+    panelsAt = now;
+    setHTML(els('bossCard'), bossCardHTML());
+    setHTML(els('runSum'), runSumHTML());
+    if(!document.body.classList.contains('wide')) return;
+    setHTML(els('sideL'), '<section class="side-box">' + sideObjectivesHTML() + '</section><section class="side-box">' + sidePetHTML() + '</section>');
+    setHTML(els('sideR'), '<section class="side-box">' + sideRankHTML() + '</section><section class="side-box side-journal">' + sideJournalHTML() + '</section>');
+  }
+
   function render(){
     document.body.classList.toggle('playing', screen === 'running');
     try{ updateMascot(); renderCharacterPick(); }catch(e){}
@@ -3182,6 +3309,7 @@
 
     renderConsumables();
     renderExtras();
+    renderPanels();
   }
 
   function buyUpgradeQuick(type){
@@ -3520,6 +3648,7 @@
         checkAchievements();
         save();
         fanfare(); prestigeWave();
+        logEvent('✦', 'Prestigio ' + state.prestige + ': ' + p.name);
         const unlocked = PRESTIGE_UNLOCKS[state.prestige];
         showToast('★ Prestigio: ' + p.name + ' · ✦ +' + gain + ' puntos' + (unlocked ? ' · Nuevo: ' + unlocked : ''));
         setScreen('ready');
@@ -4033,16 +4162,20 @@
   let uiZoom = 1, fitKey = '', readyH = 560;
   function fitZoom(){
     try{
-      const ms = document.querySelector('#game > .milestone-card');
+      const ms = els('colInfo');
       if(!ms || els('game').classList.contains('hidden')) return;
       const reserve = (els('hazardBanner').classList.contains('show') ? 0 : 38) + (els('eventBtn').classList.contains('show') ? 0 : 54);
       const ro = els('readyOverlay');
       if(!ro.classList.contains('hidden')) readyH = ro.scrollHeight;
       const h = Math.max(ms.offsetTop + ms.offsetHeight + reserve + 110 + 34, readyH + 130);
+      const WIDE_W = 492 + 2 * (250 + 16);
       const key = innerWidth + 'x' + innerHeight + ':' + Math.round(h / 20);
       if(key === fitKey) return;
       fitKey = key;
-      uiZoom = Math.round(Math.max(1, Math.min(innerWidth / 492, innerHeight / h, 2.4)) * 100) / 100;
+      const wide = innerWidth >= WIDE_W;
+      document.body.classList.toggle('wide', wide);
+      uiZoom = Math.round(Math.max(1, Math.min(innerWidth / (wide ? WIDE_W : 492), innerHeight / h, 2.4)) * 100) / 100;
+      panelsAt = 0;
       const root = document.documentElement;
       root.style.zoom = uiZoom === 1 ? '' : String(uiZoom);
       root.style.setProperty('--vhp', (innerHeight / uiZoom) + 'px');
@@ -4060,6 +4193,7 @@
 
     window.addEventListener('resize', fitZoom);
     els('menuBtn').addEventListener('click', openMenu);
+    els('sideL').addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-act="petup"]'); if(b && !b.disabled && petOn()) buyPetAb(state.pet.animal); });
     els('menuBackdrop').addEventListener('click', closeMenu);
     document.querySelectorAll('.menu-group-head').forEach(h => h.addEventListener('click', () => {
       const g = h.parentElement, was = g.classList.contains('open');
