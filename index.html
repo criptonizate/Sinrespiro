@@ -711,6 +711,10 @@
   .diff-save{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--gold);}
   .branch-card.cur{border-color:var(--safe);}
 
+  .cf-best{font-size:10.5px;color:var(--gold);font-family:var(--mono);margin-left:6px;white-space:nowrap;}
+  .branch-card.sel{border-color:var(--gold);background:var(--gold-dim);}
+  .cf-confirm{font-size:11.5px;color:var(--gold);margin-top:6px;} .cf-confirm:empty{display:none;}
+
   /* ===== Paneles laterales y tarjetas de la columna ===== */
   body.wide{gap:16px;}
   .side{display:none;width:250px;flex:none;position:sticky;top:24px;align-self:flex-start;max-height:calc(var(--vhp,100vh) - 48px);overflow:hidden;flex-direction:column;gap:10px;}
@@ -892,6 +896,12 @@
       </button>
       <button class="btn-secondary" id="guestBtn">Jugar sin cuenta</button>
       <div class="auto-note" id="loginNote" style="color:var(--muted);">Sin cuenta, la partida queda solo en este dispositivo y no aparecés en el ranking.</div>
+    </div>
+
+    <div class="overlay hidden" id="conflictOverlay">
+      <h2>Encontramos dos partidas</h2>
+      <p class="sub">Tenés una partida guardada en tu cuenta de Google y otra que jugaste en este dispositivo sin cuenta. Elegí con cuál seguir: la otra se descarta.</p>
+      <div class="branch-opts" id="conflictList"></div>
     </div>
 
     <div class="overlay hidden" id="rankingOverlay">
@@ -1600,6 +1610,9 @@
   const LOCAL_KEY = 'protocolo-save';
   const GUEST_KEY = 'protocolo-guest';
   let sb = null, authUser = null, cloudLoaded = false, cloudState = 'off';
+  // saveConflict: partida sin cuenta del dispositivo + partida de la cuenta; hasta que el jugador elija, no se guarda nada.
+  let saveConflict = null, adoptNote = false;
+  const hasProgress = s => (s.prestige || 0) > 0 || (s.maxLevelEverReached || 1) > 1 || (s.totalCoinsEarned || 0) > 0;
   let cloudLastJson = '', cloudWarned = false, leaving = false, logoutArmed = false, logoutTimer = null;
   let cloudBusy = false, cloudDirty = false, cloudLast = 0, cloudTimer = null;
   function cloudReady(){ return !!(sb && authUser && cloudLoaded); }
@@ -1666,7 +1679,7 @@
     if(cloudDirty) scheduleCloud();
   }
   async function save(){
-    if(leaving) return;
+    if(leaving || saveConflict) return;
     try{
       state.lastSeen = Date.now();
       if(authUser) state._uid = authUser.id;
@@ -1695,10 +1708,11 @@
     }
     if(remote){
       if(local && local._uid === authUser.id && (local.lastSeen||0) > (remote.lastSeen||0)){ cloudDirty = true; return local; }
+      if(local && !local._uid && hasProgress(local)) saveConflict = { local, remote };
       return remote;
     }
-    // Primera vez con esta cuenta: se adopta el progreso que había en el dispositivo.
-    if(local) cloudDirty = true;
+    // Primera vez con esta cuenta: la partida que había en el dispositivo pasa a la cuenta.
+    if(local){ cloudDirty = true; if(!local._uid && hasProgress(local)) adoptNote = true; }
     return local;
   }
   async function signInGoogle(){
@@ -2437,8 +2451,8 @@
     else el.textContent = '☁ Nube: no disponible. Se guarda en este dispositivo.';
   }
 
-  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','branchOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','essenceOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','treeOverlay','loginOverlay','rankingOverlay'];
-  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', essence:'essenceOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', tree:'treeOverlay', login:'loginOverlay', ranking:'rankingOverlay' };
+  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','branchOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','essenceOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','treeOverlay','loginOverlay','rankingOverlay','conflictOverlay'];
+  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', essence:'essenceOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', tree:'treeOverlay', login:'loginOverlay', ranking:'rankingOverlay', conflict:'conflictOverlay' };
   function setScreen(next){
     screen = next;
     if(next === 'ready' || next === 'difficulty') challenge = null;
@@ -4427,7 +4441,44 @@
     save();
   }
 
+  function saveSummary(d){ return { p: d.prestige || 0, lvl: d.maxLevelEverReached || 1, coins: d.totalCoinsEarned || 0, seen: d.lastSeen }; }
+  function showConflict(){
+    const list = els('conflictList'); list.innerHTML = '';
+    const opts = [['☁ Partida de tu cuenta de Google', saveConflict.remote], ['📱 Partida de este dispositivo (sin cuenta)', saveConflict.local]];
+    const sums = opts.map(o => saveSummary(o[1]));
+    const best = (sums[0].p - sums[1].p || sums[0].lvl - sums[1].lvl || sums[0].coins - sums[1].coins) >= 0 ? 0 : 1;
+    let armed = -1;
+    opts.forEach(([title, data], i) => {
+      const sm = sums[i], b = document.createElement('button');
+      b.className = 'branch-card';
+      const when = sm.seen ? new Date(sm.seen).toLocaleString('es-AR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+      b.innerHTML = '<div class="name">' + title + (i === best ? ' <span class="cf-best">★ más avanzada</span>' : '') + '</div>'
+        + '<div class="desc">✦ ' + sm.p + ' prestigio' + (sm.p === 1 ? '' : 's') + ' · nivel máximo ' + sm.lvl + ' · $' + fmtCoins(sm.coins) + ' históricas<br>Última vez: ' + when + '</div><div class="cf-confirm"></div>';
+      b.addEventListener('click', () => {
+        if(armed !== i){
+          armed = i;
+          list.querySelectorAll('.branch-card').forEach(x => { x.classList.remove('sel'); x.querySelector('.cf-confirm').textContent = ''; });
+          b.classList.add('sel'); b.querySelector('.cf-confirm').textContent = 'Tocá de nuevo para seguir con esta. La otra se descarta.';
+          return;
+        }
+        resolveConflict(data);
+      });
+      list.appendChild(b);
+    });
+    setScreen('conflict');
+  }
+  function resolveConflict(data){
+    saveConflict = null;
+    state = ensureShape(JSON.parse(JSON.stringify(data)));
+    state._uid = authUser.id;
+    cloudDirty = true; cloudLastJson = '';
+    buildMascots();
+    save();
+    showToast('Listo: seguís con la partida elegida y ya quedó guardada en tu cuenta.');
+    continueBoot();
+  }
   function continueBoot(){
+    if(adoptNote){ adoptNote = false; setTimeout(() => showToast('Tu partida sin cuenta quedó guardada en tu cuenta de Google.'), 1200); }
     const off = state.difficultyChosen ? computeOffline() : null;
     checkDailyStreak();
     ensureQuests();
@@ -4443,6 +4494,7 @@
     els('loading').classList.add('hidden');
     els('game').classList.remove('hidden');
     init();
+    if(saveConflict){ showConflict(); return; }
     if(sb && !authUser && !guestChosen()){ setScreen('login'); return; }
     if(authUser) setGuest(false);
     continueBoot();
