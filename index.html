@@ -131,7 +131,7 @@
   .mascot-slot.mascot-lg{width:96px;height:96px;margin:0 auto 6px;}
   .mascot{width:100%;height:100%;display:block;}
   .m-svg{width:100%;height:100%;overflow:visible;stroke-linecap:round;stroke-linejoin:round;}
-  .mascot{--m-shirt:var(--safe);}
+  .mascot{--m-shirt:var(--m-base,var(--safe));}
   .m-shadow{fill:rgba(0,0,0,0.45);}
   .m-torso{fill:var(--m-shirt);transition:fill .5s;}
   .m-skin{fill:#f1cfae;}
@@ -228,9 +228,17 @@
   .mascot.boost .m-fx-aura{opacity:1;}
   .m-fx-aura circle{stroke:var(--gold);animation:mPulse .8s ease-in-out infinite;}
 
-  .char-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .char-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:10px;}
   .char-card{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text);}
-  .char-card .mascot-slot{width:78px;height:78px;margin:0;}
+  .char-card .mascot-slot{width:56px;height:56px;margin:0;}
+  .char-card{position:relative;padding:6px 2px 7px;} .char-card .char-name{font-size:11px;}
+  .char-card.locked .mascot-slot{filter:grayscale(1) brightness(.45);} .char-card.locked .char-name{color:var(--muted);}
+  .char-card .char-lock{position:absolute;top:4px;right:6px;font-size:11px;}
+  .char-info{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.4;margin-bottom:4px;min-height:58px;}
+  .char-info b{color:var(--gold);} .char-info .ci-lock{color:var(--muted);}
+  .c-minero{--m-base:#b08a4a;} .c-bombero{--m-base:#d9503f;} .c-robot{--m-base:#7d8a90;} .c-astronauta{--m-base:#e3eaef;} .c-cientifica{--m-base:#eef3f5;} .c-veterano{--m-base:#5f7a3a;}
+  .c-robot .m-skin{fill:#b8c4c8;} .c-robot .m-hair{display:none;} .c-robot .m-eye{fill:#2fb7ad;}
+  .c-hongo .m-petal,.c-hongo .m-core{display:none;}
   .char-card .char-name{font-size:12.5px;font-weight:600;}
   .char-card .char-sel{font-size:10px;font-family:var(--mono);color:var(--safe);visibility:hidden;}
   .char-card.sel{border-color:var(--safe);background:var(--safe-dim);}
@@ -1078,12 +1086,9 @@
 
     <div class="overlay hidden" id="characterOverlay">
       <h2>Elegí tu personaje</h2>
-      <p class="sub">Es quien aguanta las anomalías por vos. Podés cambiarlo cuando quieras.</p>
-      <div class="char-list" id="charList">
-        <button class="char-card" data-ch="hombre"><div class="mascot-slot" data-char="hombre"></div><span class="char-name">Hombre</span><span class="char-sel">elegido</span></button>
-        <button class="char-card" data-ch="mujer"><div class="mascot-slot" data-char="mujer"></div><span class="char-name">Mujer</span><span class="char-sel">elegida</span></button>
-        <button class="char-card" data-ch="planta"><div class="mascot-slot" data-char="planta"></div><span class="char-name">Plantita</span><span class="char-sel">elegida</span></button>
-      </div>
+      <p class="sub">Cada personaje tiene una habilidad pasiva única. Empezás con 3 y el resto se desbloquea jugando. Podés cambiarlo cuando quieras.</p>
+      <div class="char-list" id="charList"></div>
+      <div class="char-info" id="charInfo"></div>
       <button class="btn-secondary" id="closeCharacterBtn">Volver</button>
     </div>
 
@@ -1433,7 +1438,7 @@
     s.consumables = Object.assign(d.consumables, s.consumables||{});
     s.autoContinue = Object.assign(d.autoContinue, s.autoContinue||{});
     s.levelBestTimes = s.levelBestTimes || {};
-    if(!['hombre','mujer','planta'].includes(s.character)) s.character = 'hombre';
+    if(!s.charsUnlocked || typeof s.charsUnlocked !== 'object') s.charsUnlocked = {};
     s.achievements = s.achievements || {};
     s.notifiedKeys = s.notifiedKeys || {};
     s.perks = s.perks || {};
@@ -1487,6 +1492,7 @@
     const st = Object.assign({}, d.stats, s.stats||{});
     st.maxLevelDiff = Object.assign({ facil:1, normal:1, dificil:1 }, (s.stats && s.stats.maxLevelDiff) || {});
     s.stats = st;
+    if(!CHAR_BY_ID[s.character] || !charUnlocked(CHAR_BY_ID[s.character], s)) s.character = 'hombre';
     if(!s.bossBeat || typeof s.bossBeat !== 'object') s.bossBeat = {};
     if(!s.consumBought || typeof s.consumBought !== 'object') s.consumBought = {};
     if(!s.runs || typeof s.runs !== 'object') s.runs = {};
@@ -1547,11 +1553,11 @@
   function achMult(){ return 1 + achCount()*0.03; }
   function essLvl(id){ return (state.essenceTree && state.essenceTree[id]) || 0; }
   function chalMult(){ return 1 + 0.02*Object.keys(state.challengesDone||{}).length; }
-  function overdriveDuration(){ return OVERDRIVE_DURATION + essLvl('sobrecarga'); }
+  function overdriveDuration(){ return OVERDRIVE_DURATION + essLvl('sobrecarga') + (charIs('veterano') ? 3 : 0); }
   function overdriveCooldown(){ return OVERDRIVE_COOLDOWN - 5*essLvl('sobrecarga'); }
-  function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult() * Math.pow(1.05, ppLvl('casco')); }
+  function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult() * Math.pow(1.05, ppLvl('casco')) * (charIs('hombre') ? 1.1 : 1); }
   // Escudo: absorbe fugas, esporas y trampas antes que la vida; el drenaje base siempre va a la vida.
-  function shieldMax(){ if(challenge==='cristal') return 0; return computeMaxHp() * (0.04 * state.upgrades.shield + 0.02 * ppLvl('generador')); }
+  function shieldMax(){ if(challenge==='cristal') return 0; return computeMaxHp() * (0.04 * state.upgrades.shield + 0.02 * ppLvl('generador')) * (charIs('robot') ? 1.25 : 1); }
   function shieldRegenPerSec(){ return shieldMax() * (0.02 * state.upgrades.shieldRegen + 0.01 * ppLvl('generador')); }
   const DIFFICULTY_DRAIN_MULT = { facil: 0.9, normal: 1.2, dificil: 1.6 };
   const DIFFICULTY_COIN_MULT = { facil: 1.0, normal: 1.25, dificil: 1.6 };
@@ -1567,6 +1573,7 @@
     drain *= perkDrainMult();
     if(gasPhase === 'act' && screen === 'running') drain *= 1 + 0.35 * (1 - 0.1*petLv('inmu'));
     drain *= (1 - 0.03*essLvl('pulso')) * Math.pow(0.97, ppLvl('armadura'));
+    if(charIs('astronauta')) drain *= 0.92;
     if(petAb('tortuga') && state.hp < computeMaxHp() * 0.35) drain *= 1 - (0.15 + 0.04*petLv('hab'));
     if(isBoss()) drain *= bossMult();
     if(challenge==='doble') drain *= 2;
@@ -1575,7 +1582,7 @@
     return drain;
   }
   function computeHealPerSec(){
-    return computeMaxHp() * (0.0008 * state.upgrades.healRegen + 0.0005 * ppLvl('inyector'))
+    return computeMaxHp() * ((0.0008 * state.upgrades.healRegen + 0.0005 * ppLvl('inyector')) * (charIs('mujer') ? 1.3 : 1) + (charIs('planta') ? 0.001 : 0))
       + (screen === 'running' && state.elapsed < regenBoostUntil ? computeMaxHp() * 0.03 : 0)
       + (screen === 'running' && levelSafe ? computeCurrentLoss() : 0);
   }
@@ -1588,7 +1595,7 @@
   function levelBonusCoins(boss){
     const L = state.level;
     return (boss ? 3 * (1 + 0.5 * state.upgrades.bossLoot) : 1) * (160 + 80 * L) * Math.pow(1.065, L - 1) * (1 + 0.2 * state.upgrades.levelBonus)
-      * (DIFFICULTY_COIN_MULT[state.difficulty] || 1) * (1 + 0.1 * ppLvl('guantes'));
+      * (DIFFICULTY_COIN_MULT[state.difficulty] || 1) * (1 + 0.1 * ppLvl('guantes')) * (charIs('minero') ? 1.15 : 1);
   }
   // Los consumibles se encarecen con cada compra del ciclo (se reinicia al hacer prestigio) y con el nivel de la cueva.
   function consumCost(base, g, key){ return Math.round(base * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * Math.pow(g, (state.consumBought && state.consumBought[key]) || 0)); }
@@ -1599,7 +1606,7 @@
   function hazardResist(type){
     const lvl = type==='poison' ? state.upgrades.antitox : type==='cold' ? state.upgrades.aislante : state.upgrades.blindajeRad;
     if(challenge==='sinres') return 1;
-    return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu'));
+    return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu')) * (charIs('cientifica') ? 0.85 : 1);
   }
   function hazardMagnitude(){ return (isBoss() ? bossMult() : 1) * 0.6 * Math.pow(1.076, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
 
@@ -1624,7 +1631,7 @@
     const key = kind === 'minor' ? 'antidoteMinor' : 'antidoteMajor';
     if(state.consumables[key] <= 0) return;
     state.consumables[key] -= 1;
-    const heal = computeMaxHp() * (kind === 'minor' ? 0.15 : 0.4);
+    const heal = computeMaxHp() * (kind === 'minor' ? 0.15 : 0.4) * (charIs('mujer') ? 1.3 : 1);
     const before = state.hp;
     state.hp = Math.min(computeMaxHp(), state.hp + heal);
     state.stats.antidotesUsed += 1; bumpQuest('antidote', 1);
@@ -1973,6 +1980,12 @@
 
   function checkAchievements(){
     let unlocked = false;
+    CHARACTERS.forEach(c => {
+      if(c.unlock && !state.charsUnlocked[c.id] && c.unlock.ok(state)){
+        state.charsUnlocked[c.id] = true; unlocked = true;
+        showToast('🎭 Nuevo personaje: ' + c.name + ' · ' + c.ab); logEvent('🎭', 'Personaje desbloqueado: ' + c.name, 'info');
+      }
+    });
     ACHIEVEMENTS.forEach(a => {
       if(!state.achievements[a.id] && a.check(state)){
         state.achievements[a.id] = true;
@@ -2565,7 +2578,7 @@
   const BOSS_MULT = 1.5;
   const BOSSES = ['Peste negra','Fiebre de cristal','Plaga ácida','Gripe abisal','Virus carmesí','Moho devorador','Sarna espectral','Cólera de sombra','Toxina madre','Pandemia final'];
   function isBoss(){ return state.level % 5 === 0; }
-  function bossMult(){ return Math.max(1.1, BOSS_MULT - 0.05 * (state.upgrades.bossRes || 0)); }
+  function bossMult(){ return Math.max(1.1, BOSS_MULT - 0.05 * (state.upgrades.bossRes || 0) - (charIs('bombero') ? 0.1 : 0)); }
   function bossName(){ return BOSSES[(state.level / 5 - 1) % BOSSES.length]; }
   // Una zona nueva cada 4 niveles (1-4, 5-8, ...); después del último color vuelve a empezar.
   function caveZone(){ return CAVE_ZONES[Math.floor((Math.min(state.level, MAX_LEVEL) - 1) / 4) % CAVE_ZONES.length]; }
@@ -2738,10 +2751,10 @@
     let msg, kind = 'heal';
     if(out === 'monedas'){ const c = Math.round(levelBonusCoins(false) * 0.3 * gold); addCoins(c); msg = '+$' + fmtCoins(c); kind = 'coin'; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
     else if(out === 'regen'){ regenBoostUntil = state.elapsed + 6; msg = 'regeneración +3%/s por 6 s'; floatText('Regeneración +3%/s · 6s', 'good'); heroPop('heal'); playBeep(880, 0.12); }
-    else if(out === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25); msg = '+' + fmt(state.hp - before) + ' de vida'; floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
+    else if(out === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25 * (charIs('mujer') ? 1.3 : 1)); msg = '+' + fmt(state.hp - before) + ' de vida'; floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
     else if(out === 'escudo'){ shieldHp += mh * 0.3; msg = '+' + fmt(mh * 0.3) + ' de escudo'; kind = 'shield'; floatText('🛡 +' + fmt(mh * 0.3), 'cold'); heroPop('shield'); playBeep(700, 0.12, 'triangle'); }
     else if(out === 'asegurado'){ levelSafe = true; msg = '¡paso asegurado! No perdés vida en este nivel'; floatText('✅ ¡Paso asegurado!', 'good'); heroPop('heal'); playBeep(660, 0.15); setTimeout(() => playBeep(990, 0.18), 110); }
-    else if(out === 'trampa'){ hurt(mh * 0.15, true); msg = 'era una trampa (-15% de vida)'; kind = 'dmg'; floatText('¡Trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
+    else if(out === 'trampa'){ hurt(mh * 0.15 * (charIs('hongo') ? 0.5 : 1), true); msg = 'era una trampa (-15% de vida)'; kind = 'dmg'; floatText('¡Trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
     else if(out === 'muerte'){
       if(levelSafe){ msg = 'muerte súbita… pero el paso asegurado te salvó'; floatText('☠ Esquivaste la muerte súbita', 'good'); }
       else { state.hp = 0; msg = '¡muerte súbita!'; kind = 'dmg'; floatText('☠ ¡Muerte súbita!', 'bad'); impact(); playBeep(150, 0.4, 'sawtooth'); }
@@ -2750,7 +2763,7 @@
     logEvent(C.icon, 'Cápsula: ' + msg, kind);
     render();
   }
-  function toxicHit(){ hurt(computeMaxHp() * 0.12, true); floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)', 'dmg'); }
+  function toxicHit(){ if(charIs('hongo')){ floatText('🍄 El hongo absorbió la espora', 'good'); logEvent('🍄', 'Simbiosis: la espora no te hizo nada', 'heal'); return; } hurt(computeMaxHp() * 0.12, true); floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)', 'dmg'); }
 
   let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
   function startTicker(){
@@ -2837,7 +2850,7 @@
     }
 
     // Como mucho 2 cápsulas por partida: una en la primera mitad del nivel y otra en la segunda.
-    if(state.elapsed >= nextPickupAt){ spawnPickup(); pickupsThisRun++; nextPickupAt = pickupsThisRun < 2 ? Math.max(state.elapsed + 8, computeTarget() * rand(0.55, 0.85)) : Infinity; }
+    if(state.elapsed >= nextPickupAt){ spawnPickup(); pickupsThisRun++; nextPickupAt = pickupsThisRun < (charIs('veterano') ? 3 : 2) ? Math.max(state.elapsed + 8, computeTarget() * rand(0.55, 0.85)) : Infinity; }
 
     const gained = computeEffectiveRate()*0.1;
     state.coins += gained;
@@ -2943,11 +2956,29 @@
 
 
   /* ===== Sobreviviente ===== */
+  // Personajes: cada uno con una habilidad pasiva. Los que tienen "unlock" se desbloquean jugando.
   const CHARACTERS = [
-    { id:'hombre', name:'Hombre' },
-    { id:'mujer',  name:'Mujer' },
-    { id:'planta', name:'Plantita' },
+    { id:'hombre', base:'hombre', name:'Explorador', ab:'Robusto', desc:'+10% de vida máxima.' },
+    { id:'mujer', base:'mujer', name:'Médica', ab:'Primeros auxilios', desc:'Las curaciones (antídotos, cápsulas y regeneración) rinden 30% más.' },
+    { id:'planta', base:'planta', name:'Plantita', ab:'Fotosíntesis', desc:'Regenera 0,1% de su vida por segundo, siempre.' },
+    { id:'minero', base:'hombre', name:'Minero', ab:'Ojo para el oro', desc:'+15% de monedas al superar cada nivel.', unlock:{ text:'Llegá al nivel 10', ok:s => s.maxLevelEverReached >= 10 },
+      acc:'<path d="M25 22 C25 8 55 8 55 22 Z" fill="#e8b65a"/><rect x="23" y="20" width="34" height="4" rx="2" fill="#c8962f"/><circle cx="40" cy="13" r="3.2" fill="#fff6c0"/>' },
+    { id:'cientifica', base:'mujer', name:'Científica', ab:'Antídoto propio', desc:'Las fugas te hacen 15% menos daño.', unlock:{ text:'Completá 10 misiones diarias', ok:s => (s.stats.questsDone || 0) >= 10 },
+      acc:'<g fill="rgba(160,215,245,.35)" stroke="#5aa9e6" stroke-width="2"><circle cx="35" cy="28.5" r="4.2"/><circle cx="45" cy="28.5" r="4.2"/></g><path d="M39.2 28.5 H40.8 M26.5 27 L30.8 28 M53.5 27 L49.2 28" stroke="#5aa9e6" stroke-width="2"/>' },
+    { id:'hongo', base:'planta', name:'Hongo', ab:'Simbiosis', desc:'Las esporas tóxicas no le hacen nada y las trampas le pegan la mitad.', unlock:{ text:'Agarrá 30 cápsulas', ok:s => (s.stats.pickups || 0) >= 30 },
+      acc:'<path d="M24 27 Q40 1 56 27 Q40 31 24 27 Z" fill="#c0392b"/><circle cx="33" cy="18" r="2.6" fill="#fff"/><circle cx="43" cy="13" r="2.2" fill="#fff"/><circle cx="48" cy="22" r="2.2" fill="#fff"/>' },
+    { id:'bombero', base:'hombre', name:'Bombero', ab:'Sangre fría', desc:'Las epidemias le pegan menos fuerte (10 puntos menos de multiplicador).', unlock:{ text:'Superá 10 epidemias', ok:s => (s.stats.bossesBeaten || 0) >= 10 },
+      acc:'<path d="M25 22 C25 7 55 7 55 22 Z" fill="#d9503f"/><path d="M20 22 H60 L58 25.5 H22 Z" fill="#a8342a"/><rect x="37" y="10" width="6" height="6" rx="1" fill="#e8b65a"/>' },
+    { id:'robot', base:'hombre', name:'Robot', ab:'Blindaje', desc:'Su escudo es 25% más grande y se recarga 25% más rápido.', unlock:{ text:'Llegá al nivel 25', ok:s => s.maxLevelEverReached >= 25 },
+      acc:'<path d="M40 13 V5" stroke="#9aa8ad" stroke-width="2"/><circle cx="40" cy="4.5" r="2.4" fill="#ff5c4d"/><rect x="30" y="35" width="20" height="2.6" rx="1.3" fill="#6b787d"/>' },
+    { id:'astronauta', base:'hombre', name:'Astronauta', ab:'Traje sellado', desc:'−8% de pérdida de vida por segundo.', unlock:{ text:'Hacé tu primer prestigio', ok:s => s.prestige >= 1 },
+      acc:'<circle cx="40" cy="27" r="17.5" fill="rgba(170,215,245,.18)" stroke="#dfe8ee" stroke-width="2.2"/><path d="M29 19 Q34 13 41 13" stroke="rgba(255,255,255,.7)" stroke-width="2" fill="none"/>' },
+    { id:'veterano', base:'hombre', name:'Veterano', ab:'Instinto', desc:'Una cápsula más por partida (3) y la Sobrecarga le dura 3 s más.', unlock:{ text:'Hacé 5 prestigios', ok:s => s.prestige >= 5 },
+      acc:'<path d="M26 21 C30 12 50 12 54 21 L54 24 H26 Z" fill="#5f7a3a"/><path d="M53 21 l7 3.5 -7 1.5z" fill="#4c6230"/><path d="M31 33 Q40 45 49 33 Q46 39 40 40 Q34 39 31 33Z" fill="#7a6a5a"/>' },
   ];
+  const CHAR_BY_ID = {}; CHARACTERS.forEach(c => { CHAR_BY_ID[c.id] = c; });
+  function charIs(id){ return currentChar() === id; }
+  function charUnlocked(c, st){ st = st || state; return !c.unlock || !!(st.charsUnlocked && st.charsUnlocked[c.id]) || c.unlock.ok(st); }
   const M_FACE_PERSON = '<g class="m-eyes"><circle class="m-eye" cx="35" cy="28.5" r="2.3"/><circle class="m-eye" cx="45" cy="28.5" r="2.3"/></g>'
     + '<g class="m-xeyes"><path d="M32.5 26 L37.5 31 M37.5 26 L32.5 31 M42.5 26 L47.5 31 M47.5 26 L42.5 31"/></g>'
     + '<path class="mo mo-ok" d="M34.5 34 Q40 39.5 45.5 34"/><path class="mo mo-meh" d="M36 36 H44"/>'
@@ -2978,11 +3009,22 @@
       + '<path class="mo mo-bad" d="M36.5 72 Q40 68.5 43.5 72"/><ellipse class="mo mo-o" cx="40" cy="70.5" rx="2.2" ry="2.6"/>'
       + '<path class="m-sweat" d="M57 44 q3.5 4.5 0 7 q-3.5 -2.5 0 -7z"/>'
   };
+  // Cuerpo del personaje: el dibujo base con sus accesorios (en la cabeza; el hongo, sobre el tallo).
+  function charBody(ch){
+    const c = CHAR_BY_ID[ch] || CHAR_BY_ID.hombre;
+    let body = M_BODY[c.base];
+    if(c.acc){
+      if(c.base === 'planta'){ const k = '<circle class="m-core" cx="40" cy="23.5" r="5"/></g>'; body = body.replace(k, k + c.acc); }
+      else body = body.slice(0, -4) + c.acc + '</g>';
+    }
+    return body;
+  }
+  function charCls(ch){ const c = CHAR_BY_ID[ch] || CHAR_BY_ID.hombre; return 'c-' + c.base + (c.id !== c.base ? ' c-' + c.id : ''); }
   function mascotSVG(ch){
     return '<svg viewBox="0 0 80 80" class="m-svg" aria-hidden="true">'
     + '<ellipse class="m-shadow" cx="40" cy="75" rx="17" ry="3.2"/>'
     + '<g class="m-fx m-fx-aura"><circle cx="40" cy="44" r="33"/></g>'
-    + '<g class="m-rig"><g class="m-body">' + (M_BODY[ch] || M_BODY.hombre) + '</g></g>'
+    + '<g class="m-rig"><g class="m-body">' + charBody(ch) + '</g></g>'
     + '<g class="m-halo"><ellipse cx="40" cy="10" rx="9" ry="3"/></g>'
     + '<g class="m-ghost"><path d="M58 52 q0 -11 7 -11 q7 0 7 11 v8 l-3.5 -2.5 l-3.5 2.5 l-3.5 -2.5 l-3.5 2.5 z"/></g>'
     + '<g class="m-fx m-fx-poison"><circle cx="27" cy="46" r="2.6"/><circle cx="53" cy="40" r="2.1"/><circle cx="40" cy="34" r="1.8"/></g>'
@@ -3183,7 +3225,7 @@
       const ch = slot.dataset.char || currentChar();
       slot.innerHTML = '';
       const d = document.createElement('div');
-      d.className = 'mascot c-' + ch + ' ' + (slot.dataset.state || 'ok');
+      d.className = 'mascot ' + charCls(ch) + ' ' + (slot.dataset.state || 'ok');
       d.dataset.ch = ch;
       d.innerHTML = mascotSVG(ch);
       slot.appendChild(d);
@@ -3202,10 +3244,20 @@
     }
     setScreen(state.hp>0 && screen==='running' ? 'running' : 'ready');
   }
+  let charSig = '', charView = null;
   function renderCharacterPick(){
-    document.querySelectorAll('#charList .char-card').forEach(b => b.classList.toggle('sel', b.dataset.ch === currentChar()));
-    const c = CHARACTERS.find(x => x.id === currentChar());
-    setText(els('characterMenuSub'), c ? c.name : '');
+    const list = els('charList'); if(!list) return;
+    const sig = CHARACTERS.map(c => charUnlocked(c) ? 1 : 0).join('');
+    if(sig !== charSig){
+      charSig = sig;
+      list.innerHTML = CHARACTERS.map(c => '<button class="char-card' + (charUnlocked(c) ? '' : ' locked') + '" data-ch="' + c.id + '"><div class="mascot-slot" data-char="' + c.id + '" data-state="ok"></div><span class="char-name">' + c.name + '</span>' + (charUnlocked(c) ? '' : '<span class="char-lock">🔒</span>') + '</button>').join('');
+      buildMascots();
+    }
+    list.querySelectorAll('.char-card').forEach(b => b.classList.toggle('sel', b.dataset.ch === currentChar()));
+    const v = CHAR_BY_ID[charView] || CHAR_BY_ID[currentChar()];
+    setHTML(els('charInfo'), '<b>' + v.name + ' · ' + v.ab + '</b><br>' + v.desc + (charUnlocked(v) ? (v.id === currentChar() ? '<br><span class="ci-lock">Es tu personaje.</span>' : '') : '<br><span class="ci-lock">🔒 ' + v.unlock.text + ' para desbloquearlo.</span>'));
+    const c = CHAR_BY_ID[currentChar()];
+    setText(els('characterMenuSub'), c ? c.name + ' · ' + c.ab : '');
   }
   function updateMascot(){
     if(mascotEls.length && mascotEls[0].dataset.ch !== currentChar()) buildMascots();
@@ -3229,7 +3281,7 @@
       }
     }
     updateScene(ratio);
-    mascotEls.forEach(m => { const cc = 'mascot c-' + m.dataset.ch + ' ' + c; if(m.className !== cc) m.className = cc; });
+    mascotEls.forEach(m => { const cc = 'mascot ' + charCls(m.dataset.ch) + ' ' + c; if(m.className !== cc) m.className = cc; });
   }
 
   // ---- Paneles: objetivos, compañero, ranking en vivo, bitácora, próxima epidemia y resumen de la partida ----
@@ -3251,9 +3303,10 @@
       + '<div class="side-note">' + DIFF_NAMES[state.difficulty] + ' · llega hasta el nivel ' + levelCap() + '</div>';
   }
   function sidePetHTML(){
-    if(!petOn()) return '<h3>Compañero</h3><div class="side-note">Todavía no elegiste uno. Es gratis: tocá el «?» que camina con vos o entrá al árbol de mejoras.</div>';
+    const ch = CHAR_BY_ID[currentChar()], chLine = '<div class="side-note" style="margin:0 0 8px">Personaje: <b>' + ch.name + '</b> · ' + ch.ab + '</div>';
+    if(!petOn()) return chLine + '<h3>Compañero</h3><div class="side-note">Todavía no elegiste uno. Es gratis: tocá el «?» que camina con vos o entrá al árbol de mejoras.</div>';
     const a = state.pet.animal, P = PET_ANIMALS[a], ab = PET_AB[a], lv = petLv('hab'), max = PET_UP.hab.max, c = petAbCost(a);
-    return '<h3>Compañero</h3><div class="sp-row"><span class="sp-pic" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span><div><b>' + P.name + '</b><div class="side-note" style="margin-top:2px">' + esc(ab.name) + ' · nivel ' + lv + '/' + max + '</div></div></div>'
+    return chLine + '<h3>Compañero</h3><div class="sp-row"><span class="sp-pic" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span><div><b>' + P.name + '</b><div class="side-note" style="margin-top:2px">' + esc(ab.name) + ' · nivel ' + lv + '/' + max + '</div></div></div>'
       + '<div class="side-note">' + esc(ab.desc(Math.max(1, lv))) + '</div>'
       + (lv < max ? '<button class="side-btn" data-act="petup"' + (state.essence >= c && screen !== 'running' ? '' : ' disabled') + '>' + (screen === 'running' ? 'Mejorar al terminar la partida' : 'Mejorar · ◆' + c) + '</button>' : '<div class="side-note gold">Al máximo ★</div>');
   }
@@ -3905,9 +3958,12 @@
       els('closeCharacterBtn').textContent = 'Volver';
       closePanel();
     });
-    document.querySelectorAll('#charList .char-card').forEach(b => b.addEventListener('click', () => {
-      state.character = b.dataset.ch; save(); buildMascots(); renderCharacterPick(); render();
-    }));
+    els('charList').addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('.char-card'); if(!b) return;
+      const c = CHAR_BY_ID[b.dataset.ch]; charView = c.id;
+      if(charUnlocked(c)){ state.character = c.id; save(); buildMascots(); }
+      renderCharacterPick(); render();
+    });
     els('menuChallengesBtn').addEventListener('click', () => {
       if(state.prestige < 2) return;
       closeMenu(); renderChallenges(); openPanel('challenges');
