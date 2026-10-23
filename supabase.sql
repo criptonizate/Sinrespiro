@@ -43,6 +43,9 @@ alter table public.leaderboard drop constraint if exists leaderboard_peak_level_
 alter table public.leaderboard add constraint leaderboard_max_level_check check (max_level between 1 and 100);
 alter table public.leaderboard add constraint leaderboard_peak_level_check check (peak_level between 1 and 100);
 
+-- Personaje elegido (se muestra en el ranking junto a la dificultad).
+alter table public.leaderboard add column if not exists character text check (character is null or char_length(character) <= 20);
+
 create index if not exists leaderboard_rank_idx on public.leaderboard (prestige desc, max_level desc, total_coins desc);
 
 grant select on public.leaderboard to anon, authenticated;

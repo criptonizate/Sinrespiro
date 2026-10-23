@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sin Respiro</title>
 <meta name="theme-color" content="#0a1214">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Sin Respiro">
 <meta name="description" content="Sin Respiro: un juego idle donde tu vida se drena sin parar. Mejorá, hacé prestigio y sobreviví lo más profundo que puedas.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Sin Respiro">
@@ -54,11 +60,6 @@
   .coin-rate{font-size:10px;color:var(--muted);line-height:1;}
 
   .vitals{background:linear-gradient(180deg, var(--panel), var(--panel-2));border:1px solid var(--line);border-radius:16px;padding:10px 16px 12px;margin-top:6px;overflow:hidden;position:relative;}
-  .ekg-wrap{height:30px;overflow:hidden;margin:0 -16px 4px;position:relative;}
-  .ekg-wrap svg{height:100%;width:200%;display:block;animation:scroll linear infinite;}
-  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-  .ekg-line{fill:none;stroke:var(--safe);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 4px currentColor);}
-  .vitals.critical .ekg-line{stroke:var(--danger);}
   .hp-row{display:flex;align-items:flex-end;justify-content:space-between;}
   .hp-num{font-family:var(--mono);font-size:34px;font-weight:600;line-height:1;color:var(--safe);}
   .vitals.critical .hp-num{color:var(--danger);}
@@ -99,15 +100,9 @@
   .progress{height:4px;border-radius:3px;background:rgba(255,255,255,0.06);margin-top:5px;overflow:hidden;}
   .progress-fill{height:100%;background:var(--gold);}
 
-  .passive-panel{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;}
-  .passive-panel .icon-badge{width:38px;height:38px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;color:var(--gold);flex:none;}
-  .passive-panel .txt .n{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--gold);}
-  .passive-panel .txt .l{font-size:11.5px;color:var(--muted);margin-top:1px;}
 
   .event-btn{width:100%;margin-top:8px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg, var(--poison), #7a4fb0);color:#fff;display:none;align-items:center;gap:12px;position:relative;overflow:hidden;font-weight:600;font-size:13.5px;}
   .event-btn.show{display:flex;}
-  .strip .event-btn.pulse{animation:evpulse .9s ease-in-out infinite;}
-  @keyframes evpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
   .event-btn .ring{width:30px;height:30px;flex:none;}
   .event-btn .ring circle{fill:none;stroke:rgba(255,255,255,0.35);stroke-width:3;}
   .event-btn .ring circle.fg{stroke:#fff;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .1s linear;}
@@ -370,14 +365,8 @@
   .pet-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
   .pp-btn{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:6px 2px 5px;color:var(--text);font-size:10.5px;display:flex;flex-direction:column;align-items:center;gap:2px;}
   .pp-btn small{font-size:8.5px;color:var(--muted);line-height:1;}
-  .pet-ab{font-size:12.5px;line-height:1.4;margin-top:10px;}
-  .pet-ab+.ts-btn{margin-top:8px;width:100%;}
   .pp-btn.sel{border-color:#f2a65a;box-shadow:0 0 0 1px #f2a65a inset;}
   .pp-btn .pet-svg{width:40px;height:36px;transform:none;}
-  .tn.unlk{animation:tnUnlock .95s ease-out;}
-  @keyframes tnUnlock{0%{transform:scale(.55);box-shadow:0 0 0 0 currentColor;}40%{transform:scale(1.22);box-shadow:0 0 0 14px transparent,0 0 26px currentColor;}100%{transform:scale(1);box-shadow:0 0 0 22px transparent;}}
-  .tree-lines polyline.fresh{stroke-dasharray:260;animation:lnDraw .8s ease-out;}
-  @keyframes lnDraw{from{stroke-dashoffset:260;}to{stroke-dashoffset:0;}}
   /* ===== Mejoras de pulido ===== */
   .scene.gas-warn .sc-mist{opacity:.9;}
   .sc-gasfx{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .8s;background:radial-gradient(ellipse 90% 90% at 50% 85%, rgba(var(--cg),.6), rgba(var(--cg),.28) 55%, transparent 92%);}
@@ -400,25 +389,14 @@
   @keyframes petShiver{0%,100%{transform:translateX(-1px);}50%{transform:translateX(1px);}}
   @keyframes petJump{0%,100%{transform:translateY(0);}45%{transform:translateY(-9px);}}
   .pet-pick{grid-template-columns:repeat(5,1fr);gap:4px;} .pp-btn span{font-size:9.5px;} .pp-btn .pet-svg{width:34px;height:32px;}
-  .tree-sheet{max-height:50vh;max-height:calc(var(--vhp,100vh) * .5);overflow-y:auto;}
-  .tree-sheet.compact{min-height:0;padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px));}
-  .ts-hint{font-size:12px;color:var(--muted);text-align:center;}
-  .ts-pre{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;}
-  .ts-pre span{color:var(--muted);} .ts-pre b{font-family:var(--mono);font-weight:600;color:var(--bc);white-space:nowrap;}
-  .ts-sum{display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:12px;}
-  .ts-sum span{color:var(--muted);} .ts-sum b{font-family:var(--mono);font-weight:600;text-align:right;}
-  .tn.rec::before{content:'★';position:absolute;top:-9px;left:-7px;font-size:14px;line-height:1;color:var(--gold);text-shadow:0 0 6px rgba(232,182,90,.95);animation:starpulse 1.4s ease-in-out infinite;}
-  .tree-tools{position:absolute;top:62px;left:10px;z-index:6;display:flex;gap:6px;align-items:center;}
-  .tree-tools button{width:36px;height:36px;border-radius:50%;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;}
-  .tn.dim,.tl.dim{opacity:.12 !important;} .tn.hit{outline:2px solid var(--gold);outline-offset:3px;}
   .p-wave{position:fixed;inset:0;z-index:80;pointer-events:none;background:radial-gradient(circle at 50% 55%, rgba(255,255,255,.9) 0, rgba(var(--wv),.7) 16%, rgba(var(--wv),.25) 40%, transparent 62%);transform:scale(.1);opacity:1;animation:pWave 1.6s ease-out forwards;}
   @keyframes pWave{0%{transform:scale(.1);opacity:1;}70%{opacity:.9;}100%{transform:scale(3.4);opacity:0;}}
   /* modo ahorro y pestaña oculta */
   .lite body::before,.lite body::after{animation:none;} .lite body::after{display:none;}
   .lite .sc-mist,.lite .tx,.lite .sc-ceil .dr,.lite .tbub,.lite .tdrip,.lite .pt,.lite .pet-sp,.lite .fx{animation:none;}
-  .lite .m-eye,.lite .m-armL,.lite .m-armR,.lite .m-body,.lite .pet-in,.lite .tail,.lite .wingL,.lite .wingR,.lite .m-fx *,.lite .m-fx-win g,.lite .m-halo ellipse,.lite .m-ghost,.lite .cl-ic,.lite .notif-star,.lite .tn,.lite .prestige-goal.ready,.lite .vitals.critical .hp-num,.lite .scene.boss .sc-vig,.lite .pet-ghost,.lite .fx,.lite .pet-slot.elite::before,.lite .tree-lines polyline{animation:none !important;}
+  .lite .m-eye,.lite .m-armL,.lite .m-armR,.lite .m-body,.lite .pet-in,.lite .tail,.lite .wingL,.lite .wingR,.lite .m-fx *,.lite .m-fx-win g,.lite .m-halo ellipse,.lite .m-ghost,.lite .cl-ic,.lite .notif-star,.lite .prestige-goal.ready,.lite .vitals.critical .hp-num,.lite .scene.boss .sc-vig,.lite .pet-ghost,.lite .fx,.lite .pet-slot.elite::before{animation:none !important;}
   .lite .pet-svg,.lite .coin-ic,.lite .notif-star{filter:none !important;} .lite .coin-ping{display:none;} .lite .sc-gasfx{animation:none !important;}
-  .lite .tx,.lite .pt{display:none;} .lite .scene.walk .mascot-slot::before{animation:none;} .lite .cloud::before,.lite .cloud::after{animation:none;} .lite .tn.can{animation:none;}
+  .lite .tx,.lite .pt{display:none;} .lite .scene.walk .mascot-slot::before{animation:none;} .lite .cloud::before,.lite .cloud::after{animation:none;}
   .paused *,.paused *::before,.paused *::after,.paused body::before,.paused body::after{animation-play-state:paused !important;}
   .scene:not(.walk) *,.scene:not(.walk) *::before,.scene:not(.walk) *::after,.scene:not(.walk)::before,.scene:not(.walk)::after,body:not(.playing)::before,body:not(.playing)::after{animation-play-state:paused !important;}
   .scene:not(.walk) .pk{animation-play-state:running !important;}
@@ -458,68 +436,15 @@
   .coin-ping{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff2b8,#e8b65a 60%,#b9822c);box-shadow:0 0 6px rgba(232,182,90,0.7);pointer-events:none;z-index:44;}
   .coins.bump{animation:mBump .26s ease-out;}
   @keyframes mBump{0%{transform:scale(1);}40%{transform:scale(1.1);}100%{transform:scale(1);}}
-  .qb-icon.pop,.cs-icon.pop{display:inline-flex;animation:mPop .32s ease-out;}
+  .cs-icon.pop{display:inline-flex;animation:mPop .32s ease-out;}
   @keyframes mPop{0%{transform:scale(1);}35%{transform:scale(1.5) rotate(-8deg);}100%{transform:scale(1);}}
   .vitals.critical .hp-num{animation:mBeat .75s ease-in-out infinite;transform-origin:left center;}
   @keyframes mBeat{0%,100%{transform:scale(1);}12%{transform:scale(1.1);}24%{transform:scale(1);}36%{transform:scale(1.07);}48%{transform:scale(1);}}
   .confetti-piece{position:fixed;top:0;left:0;width:8px;height:12px;pointer-events:none;z-index:48;border-radius:2px;}
 
   /* ===== Árbol de mejoras ===== */
-  .overlay.tree-panel{top:0;left:0;transform:none;width:100%;height:100vh;height:var(--vhp,100dvh);max-height:none;border-radius:0;padding:0;border:none;box-shadow:none;background:var(--bg);z-index:29;overflow:hidden;display:flex;flex-direction:column;animation:none;}
-  .overlay.tree-panel > :first-child{margin-top:0;} .overlay.tree-panel > :last-child{margin-bottom:0;}
-  .tree-head{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);}
-  .tree-title{font-weight:600;font-size:15px;flex:1;min-width:0;}
   .tree-wallet{display:flex;gap:10px;font-family:var(--mono);font-size:14px;}
   .tw-coins{color:var(--gold);} .tw-ess{color:var(--poison);} .tw-pp{color:#4ecdc4;}
-  .tree-close{width:36px;height:36px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);font-size:15px;}
-  .tree-scroll{flex:1;min-height:0;overflow:auto;position:relative;-webkit-overflow-scrolling:touch;cursor:grab;background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.035), transparent 60%);}
-  .tree-scroll.drag{cursor:grabbing;}
-  .tree-scroll{--z:.9;}
-  .tree-sizer{width:calc(1000px * var(--z));height:calc(1000px * var(--z));margin:0 auto;}
-  .tree-canvas{position:relative;width:1000px;height:1000px;transform:scale(var(--z));transform-origin:0 0;}
-  .tree-lines{position:absolute;inset:0;width:1000px;height:1000px;pointer-events:none;}
-  .tree-lines polyline{fill:none;stroke-linejoin:round;stroke:var(--lc);stroke-width:2.5;opacity:0.22;stroke-linecap:round;}
-  .tree-lines polyline.on{opacity:0.85;stroke-width:3.5;}
-  .tn{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:var(--panel);border:2px solid var(--bc);color:var(--bc);display:flex;align-items:center;justify-content:center;transition:transform .15s, box-shadow .2s, opacity .2s;padding:0;}
-  .tn svg.icon{width:24px;height:24px;}
-  .tn-pet{display:flex;align-items:center;justify-content:center;}
-  .tn-pet .pet-svg{width:36px;height:32px;transform:none;}
-  .ts-ic .tn-pet .pet-svg{width:30px;height:27px;}
-  .tn[data-hub]{width:70px;height:70px;margin:-35px 0 0 -35px;border-width:2.5px;}
-  .tn[data-hub] svg.icon{width:29px;height:29px;}
-  .tn .tb{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;border-radius:10px;background:var(--panel-2);border:1px solid var(--bc);color:var(--text);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-  .tn.can{box-shadow:0 0 0 3px rgba(255,255,255,0.08),0 0 18px currentColor;animation:tnPulse 1.6s ease-in-out infinite;background:linear-gradient(135deg,var(--panel),var(--panel-2));}
-  .tn.off{opacity:0.5;}
-  .tn.locked{opacity:0.28;filter:grayscale(1);border-style:dashed;}
-  .tn.max{background:var(--panel-2);box-shadow:inset 0 0 0 3px rgba(255,255,255,0.06);}
-  .tn.max .tb{background:var(--bc);color:#0a1214;}
-  .tn.sel{outline:2px solid #fff;outline-offset:3px;}
-  .tn.bought{animation:mPop .4s ease-out;}
-  .tn:active{transform:scale(0.94);}
-  .tn,.th{touch-action:manipulation;-webkit-user-select:none;user-select:none;}
-  @keyframes tnPulse{0%,100%{box-shadow:0 0 0 3px rgba(255,255,255,0.08),0 0 10px currentColor;}50%{box-shadow:0 0 0 3px rgba(255,255,255,0.14),0 0 22px currentColor;}}
-  .tl{position:absolute;width:80px;margin-left:-40px;text-align:center;font-size:10.5px;line-height:1.2;pointer-events:none;color:var(--text);}
-  .tl b{display:block;font-weight:600;}
-  .tl .tc{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
-  .tl.can .tc{color:var(--gold);} .tl.locked{opacity:0.35;} .tl.off{opacity:0.6;}
-  .th{position:absolute;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;background:radial-gradient(circle,var(--panel-2),var(--panel));border:2px solid var(--line);box-shadow:0 0 28px rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:0;}
-  .th.sel{outline:2px solid #fff;outline-offset:3px;}
-  .th .mascot-slot{width:66px;height:66px;margin:0;}
-  .tn.free{opacity:1 !important;border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 3px rgba(232,182,90,.18),0 0 20px rgba(232,182,90,.7);animation:tnPulse 1.3s ease-in-out infinite;}
-  .tn.free::after{content:'GRATIS';position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;background:var(--gold);color:#0a1214;padding:1px 7px;border-radius:8px;white-space:nowrap;}
-  .tpill{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 9px;border-radius:9px;border:1px solid var(--bc);color:var(--bc);background:var(--panel);pointer-events:none;}
-  .tree-sheet{flex:none;min-height:128px;border-top:1px solid var(--line);background:var(--panel);padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:7px;}
-  .ts-top{display:flex;align-items:center;gap:10px;}
-  .ts-ic{width:38px;height:38px;border-radius:11px;border:1.5px solid var(--bc);color:var(--bc);display:flex;align-items:center;justify-content:center;flex:none;}
-  .ts-ic svg.icon{width:20px;height:20px;}
-  .ts-name{font-weight:600;font-size:14.5px;}
-  .ts-tag{font-family:var(--mono);font-size:10.5px;color:var(--bc);margin-top:1px;}
-  .ts-desc{font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .ts-act{display:flex;align-items:center;gap:12px;margin-top:auto;}
-  .ts-cost{font-family:var(--mono);font-size:13.5px;flex:1;min-width:0;}
-  .ts-cost small{display:block;font-size:10.5px;color:var(--muted);}
-  .ts-btn{padding:10px 18px;border-radius:12px;font-weight:600;font-size:13.5px;background:linear-gradient(135deg,var(--gold),#d99a3a);color:#1a1104;}
-  .ts-btn:disabled{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
   .open-tree-btn{margin-top:10px;}
   .btn-row{display:flex;gap:8px;align-items:stretch;margin-top:10px;}
   .btn-row .btn-extract{flex:1 1 0;width:auto;padding:14px 8px;margin:0;}
@@ -528,7 +453,7 @@
   .coin-ic{width:24px;height:24px;flex:none;filter:drop-shadow(0 0 4px rgba(232,182,90,.55));}
   #treeMenuSub{display:block;}
   .action.empty{display:none !important;}
-  @media (prefers-reduced-motion: reduce){ .mascot *,.scene *,.cloud,.cloud::before,.cloud::after,body::before,body::after,.p-wave,.tn,.tree-lines polyline{animation:none !important;} }
+  @media (prefers-reduced-motion: reduce){ .mascot *,.scene *,.cloud,.cloud::before,.cloud::after,body::before,body::after,.p-wave{animation:none !important;} }
 
   .btn-extract{width:100%;padding:18px;border-radius:16px;font-size:16px;font-weight:600;background:linear-gradient(135deg, var(--gold), #d99a3a);color:#1a1104;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s;}
   .btn-extract:active{transform:scale(0.97);}
@@ -587,22 +512,7 @@
   .cs-plus{position:absolute;top:-6px;right:-5px;width:20px;height:20px;border-radius:50%;background:var(--panel-2);border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--mono);font-size:14px;line-height:1;display:none;align-items:center;justify-content:center;padding:0;}
   .cs-item.can-more .cs-plus{display:flex;}
   .cs-item.buy.poor .cs-main{opacity:.55;} .cs-item.poor .cs-plus{opacity:.5;}
-  .quickbuy-container{display:flex;flex-direction:column;gap:10px;}
-  .qb-category-label{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin:0 2px 5px;}
-  .quickbuy-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;}
-  .qb-btn{flex:none;width:54px;height:54px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--safe);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;}
-  .qb-btn svg.icon{width:16px;height:16px;}
-  .qb-btn .qb-cost{font-family:var(--mono);font-size:9px;color:var(--gold);}
-  .qb-btn.qb-disabled{opacity:0.35;}
-  .qb-btn.qb-locked{opacity:0.3;color:var(--muted);}
-  .qb-btn.qb-locked .qb-cost{color:var(--muted);}
-  .qb-btn.qb-locked .qb-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,18,20,0.55);border-radius:14px;}
-  .qb-btn .qb-badge{position:absolute;top:-5px;right:-5px;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;font-family:var(--mono);font-size:9px;line-height:1;padding:2px 3px;color:var(--text);}
-  .qb-btn.qb-auto{color:var(--gold);border-color:var(--gold-dim);}
-  .qb-btn.qb-auto.qb-active{background:var(--gold-dim);}
 
-  .qb-tooltip{position:fixed;z-index:60;max-width:200px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12px;line-height:1.4;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.45);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s ease, transform .12s ease;}
-  .qb-tooltip.show{opacity:1;transform:translateY(0);}
 
   .branch-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:8px;}
   .branch-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:left;color:var(--text);}
@@ -614,8 +524,6 @@
   .shop-head h2{margin:0;font-size:20px;}
   .shop-head .coins{font-family:var(--mono);color:var(--gold);font-size:15px;}
   .shop-list{display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:56vh;padding-right:2px;}
-  .shop-divider{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin:6px 2px 0;}
-  .shop-hint{text-align:center;font-size:11.5px;color:var(--muted);font-family:var(--mono);padding:10px 4px 2px;}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
   .card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .card-top .name{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14.5px;}
@@ -700,17 +608,12 @@
   /* Durante la partida, las compras quedan fijas abajo: sin scroll */
   body.playing #app{padding-bottom:100px;}
   body.playing .action{position:fixed;left:50%;transform:translateX(-50%);bottom:0;margin:0;width:100%;max-width:460px;z-index:24;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -10px 24px rgba(0,0,0,0.45);display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom, 0px));}
-  body.playing .action .quickbuy-container,body.playing .action .quickbuy-row{display:contents;}
-  body.playing .action .qb-category-label{display:none;}
   body.playing .action .group-label{width:100%;margin:0;text-align:left;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;line-height:1;}
   body.playing .action .consum-container{width:100%;padding-bottom:7px;margin-bottom:1px;border-bottom:1px solid var(--line);gap:6px;}
   body.playing .action .cs-item{flex:1 1 0;max-width:96px;}
   body.playing .action .cs-main{height:44px;flex-direction:row;gap:7px;padding:0 6px;border-radius:12px;}
   body.playing .action .cs-main svg.icon{width:17px;height:17px;}
   body.playing .action .cs-text{align-items:flex-start;}
-  body.playing .action .qb-btn{width:42px;height:42px;border-radius:11px;gap:1px;}
-  body.playing .action .qb-btn .qb-cost{font-size:8px;letter-spacing:-0.3px;}
-  body.playing .action .qb-btn .qb-badge{top:-4px;right:-4px;font-size:8px;}
 
   .acct-btn{padding:0;overflow:hidden;flex:none;font-weight:600;font-size:15px;color:var(--safe);}
   .acct-btn img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -753,7 +656,25 @@
   .hp-sh{font-family:var(--mono);font-size:12.5px;color:var(--cold);margin-left:6px;}
   .sh-bar{height:3px;border-radius:2px;background:rgba(90,169,230,.15);margin-top:3px;overflow:hidden;} .sh-bar-fill{height:100%;background:var(--cold);transition:width .15s linear;}
   .od{display:flex;gap:6px;font-size:12px;padding:2px 0;} .od.good{color:var(--safe);} .od.bad{color:#ff8a7e;} .od-n{flex:1;} .od b{font-family:var(--mono);font-weight:600;}
-  .sj-coin{color:var(--gold);} .sj-dmg{color:#ff8a7e;} .sj-heal{color:var(--safe);} .sj-shield{color:var(--cold);} .sj-boss{color:#ff6b9a;}
+
+  #readyOverlay.overlay-top .rows,#readyOverlay .milestone-card,#readyOverlay #openTreeBtn{display:none;}
+  #readyOverlay.show-sub #readySub{display:block;margin:0 0 10px;font-size:12.5px;}
+  #readyOverlay .level-select{margin-bottom:10px;} #readyOverlay .prestige-goal{margin-bottom:10px;padding:8px 12px;}
+  /* consejos para jugadores nuevos */
+  .tipcard{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom, 0px));transform:translate(-50%,8px);width:min(calc(100% - 32px), 420px);z-index:42;display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--cold);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.35;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;}
+  .tipcard.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+  .tipcard #tipText{flex:1;} .tip-ic{flex:none;font-size:18px;}
+  .tipcard button{flex:none;padding:7px 10px;border-radius:10px;background:var(--cold-dim);color:var(--cold);font-weight:600;font-size:12px;}
+  /* ranking: personaje y dificultad debajo del nombre */
+  .rank-name small,.sr-n small{display:block;font-size:10px;color:var(--muted);font-weight:400;}
+  /* celulares angostos: encabezado más compacto */
+  @media (max-width: 400px){
+    .head{gap:4px;}
+    .menu-btn,.overdrive-btn{width:34px;height:34px;}
+    .ess-chip{height:34px;padding:0 7px;font-size:12.5px;}
+    .head .coins{padding:3px 8px;min-height:34px;font-size:13px;}
+    .head .level{font-size:12.5px;} .bioma-name{font-size:9px;}
+  }
 
   /* ===== Paneles laterales y tarjetas de la columna ===== */
   body.wide{gap:16px;}
@@ -770,8 +691,6 @@
   .sr{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);} .sr.me{color:var(--gold);font-weight:600;}
   .sr-p{font-family:var(--mono);width:20px;color:var(--muted);text-align:right;flex:none;} .sr-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .sr-v{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none;}
   .sr-gap{text-align:center;color:var(--muted);font-size:11px;}
-  .side-journal{flex:1;overflow:hidden;}
-  .sj{display:flex;gap:7px;font-size:12px;line-height:1.3;padding:4px 0;border-bottom:1px solid var(--line);} .sj span{flex:none;width:16px;text-align:center;}
   .col-info{display:grid;gap:8px;margin-top:8px;}
   .ci-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;}
   .ci-card:empty{display:none;}
@@ -784,7 +703,6 @@
   .pet-slot.abfx .pet-in{animation:petAbJump .9s ease-out !important;}
   @keyframes petAbJump{0%{transform:translateY(0) scale(1);}30%{transform:translateY(-14px) scale(1.25);}60%{transform:translateY(-4px) scale(1.1);}100%{transform:translateY(0) scale(1);}}
   .pet-slot.abfx .pet-svg{filter:drop-shadow(0 0 5px #fff6c0) drop-shadow(0 0 12px var(--pc));}
-  .pet-abtxt{position:absolute;left:50%;bottom:100%;white-space:nowrap;font:700 11px var(--mono);color:#fff6c0;text-shadow:0 0 6px rgba(0,0,0,.85);pointer-events:none;animation:petAbTxt 1.3s ease-out forwards;}
   @keyframes petAbTxt{from{opacity:0;transform:translate(-50%,6px);}20%{opacity:1;}to{opacity:0;transform:translate(-50%,-22px);}}
   .pet-slot.abfx-murcielago::after{content:'';position:absolute;left:50%;top:40%;width:20px;height:20px;margin:-10px;border-radius:50%;border:2px solid #c3b6ff;animation:petSonar .9s ease-out 2;}
   @keyframes petSonar{from{transform:scale(.4);opacity:1;}to{transform:scale(4);opacity:0;}}
@@ -837,7 +755,7 @@
 
   .hidden{display:none !important;}
   .loading{text-align:center;color:var(--muted);font-family:var(--mono);font-size:13px;padding:60px 0;}
-  @media (prefers-reduced-motion: reduce){ .ekg-wrap svg{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ }
 </style>
 </head>
 <body>
@@ -953,7 +871,7 @@
       <button class="btn-secondary" id="closeRankingBtn">Volver</button>
     </div>
 
-    <div class="overlay hidden" id="readyOverlay">
+    <div class="overlay overlay-top hidden" id="readyOverlay">
       <h2 id="readyTitle">Bóveda de contención</h2>
       <p class="sub" id="readySub">Tus constantes se estabilizan aquí. Cuando salgas, empiezan a caer solas.</p>
       <button class="prestige-goal hidden" id="prestigeGoalCard">
@@ -1049,7 +967,7 @@
       <div class="branch-opts">
         <button class="branch-card" id="diffFacil">
           <div class="name"><span class="icon-badge"></span>Fácil</div>
-          <div class="desc">Llega hasta el nivel 30. Drenaje y fugas más suaves: es donde hacés tus primeros prestigios. Si morís 3 veces seguidas en un nivel, el drenaje baja otro 20%.</div>
+          <div class="desc">Llega hasta el nivel 30. Las fugas pegan menos: es donde hacés tus primeros prestigios. Si morís 3 veces seguidas en un nivel, el drenaje baja otro 20%.</div>
         </button>
         <button class="branch-card" id="diffNormal">
           <div class="name"><span class="icon-badge"></span>Normal</div>
@@ -1071,14 +989,6 @@
       </div>
       <p class="sub" id="offlineNote" style="margin-bottom:14px;"></p>
       <button class="btn-extract" id="offlineCollectBtn">Recoger</button>
-    </div>
-
-    <div class="overlay hidden" id="essenceOverlay">
-      <h2>Núcleo de Esencia</h2>
-      <p class="sub">Mejoras permanentes que no se pierden al hacer prestigio. Ganás Esencia con las misiones diarias, con los objetivos (cepas), con los desafíos y al caer habiendo cumplido más de la mitad de un nivel (desde el nivel 5).</p>
-      <div class="stat-list"><div class="stat-item"><span>Esencia disponible</span><span class="n" id="essenceCount" style="color:var(--poison);">0</span></div></div>
-      <div class="shop-list" id="essenceList"></div>
-      <button class="btn-secondary" id="closeEssenceBtn">Volver</button>
     </div>
 
     <div class="overlay hidden" id="challengesOverlay">
@@ -1230,8 +1140,8 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="tipcard" id="tipCard"><span class="tip-ic">💡</span><span id="tipText"></span><button id="tipOk">Entendido</button></div>
   <div class="flash-layer" id="flashLayer"></div>
-  <div class="qb-tooltip" id="qbTooltip"></div>
 </div>
 <aside class="side" id="sideR"></aside>
 
@@ -1313,7 +1223,6 @@
     trapScan:    { tab:'suerte', name:'Detector de trampas',    base:200,  g:1.5,  unlock:4,  max:5,  icon:iconShieldSlash },
     lifeIns:     { tab:'suerte', name:'Seguro de vida',         base:300,  g:1.6,  unlock:6,  max:5,  icon:iconHeartPulse },
   };
-  const REGEN_UNLOCK = 1;
   const ANTIDOTE_MINOR_UNLOCK = 2;
   const ANTIDOTE_MAJOR_UNLOCK = 6;
   const REVIVE_UNLOCK = 17;
@@ -1569,15 +1478,15 @@
   // Escudo: absorbe fugas, esporas y trampas antes que la vida; el drenaje base siempre va a la vida.
   function shieldMax(){ if(challenge==='cristal') return 0; return computeMaxHp() * (0.04 * state.upgrades.shield + 0.02 * ppLvl('generador')) * (charIs('robot') ? 1.25 : 1); }
   function shieldRegenPerSec(){ return shieldMax() * (0.02 * state.upgrades.shieldRegen + 0.01 * ppLvl('generador')); }
-  const DIFFICULTY_DRAIN_MULT = { facil: 0.9, normal: 1.2, dificil: 1.6 };
+  const DIFFICULTY_DRAIN_MULT = { facil: 1.15, normal: 1.2, dificil: 1.6 };
   const DIFFICULTY_COIN_MULT = { facil: 1.0, normal: 1.25, dificil: 1.6 };
   const DIFFICULTY_ESS_MULT = { facil: 1.0, normal: 1.25, dificil: 1.5 };
   const DIFFICULTY_HAZ_MULT = { facil: 0.65, normal: 1.0, dificil: 1.0 };
 
   function computeDrain(){
     const lvl = Math.min(state.level, levelCap());
-    // El drenaje crece 7,6% por nivel; Resistencia lo baja 5% por nivel (hasta 50%).
-    let drain = 0.75 * Math.pow(1.076, lvl - 1);
+    // El drenaje crece 7,8% por nivel; Resistencia lo baja 5% por nivel (hasta 50%).
+    let drain = 0.75 * Math.pow(1.078, lvl - 1);
     drain *= 1 - 0.05 * Math.min(10, state.upgrades.resist);
     drain *= DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0;
     drain *= perkDrainMult();
@@ -1618,7 +1527,7 @@
     if(challenge==='sinres') return 1;
     return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu')) * (charIs('cientifica') ? 0.85 : 1);
   }
-  function hazardMagnitude(){ return (isBoss() ? bossMult() : 1) * 0.6 * Math.pow(1.076, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
+  function hazardMagnitude(){ return (isBoss() ? bossMult() : 1) * 0.6 * Math.pow(1.078, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
 
   function isShielded(){ return state.elapsed < shieldUntil; }
   // Cada prestigio pide unos 2,7 niveles más: el 1° en el nivel 20 y el 30° en el 100.
@@ -1672,7 +1581,16 @@
   // La librería de Supabase se baja en paralelo (solo si hay nube configurada) y no frena la apertura del juego.
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
   const supabaseScript = (CFG.supabaseUrl && CFG.supabaseAnonKey) ? new Promise(res => { const el = document.createElement('script'); el.src = SUPABASE_JS; el.async = true; el.onload = el.onerror = res; document.head.appendChild(el); }) : Promise.resolve();
-  let lbLastKey = '', lbLastAt = 0;
+  let lbLastKey = '', lbLastAt = 0, lbHasChar = true;
+  // Ranking: pide también personaje y dificultad; si la base todavía no tiene la columna "character", pide sin ella.
+  async function fetchRanking(){
+    const q = cols => sb.from('leaderboard').select(cols).order('prestige', { ascending:false }).order('max_level', { ascending:false }).order('total_coins', { ascending:false }).limit(100);
+    const base = 'user_id,name,avatar_url,prestige,max_level,total_coins,difficulty';
+    let r = await withTimeout(q(base + (lbHasChar ? ',character' : '')), 8000);
+    if(r && r.error && lbHasChar){ lbHasChar = false; r = await withTimeout(q(base), 8000); }
+    return r;
+  }
+  function rankMeta(r){ return [CHAR_BY_ID[r.character] && CHAR_BY_ID[r.character].name, DIFF_NAMES[r.difficulty]].filter(Boolean).join(' · '); }
   // saveConflict: partida sin cuenta del dispositivo + partida de la cuenta; hasta que el jugador elija, no se guarda nada.
   let saveConflict = null, adoptNote = false;
   const hasProgress = s => (s.prestige || 0) > 0 || (s.maxLevelEverReached || 1) > 1 || (s.totalCoinsEarned || 0) > 0;
@@ -1713,9 +1631,11 @@
     const lb = { user_id: authUser.id, name: playerName(), avatar_url: m.avatar_url || m.picture || null,
       prestige: state.prestige, max_level: Math.min(MAX_LEVEL, state.maxLevelEverReached), peak_level: Math.min(MAX_LEVEL, state.peakLevel),
       total_coins: Math.floor(state.totalCoinsEarned), difficulty: state.difficulty, updated_at: now };
-    const lbKey = [lb.name, lb.avatar_url, lb.prestige, lb.max_level, lb.peak_level, lb.difficulty].join('|');
+    if(lbHasChar) lb.character = currentChar();
+    const lbKey = [lb.name, lb.avatar_url, lb.prestige, lb.max_level, lb.peak_level, lb.difficulty, lb.character].join('|');
     if(lbKey !== lbLastKey || Date.now() - lbLastAt > 180000){
-      const r2 = await sb.from('leaderboard').upsert(lb);
+      let r2 = await sb.from('leaderboard').upsert(lb);
+      if(r2.error && lbHasChar && /character/.test(r2.error.message || '')){ lbHasChar = false; delete lb.character; r2 = await sb.from('leaderboard').upsert(lb); }
       if(r2.error) console.warn('ranking no actualizado', r2.error); else { lbLastKey = lbKey; lbLastAt = Date.now(); }
     }
     cloudLastJson = js;
@@ -1844,6 +1764,7 @@
       d.appendChild(av);
     }
     const nm = document.createElement('span'); nm.className = 'rank-name'; nm.textContent = name;
+    const meta = rankMeta(r); if(meta){ const sm = document.createElement('small'); sm.textContent = meta; nm.appendChild(sm); }
     d.appendChild(nm);
     const n = document.createElement('span'); n.className = 'rank-n';
     const l1 = document.createElement('div'); const b1 = document.createElement('b'); b1.textContent = '✦' + (r.prestige || 0); l1.appendChild(b1); l1.appendChild(document.createTextNode(' · nivel ' + (r.max_level || 1)));
@@ -1860,8 +1781,7 @@
     list.appendChild(note('cargando…'));
     if(cloudReady()){ cloudDirty = true; try{ await flushCloud(); }catch(e){} }
     try{
-      const r = await withTimeout(sb.from('leaderboard').select('user_id,name,avatar_url,prestige,max_level,total_coins')
-        .order('prestige', { ascending:false }).order('max_level', { ascending:false }).order('total_coins', { ascending:false }).limit(100), 8000);
+      const r = await fetchRanking();
       if(!r) throw new Error('timeout');
       if(r.error) throw r.error;
       list.innerHTML = '';
@@ -1979,7 +1899,14 @@
     musicNodes = null;
   }
 
-  let toastTimer = null;
+  let toastTimer = null, tipTimer = null;
+  // Consejos para jugadores nuevos: cada uno aparece una sola vez.
+  function showTip(key, text){
+    if(!state || state.notifiedKeys['tip_' + key]) return;
+    state.notifiedKeys['tip_' + key] = true; save();
+    setText(els('tipText'), text); els('tipCard').classList.add('show');
+    clearTimeout(tipTimer); tipTimer = setTimeout(() => els('tipCard').classList.remove('show'), 11000);
+  }
   function showToast(msg){
     const t = els('toast');
     t.textContent = msg;
@@ -1993,7 +1920,7 @@
     CHARACTERS.forEach(c => {
       if(c.unlock && !state.charsUnlocked[c.id] && c.unlock.ok(state)){
         state.charsUnlocked[c.id] = true; unlocked = true;
-        showToast('🎭 Nuevo personaje: ' + c.name + ' · ' + c.ab); logEvent('🎭', 'Personaje desbloqueado: ' + c.name, 'info');
+        showToast('🎭 Nuevo personaje: ' + c.name + ' · ' + c.ab); 
       }
     });
     ACHIEVEMENTS.forEach(a => {
@@ -2003,7 +1930,6 @@
         const ea = 1 + petEssBonus();
         state.essence += ea; state.stats.essenceEarned += ea;
         showToast('★ Objetivo cumplido: ' + a.cepa + ' · ◆ +' + ea + ' Esencia');
-        logEvent('★', 'Logro: ' + a.cepa);
         playBeep(880, 0.18); setTimeout(()=>playBeep(1180,0.2),120);
       }
     });
@@ -2011,6 +1937,7 @@
   }
 
   function announceUnlocks(level){
+    if(level === 4) showTip('shield', 'Nuevo: el Escudo (pestaña Salud) absorbe fugas, esporas y trampas antes que tu vida.');
     Object.values(UPGRADES).forEach(u => { if(u.unlock === level) showToast('★ Nuevo desbloqueo: ' + u.name); });
     if(REVIVE_UNLOCK === level) showToast('★ Nuevo desbloqueo: Reanimador');
     if(OVERDRIVE_UNLOCK === level) showToast('★ Nuevo desbloqueo: Sobrecarga (botón del encabezado)');
@@ -2110,25 +2037,7 @@
     const c = essCost(id);
     if(state.essence < c) return;
     state.essence -= c; state.essenceTree[id] = l + 1;
-    playBeep(900, 0.15); save(); renderEssence();
-  }
-  function renderEssence(){
-    els('essenceCount').textContent = state.essence;
-    const list = els('essenceList');
-    list.innerHTML = '';
-    Object.keys(ESSENCE_NODES).forEach(id => {
-      const n = ESSENCE_NODES[id], l = essLvl(id), maxed = l >= n.max;
-      const c = maxed ? 0 : essCost(id);
-      const div = document.createElement('div');
-      div.className = 'card' + (maxed ? ' maxed' : '');
-      div.innerHTML = `<div class="card-top"><div class="name"><span class="icon-badge">${n.icon}</span>${n.name}</div><div class="lvl">nivel ${l}/${n.max}</div></div>
-        <div class="desc">${maxed ? 'Al máximo.' : n.desc(l)}</div>
-        <div class="card-buy"><div class="cost" style="color:var(--poison);">${maxed ? '' : iconEssenceSm + ' ' + c}</div><button class="buy-btn">${maxed ? 'Máx' : 'Mejorar'}</button></div>`;
-      const b = div.querySelector('.buy-btn');
-      b.disabled = maxed || state.essence < c;
-      b.addEventListener('click', () => buyEssence(id));
-      list.appendChild(div);
-    });
+    playBeep(900, 0.15); save(); render();
   }
 
 
@@ -2183,7 +2092,6 @@
   function petOn(){ return !!(state && state.pet && PET_ANIMALS[state.pet.animal]); }
   function petLv(k){ if(!petOn()) return 0; return k === 'hab' ? (state.pet.ab[state.pet.animal] || 0) : (state.pet[k] || 0); }
   function petAbCost(a){ return Math.round(PET_UP.hab.base * Math.pow(1.55, (state.pet.ab && state.pet.ab[a]) || 0)); }
-  function petCost(k){ return Math.round(PET_UP[k].base * Math.pow(1.55, (state.pet && state.pet[k]) || 0)); }
   function petStage(){ const m = (state && state.maxLevelEverReached) || 1; return m >= 25 ? 2 : m >= 10 ? 1 : 0; }
   function choosePet(a){
     if(!PET_ANIMALS[a] || state.pet.animal === a) return false;
@@ -2198,17 +2106,6 @@
     checkAchievements(); save(); render(); petPop(); playBeep(700, 0.12);
     return true;
   }
-  function buyPetUp(k){
-    if(!petOn()) return;
-    const U = PET_UP[k], l = state.pet[k] || 0;
-    if(l >= U.max) return;
-    const c = petCost(k);
-    if(state.essence < c) return;
-    state.essence -= c; state.pet[k] = l + 1;
-    playBeep(900, 0.15); setTimeout(() => playBeep(1180, 0.15), 90);
-    checkAchievements(); save(); render(); petPop();
-  }
-  let petKey = '\0', petMood = '';
   function buyPetAb(a){
     if(!petAb(a)) return;
     const l = state.pet.ab[a] || 0;
@@ -2332,7 +2229,6 @@
         state.coins += r; state.totalCoinsEarned += r;
         const eq = 2 + petEssBonus();
         showToast('★ Misión cumplida: +' + fmtCoins(r) + ' monedas · ◆ +' + eq + ' Esencia');
-        logEvent('🎯', 'Misión cumplida · +$' + fmtCoins(r), 'coin');
         state.essence += eq; state.stats.essenceEarned += eq;
         floatText('+' + fmtCoins(r), 'gold');
         playBeep(900, 0.15);
@@ -2475,6 +2371,8 @@
 
   function renderExtras(){
     try{
+      if(state.essence >= 3) showTip('ess', 'Juntaste Esencia ◆: gastala en la pestaña Esencia, son mejoras que no se pierden nunca.');
+      if(canPrestige()) showTip('prestige', '¡Ya podés hacer prestigio! Volvés al nivel 1, pero ganás un beneficio permanente y puntos ✦ para la Tienda.');
       renderMilestone();
       const essUnlocked = true;
       setText(els('readyQuests'), questsDoneCount() + '/3');
@@ -2525,8 +2423,8 @@
     else el.textContent = '☁ Nube: no disponible. Se guarda en este dispositivo.';
   }
 
-  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','essenceOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','shopOverlay','loginOverlay','rankingOverlay','conflictOverlay'];
-  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', essence:'essenceOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', shop:'shopOverlay', login:'loginOverlay', ranking:'rankingOverlay', conflict:'conflictOverlay' };
+  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','shopOverlay','loginOverlay','rankingOverlay','conflictOverlay'];
+  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', shop:'shopOverlay', login:'loginOverlay', ranking:'rankingOverlay', conflict:'conflictOverlay' };
   function setScreen(next){
     screen = next;
     if(next === 'ready' || next === 'difficulty') challenge = null;
@@ -2558,8 +2456,10 @@
     els('hazardBanner').className = 'hazard-banner';
     els('eventBtn').classList.remove('show'); if(els('eventBtn').parentElement) els('eventBtn').parentElement.classList.remove('has-event');
     screen = 'running';
+    if(isBoss()) showTip('boss', 'Cada 5 niveles hay una epidemia: el drenaje y las fugas pegan más fuerte. Preparate con mejoras antes de entrar.');
+    else showTip('run', 'Tu vida baja sola. Aguantá hasta la bandera 🏁 del camino para pasar de nivel.');
     if(isBoss() && !challenge) showToast('☣ Epidemia letal: ' + bossName() + ' · todo pega ' + Math.round((bossMult() - 1) * 100) + '% más fuerte');
-    ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','essenceOverlay','dataOverlay','statsOverlay','characterOverlay','shopOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
+    ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','dataOverlay','statsOverlay','characterOverlay','shopOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
     startTicker();
     render();
     save();
@@ -2753,14 +2653,14 @@
     if(SCENE_REDUCED){ b.style.left = '70%'; setTimeout(arrive, dur * 1000); }
     else b.addEventListener('animationend', e => { if(e.animationName === 'pkMove') arrive(); });
     sc.appendChild(b);
-    if(!state.notifiedKeys.pk){ state.notifiedKeys.pk = true; showToast('¡Tocá las cápsulas que vienen por el camino! Las chances de lo que traen están en la pestaña Suerte.'); }
+    showTip('pk', '¡Tocá las cápsulas que vienen por el camino! Lo que traen se decide al azar: mirá las chances en la pestaña Suerte.');
   }
   function collectPickup(out, b){
     state.stats.pickups = (state.stats.pickups || 0) + 1; runStats.caps++;
     b.style.left = getComputedStyle(b).left; b.classList.add('got'); setTimeout(() => b.remove(), 320);
     const mh = computeMaxHp(), C = CAPSULES[out], gold = 1 + 0.5 * state.upgrades.goldCaps;
     let msg, kind = 'heal';
-    if(out === 'monedas'){ const c = Math.round(levelBonusCoins(false) * 0.3 * gold); addCoins(c); msg = '+$' + fmtCoins(c); kind = 'coin'; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
+    if(out === 'monedas'){ const c = Math.round(levelBonusCoins(false) * 0.1 * gold); addCoins(c); msg = '+$' + fmtCoins(c); kind = 'coin'; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
     else if(out === 'regen'){ regenBoostUntil = state.elapsed + 6; msg = 'regeneración +3%/s por 6 s'; floatText('Regeneración +3%/s · 6s', 'good'); heroPop('heal'); playBeep(880, 0.12); }
     else if(out === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25 * (charIs('mujer') ? 1.3 : 1)); msg = '+' + fmt(state.hp - before) + ' de vida'; floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
     else if(out === 'escudo'){ shieldHp += mh * 0.3; msg = '+' + fmt(mh * 0.3) + ' de escudo'; kind = 'shield'; floatText('🛡 +' + fmt(mh * 0.3), 'cold'); heroPop('shield'); playBeep(700, 0.12, 'triangle'); }
@@ -2771,10 +2671,9 @@
       else { state.hp = 0; msg = '¡muerte súbita!'; kind = 'dmg'; floatText('☠ ¡Muerte súbita!', 'bad'); impact(); playBeep(150, 0.4, 'sawtooth'); }
     }
     else { const c = Math.round(levelBonusCoins(false) * 0.05 * gold); addCoins(c); msg = 'espora reventada · +$' + fmtCoins(c); kind = 'coin'; floatText('Espora reventada +' + fmtCoins(c), 'gold'); playBeep(600, 0.08, 'square'); }
-    logEvent(C.icon, 'Cápsula: ' + msg, kind);
     render();
   }
-  function toxicHit(){ if(charIs('hongo')){ floatText('🍄 El hongo absorbió la espora', 'good'); logEvent('🍄', 'Simbiosis: la espora no te hizo nada', 'heal'); return; } hurt(computeMaxHp() * 0.12, true); floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)', 'dmg'); }
+  function toxicHit(){ if(charIs('hongo')){ floatText('🍄 El hongo absorbió la espora', 'good'); return; } hurt(computeMaxHp() * 0.12, true); floatText('Espora tóxica -12% vida', 'bad'); impact(); }
 
   let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
   function startTicker(){
@@ -2877,7 +2776,7 @@
       if(petAb('gato') && Math.random() < 0.10 + 0.04*petLv('hab')){
         state.hp = computeMaxHp()*0.4;
         showToast('Siete vidas: ¡tu gatito te salvó!');
-        petAbFx('gato', '¡7 vidas!'); heroPop('heal'); logEvent('🐱', 'Siete vidas: tu gatito te salvó', 'heal');
+        petAbFx('gato', '¡7 vidas!'); heroPop('heal'); 
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save(); render();
         return;
@@ -2886,7 +2785,7 @@
         state.consumables.revive -= 1;
         state.stats.revivesUsed += 1;
         state.hp = computeMaxHp()*0.5;
-        showToast('Reanimador activado'); logEvent('💗', 'Reanimador activado', 'heal');
+        showToast('Reanimador activado'); 
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save();
         render();
@@ -2899,8 +2798,8 @@
         showToast('Desafío fallido — no perdiste nada');
       } else {
         state.consecutiveDeathsThisLevel += 1;
-        logEvent('✝', 'Caíste en el nivel ' + state.level + ' a los ' + fmt(state.elapsed) + ' s', 'dmg');
         state.stats.deaths += 1;
+        showTip('death', 'Caer no es perder: te quedás con las monedas. Mejorá en el panel de abajo y volvé a intentar.');
         if(state.level >= 5 && state.elapsed >= computeTarget()*0.5 && !state.essenceLevels[state.level]){
           state.essenceLevels[state.level] = true;
           gainEssence(1, 'caída digna');
@@ -2930,8 +2829,7 @@
       const bonus = Math.round(levelBonusCoins(!!beatBoss)) + squirrelBonus;
       state.coins += bonus; state.totalCoinsEarned += bonus; runStats.coins += bonus;
       const interest = Math.floor(state.coins * 0.01 * state.upgrades.interest);
-      if(interest > 0){ addCoins(interest); logEvent('📈', 'Interés: +$' + fmtCoins(interest), 'coin'); }
-      logEvent(beatBoss ? '☣' : '✓', (beatBoss ? 'Superaste la epidemia ' + beatBoss : 'Nivel ' + state.level + ' superado') + ' · +$' + fmtCoins(bonus), beatBoss ? 'boss' : 'coin');
+      if(interest > 0){ addCoins(interest); }
       if(beatBoss){
         state.stats.bossesBeaten = (state.stats.bossesBeaten || 0) + 1;
         if(!state.bossBeat[state.level]){ state.bossBeat[state.level] = true; gainEssence(1, 'epidemia superada'); }
@@ -2957,6 +2855,7 @@
       els('completeBonus').textContent = fmtCoins(bonus);
       els('completeNext').textContent = state.level >= levelCap() ? 'Tope de ' + DIFF_NAMES[state.difficulty] + ' (' + levelCap() + ')' : state.level;
       setScreen('complete');
+      showTip('lvl', 'Con las monedas comprá mejoras en el panel de abajo (Vida y Resistencia primero). También podés comprar en plena partida.');
       return;
     }
     checkAchievements();
@@ -3296,10 +3195,8 @@
   }
 
   // ---- Paneles: objetivos, compañero, ranking en vivo, bitácora, próxima epidemia y resumen de la partida ----
-  const journal = [];
-  let runStats = { coins:0, caps:0, dmg:0 }, panelsAt = 0;
+  let runStats = { coins:0, caps:0, dmg:0 }, panelsAt = 0, panelsTimer = null;
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
-  function logEvent(icon, text, kind){ journal.unshift({ icon, text, kind: kind || 'info' }); if(journal.length > 12) journal.pop(); panelsAt = 0; }
   function sideObjectivesHTML(){
     const quests = state.quests ? state.quests.list.map(q => {
       const d = questDef(q.id), pct = Math.min(100, q.progress / q.goal * 100);
@@ -3326,7 +3223,7 @@
     if(!sb || rankBusy || document.hidden || Date.now() - rankAt < 120000) return;
     rankBusy = true; rankAt = Date.now();
     try{
-      const r = await withTimeout(sb.from('leaderboard').select('user_id,name,prestige,max_level,total_coins').order('prestige', { ascending:false }).order('max_level', { ascending:false }).order('total_coins', { ascending:false }).limit(100), 8000);
+      const r = await fetchRanking();
       if(r && !r.error){ rankCache = r.data; panelsAt = 0; }
     }catch(e){}
     rankBusy = false;
@@ -3337,9 +3234,9 @@
     if(!rankCache) return '<h3>Ranking</h3><div class="side-note">cargando…</div>';
     // tu fila con los valores de ahora, sin esperar a la próxima sincronización
     let rows = rankCache.filter(r => !authUser || r.user_id !== authUser.id);
-    if(authUser) rows.push({ name: playerName(), prestige: state.prestige, max_level: state.maxLevelEverReached, total_coins: Math.floor(state.totalCoinsEarned), me: true });
+    if(authUser) rows.push({ name: playerName(), character: currentChar(), difficulty: state.difficulty, prestige: state.prestige, max_level: state.maxLevelEverReached, total_coins: Math.floor(state.totalCoinsEarned), me: true });
     rows.sort((a, b) => b.prestige - a.prestige || b.max_level - a.max_level || b.total_coins - a.total_coins);
-    const row = (r, i) => '<div class="sr' + (r.me ? ' me' : '') + '"><span class="sr-p">' + (i + 1) + '</span><span class="sr-n">' + esc(r.name) + '</span><span class="sr-v">✦' + r.prestige + ' · nv ' + r.max_level + '</span></div>';
+    const row = (r, i) => '<div class="sr' + (r.me ? ' me' : '') + '"><span class="sr-p">' + (i + 1) + '</span><span class="sr-n">' + esc(r.name) + (rankMeta(r) ? '<small>' + esc(rankMeta(r)) + '</small>' : '') + '</span><span class="sr-v">✦' + r.prestige + ' · nv ' + r.max_level + '</span></div>';
     const meI = rows.findIndex(r => r.me);
     let h = '<h3>Ranking</h3>' + rows.slice(0, 5).map(row).join('');
     if(meI >= 5) h += '<div class="sr-gap">…</div>' + row(rows[meI], meI);
@@ -3350,9 +3247,6 @@
     } else if(meI === 0 && rows.length > 1) h += '<div class="side-note gold">¡Vas primero! 🏆</div>';
     if(!authUser) h += '<div class="side-note">Entrá con Google para aparecer.</div>';
     return h;
-  }
-  function sideJournalHTML(){
-    return '<h3>Bitácora</h3>' + (journal.length ? journal.map(j => '<div class="sj sj-' + j.kind + '"><span>' + j.icon + '</span>' + esc(j.text) + '</div>').join('') : '<div class="side-note">Acá vas a ver lo que pasa en tus partidas.</div>');
   }
   function oddsHTML(){
     return '<h3>Cápsulas · chances</h3>' + capsuleOdds().map(([k, p]) => { const C = CAPSULES[k]; return '<div class="od ' + (C.good ? 'good' : 'bad') + '"><span>' + C.icon + '</span><span class="od-n">' + C.name + '</span><b>' + p.toFixed(1).replace('.', ',') + '%</b></div>'; }).join('')
@@ -3365,7 +3259,7 @@
   }
   function renderPanels(){
     const now = Date.now();
-    if(now - panelsAt < 500) return;
+    if(now - panelsAt < 500){ if(!panelsTimer) panelsTimer = setTimeout(() => { panelsTimer = null; renderPanels(); }, 500 - (now - panelsAt)); return; }
     panelsAt = now;
     renderShopNow();
     setHTML(els('runSum'), runSumHTML());
@@ -3413,6 +3307,7 @@
     if(screen === 'ready'){
       const bossNow = isBoss();
       els('readyTitle').textContent = bossNow ? '☣ Epidemia: ' + bossName() : (state.level === 1 && state.coins === 0 && state.prestige===0) ? 'Bóveda de contención' : 'De vuelta en la bóveda';
+      els('readyOverlay').classList.toggle('show-sub', bossNow);
       setText(els('readySub'), bossNow ? 'Nivel jefe: el drenaje y las fugas pegan ' + Math.round((bossMult() - 1) * 100) + '% más fuerte y la primera fuga llega enseguida. Superarlo paga el triple y la primera vez te da ◆1 de Esencia.' : 'Tus constantes se estabilizan aquí. Cuando salgas, empiezan a caer solas.');
       els('readyMaxHp').textContent = fmt(maxHp);
       els('readyDrain').textContent = computeDrain().toFixed(2) + '/seg';
@@ -3622,7 +3517,6 @@
         checkAchievements();
         save();
         fanfare(); prestigeWave();
-        logEvent('✦', 'Prestigio ' + state.prestige + ': ' + p.name);
         const unlocked = PRESTIGE_UNLOCKS[state.prestige];
         showToast('★ Prestigio: ' + p.name + ' · ✦ +' + gain + ' puntos' + (unlocked ? ' · Nuevo: ' + unlocked : ''));
         setScreen('ready');
@@ -3783,7 +3677,7 @@
     const box = els('shopInline'), grid = box && box.querySelector('.up-grid'); if(!grid) return;
     if(document.body.classList.contains('wide') || uiZoom !== 1){ if(box._shH){ box._shH = 0; box.style.removeProperty('--shopH'); } return; }
     // lo que hay debajo de la lista (resumen, consumibles, márgenes) + el margen inferior de la página (40 px)
-    const g = grid.getBoundingClientRect(), tail = els('app').getBoundingClientRect().bottom - g.bottom;
+    const g = grid.getBoundingClientRect(), tail = Math.max(els('app').getBoundingClientRect().bottom, els('game').getBoundingClientRect().bottom) - g.bottom;
     const h = Math.max(90, Math.min(600, Math.floor(innerHeight - g.top - tail - 42)));
     if(Math.abs((box._shH || 0) - h) > 4){ box._shH = h; box.style.setProperty('--shopH', h + 'px'); }
   }
@@ -3810,7 +3704,6 @@
     if(key === 'auto') buyAutoContinueQuick();
     else if(kind === 'c'){ buyUpgradeQuick(id); playBeep(900, 0.08); if(id === 'shield' && screen === 'running') shieldHp = Math.min(shieldMax(), shieldHp + computeMaxHp() * 0.04); }
     else if(kind === 'p') buyPP(id); else if(kind === 'e') buyEssence(id); else buyPetAb(state.pet.animal);
-    logEvent('⬆', it.name + ' → nivel ' + (it.lvl + 1), 'info');
     renderShopNow();
     const nb = document.querySelector('#' + (screen === 'shop' ? 'shopModal' : 'shopInline') + ' [data-buy="' + key + '"]');
     if(nb){ nb.classList.add('bought'); setTimeout(() => nb.classList.remove('bought'), 360); }
@@ -3844,7 +3737,7 @@
       const wide = innerWidth >= WIDE_W;
       document.body.classList.toggle('wide', wide);
       uiZoom = Math.round(Math.max(1, Math.min(innerWidth / (wide ? WIDE_W : 492), innerHeight / h, 2.4)) * 100) / 100;
-      panelsAt = 0;
+      panelsAt = 0; requestAnimationFrame(renderPanels);
       const root = document.documentElement;
       root.style.zoom = uiZoom === 1 ? '' : String(uiZoom);
       root.style.setProperty('--vhp', (innerHeight / uiZoom) + 'px');
@@ -3860,7 +3753,10 @@
     document.addEventListener('pointerdown', unlockAudio, { once:true });
 
     window.addEventListener('resize', () => { fitZoom(); sizeShop(); });
+    // si algo de arriba cambia de alto (textos que se cargan después, etc.), se vuelve a medir la lista de mejoras
+    if(window.ResizeObserver) new ResizeObserver(() => sizeShop()).observe(els('game'));
     els('menuBtn').addEventListener('click', openMenu);
+    els('tipOk').addEventListener('click', () => els('tipCard').classList.remove('show'));
     els('sideL').addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-act="petup"]'); if(b && !b.disabled && petOn()) buyPetAb(state.pet.animal); });
     els('menuBackdrop').addEventListener('click', closeMenu);
     document.querySelectorAll('.menu-group-head').forEach(h => h.addEventListener('click', () => {
@@ -3972,7 +3868,6 @@
     els('shopModal').addEventListener('click', shopClick);
     document.querySelectorAll('.open-tree-btn').forEach(b => b.addEventListener('click', () => openTree()));
     els('essenceChip').addEventListener('click', openEssence);
-    els('closeEssenceBtn').addEventListener('click', closePanel);
     els('menuCharacterBtn').addEventListener('click', () => { closeMenu(); els('closeCharacterBtn').textContent = 'Volver'; renderCharacterPick(); openPanel('character'); });
     els('closeCharacterBtn').addEventListener('click', () => {
       state.characterChosen = true; save();
@@ -4118,6 +4013,8 @@
     continueBoot();
   }
   function continueBoot(){
+    // quien ya jugó bastante no necesita los consejos del comienzo
+    if(state.maxLevelEverReached >= 6) ['run','lvl','death','pk','shield','boss'].forEach(k => { state.notifiedKeys['tip_' + k] = true; });
     if(adoptNote){ adoptNote = false; setTimeout(() => showToast('Tu partida sin cuenta quedó guardada en tu cuenta de Google.'), 1200); }
     const off = state.difficultyChosen ? computeOffline() : null;
     checkDailyStreak();
@@ -4127,6 +4024,9 @@
     if(liteAutoNote){ liteAutoNote = false; setTimeout(() => showToast('En el celular activamos el modo ahorro y apagamos la música para cuidar la batería. Lo podés cambiar en Configuración.'), 2500); }
     if(petRefundNote){ const n = petRefundNote; petRefundNote = 0; setTimeout(() => showToast('Ahora cada compañero tiene una sola habilidad: te devolvimos ◆' + n + ' de Esencia de sus mejoras anteriores.'), 1500); }
   }
+
+  // Instalable como app: el service worker guarda el juego en el dispositivo (solo en https, no en pruebas locales).
+  if('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 
   (async function boot(){
     const loaded = await load();
