@@ -33,9 +33,9 @@
   html{background:var(--bg);}
   html,body{margin:0;padding:0;color:var(--text);font-family:var(--sans);}
   body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 130% 45% at 50% 108%, rgba(var(--cave,110,225,70),calc(.10 + .22*var(--tox,.3))), transparent 70%),radial-gradient(ellipse 100% 40% at 50% -8%, rgba(var(--tint,0,0,0),var(--tinta,0)), transparent 70%),radial-gradient(ellipse 90% 80% at 50% 50%, transparent 55%, rgba(0,0,0,.35));animation:toxBreath 7s ease-in-out infinite alternate;}
-  body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:calc(.25 + .4*var(--tox,.3));background-image:radial-gradient(circle, rgba(var(--cave,160,255,110),.55) 0 1.2px, transparent 2px),radial-gradient(circle, rgba(var(--cave,160,255,110),.4) 0 1px, transparent 2px);background-size:97px 131px,61px 89px;background-position:0 0,30px 40px;animation:toxSpores 40s linear infinite;}
+  body::after{content:'';position:fixed;top:0;left:0;right:0;bottom:-131px;z-index:-1;pointer-events:none;opacity:calc(.25 + .4*var(--tox,.3));background-image:radial-gradient(circle, rgba(var(--cave,160,255,110),.55) 0 1.2px, transparent 2px),radial-gradient(circle, rgba(var(--cave,160,255,110),.4) 0 1px, transparent 2px);background-size:97px 131px,61px 131px;background-position:0 0,30px 40px;animation:toxSpores 40s linear infinite;will-change:transform;}
   @keyframes toxBreath{from{opacity:.75;}to{opacity:1;}}
-  @keyframes toxSpores{to{background-position:0 -131px,30px -49px;}}
+  @keyframes toxSpores{to{transform:translateY(-131px);}}
   body{min-height:100vh;min-height:var(--vhp,100vh);display:flex;justify-content:center;padding-block:24px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));}
   #app{width:100%;max-width:460px;position:relative;}
   svg.icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
@@ -267,7 +267,7 @@
   .sc-mid{}
   .sc-mid .sm{fill:#0a1510;stroke:rgba(var(--cg),.28);stroke-width:1;} .sc-mid .cr{fill:rgba(var(--cg),.8);} .sc-mid .gl{fill:rgba(var(--cg),.15);} .sc-mid .fu{fill:rgba(var(--cg),.7);} .sc-mid .fs{fill:#17301f;} .sc-mid .rk{fill:#0e1d15;stroke:rgba(var(--cg),.2);stroke-width:1;}
   .sc-path{position:absolute;left:0;right:0;bottom:0;height:15px;background:#0a1a12;border-top:2px solid rgba(var(--cg),.4);box-shadow:0 -3px 12px rgba(var(--cg),.18);}
-  .sc-path::after{content:'';position:absolute;left:0;right:0;top:6px;height:2px;background:linear-gradient(90deg, rgba(255,255,255,0.16) 0 14px, transparent 14px);background-size:34px 2px;background-repeat:repeat-x;background-position-x:var(--px,0px);}
+  .sc-dash{position:absolute;left:0;top:6px;width:calc(100% + 34px);height:2px;background:linear-gradient(90deg, rgba(255,255,255,0.16) 0 14px, transparent 14px);background-size:34px 2px;background-repeat:repeat-x;will-change:transform;}
   .scene .mascot-slot{position:absolute;left:15%;bottom:3px;width:66px;height:66px;margin:0;z-index:2;}
   .cloud{position:absolute;top:0;bottom:0;left:0;width:100%;pointer-events:none;opacity:0;transform:translateX(110%);z-index:3;--cl:169,120,216;}
   .cl-cold{--cl:150,205,245;} .cl-rad{--cl:205,222,80;}
@@ -324,8 +324,9 @@
   .sc-mist{position:absolute;left:0;right:0;bottom:10px;height:30px;pointer-events:none;background:radial-gradient(ellipse 70px 14px at 40px 22px, rgba(var(--cg),.42), transparent 70%),radial-gradient(ellipse 90px 12px at 120px 26px, rgba(var(--cg),.30), transparent 70%);background-size:170px 30px;opacity:calc(.35 + .65*var(--tox,.3));animation:mistDrift 16s linear infinite;}
   @keyframes mistDrift{to{background-position:-170px 0;}}
   .sc-tx{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
-  .tx{position:absolute;left:var(--x);bottom:var(--y);width:4px;height:4px;border-radius:50%;background:rgb(var(--cg));box-shadow:0 0 7px rgb(var(--cg));opacity:0;animation:txDrift calc(var(--d) * 1s) linear infinite;}
-  @keyframes txDrift{0%{left:var(--x);opacity:0;}15%{opacity:.9;}80%{opacity:.7;}100%{left:22%;opacity:0;transform:scale(.4);}}
+  .tx{position:absolute;left:0;width:100%;bottom:var(--y);height:4px;opacity:0;animation:txDrift calc(var(--d) * 1s) linear infinite;will-change:transform,opacity;}
+  .tx::before{content:'';position:absolute;left:0;top:0;width:4px;height:4px;border-radius:50%;background:rgb(var(--cg));box-shadow:0 0 7px rgb(var(--cg));}
+  @keyframes txDrift{0%{transform:translateX(var(--x));opacity:0;}15%{opacity:.9;}80%{opacity:.7;}100%{transform:translateX(22%);opacity:0;}}
   .sc-vig{position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse 85% 100% at 50% 55%, transparent 55%, rgba(0,0,0,.5));}
   .scene.walk .mascot-slot::before{content:'';position:absolute;inset:2px;border-radius:50%;z-index:-1;background:radial-gradient(circle, rgba(var(--cg),calc(.10 + .2*var(--tox,.3))) 0, transparent 70%);animation:toxAura 1s ease-in-out infinite;}
   @keyframes toxAura{0%,100%{transform:scale(.85);opacity:.6;}50%{transform:scale(1.1);opacity:1;}}
@@ -407,8 +408,12 @@
   /* modo ahorro y pestaña oculta */
   .lite body::before,.lite body::after{animation:none;} .lite body::after{display:none;}
   .lite .sc-mist,.lite .tx,.lite .sc-ceil .dr,.lite .tbub,.lite .tdrip,.lite .pt,.lite .pet-sp,.lite .fx{animation:none;}
+  .lite .m-eye,.lite .m-armL,.lite .m-armR,.lite .m-body,.lite .pet-in,.lite .tail,.lite .wingL,.lite .wingR,.lite .m-fx *,.lite .m-fx-win g,.lite .m-halo ellipse,.lite .m-ghost,.lite .cl-ic,.lite .notif-star,.lite .tn,.lite .prestige-goal.ready,.lite .vitals.critical .hp-num,.lite .scene.boss .sc-vig,.lite .pet-ghost,.lite .fx,.lite .pet-slot.elite::before,.lite .tree-lines polyline{animation:none !important;}
+  .lite .pet-svg,.lite .coin-ic,.lite .notif-star{filter:none !important;} .lite .coin-ping{display:none;} .lite .sc-gasfx{animation:none !important;}
   .lite .tx,.lite .pt{display:none;} .lite .scene.walk .mascot-slot::before{animation:none;} .lite .cloud::before,.lite .cloud::after{animation:none;} .lite .tn.can{animation:none;}
   .paused *,.paused *::before,.paused *::after,.paused body::before,.paused body::after{animation-play-state:paused !important;}
+  .scene:not(.walk) *,.scene:not(.walk) *::before,.scene:not(.walk) *::after,.scene:not(.walk)::before,.scene:not(.walk)::after,body:not(.playing)::before,body:not(.playing)::after{animation-play-state:paused !important;}
+  .scene:not(.walk) .pk{animation-play-state:running !important;}
   /* ===== Más vida en la escena ===== */
   .sc-sky{position:absolute;inset:0;pointer-events:none;}
   .sc-sun{position:absolute;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:radial-gradient(circle,#fff1c4 0 38%,#ffc65a 72%);box-shadow:0 0 14px 4px rgba(255,200,90,0.45);will-change:transform;}
@@ -1333,9 +1338,10 @@
   const OVERDRIVE_COOLDOWN = 45;
   const OVERDRIVE_UNLOCK = 6;
   let enteredCritical = false;
-  let petRefundNote = 0;
+  let petRefundNote = 0, liteAutoNote = false;
 
-  function autoLite(){ try{ return (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2; }catch(e){ return false; } }
+  function isMobileDevice(){ try{ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform)); }catch(e){ return false; } }
+  function autoLite(){ try{ return isMobileDevice() || (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2; }catch(e){ return false; } }
   function freshUpgrades(){ return { maxHp:0, coinRate:0, accel:0, regen:0, regenBranch:null, regenPost:0, antitox:0, aislante:0, blindajeRad:0, harvest:0 }; }
   function defaultState(){
     return {
@@ -1387,6 +1393,7 @@
     ['regen','salud','inmu','eco'].forEach(k => { for(let l = 0; l < (s.pet[k] || 0); l++) petRefund += Math.round(3 * Math.pow(1.55, l)); s.pet[k] = 0; });
     if(petRefund > 0){ s.essence = (typeof s.essence === 'number' ? s.essence : 0) + petRefund; petRefundNote += petRefund; }
     if(typeof s.lite !== 'boolean') s.lite = autoLite();
+    if(!s.liteChecked){ s.liteChecked = true; if(isMobileDevice() && !s.lite){ s.lite = true; liteAutoNote = true; } }
     if(typeof s.treeHintSeen !== 'boolean') s.treeHintSeen = false;
     if(s.consecutiveDeathsThisLevel===undefined) s.consecutiveDeathsThisLevel = 0;
     if(s.dailyStreak===undefined) s.dailyStreak = 0;
@@ -1897,7 +1904,9 @@
   }
 
   function todayStr(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-  function setText(el, t){ if(el && el.textContent !== t) el.textContent = t; }
+  function setText(el, t){ t = String(t); if(el && el.textContent !== t) el.textContent = t; }
+  function setHTML(el, h){ if(el && el._h !== h){ el._h = h; el.innerHTML = h; } }
+  function setStyle(el, k, v){ if(el && el['_s' + k] !== v){ el['_s' + k] = v; el.style[k] = v; } }
   function fmtDuration(sec){
     sec = Math.floor(sec);
     const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
@@ -2340,7 +2349,7 @@
     document.querySelectorAll('.milestone-card').forEach(c => {
       const t = c.querySelector('.ms-text');
       if(t._html !== html){ t.innerHTML = html; t._html = html; }
-      c.querySelector('.ms-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+      setStyle(c.querySelector('.ms-fill'), 'width', Math.max(0, Math.min(100, pct)).toFixed(1) + '%');
     });
   }
 
@@ -2616,7 +2625,7 @@
   }
   function toxicHit(){ state.hp -= computeMaxHp() * 0.12; floatText('Espora tóxica -12% vida', 'bad'); impact(); }
 
-  let gasPhase = '', gasEnds = 0, nextGasTime = Infinity;
+  let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
   function tick(){
     if(screen !== 'running') return;
     sessionClock += 0.1;
@@ -2787,6 +2796,7 @@
       return;
     }
     checkAchievements();
+    if(state.lite && (tickN++ & 1)) return;
     updateOverdriveBtn();
     render();
   }
@@ -2869,8 +2879,8 @@
   let sceneEls = null, sceneDist = 0, sceneV = 0, sceneTarget = 0, sceneLast = 0, sceneLoopOn = false;
   const SCENE_REDUCED = (function(){ try{ return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } })();
   function sceneFrame(ts){
+    if(!sceneEls || (sceneTarget === 0 && sceneV === 0)){ sceneLoopOn = false; return; }
     requestAnimationFrame(sceneFrame);
-    if(!sceneEls) return;
     if(state.lite && (sceneSkip = !sceneSkip)) return;
     const dt = Math.min(0.1, Math.max(0, (ts - sceneLast) / 1000)); sceneLast = ts;
     if(dt <= 0) return;
@@ -2883,7 +2893,7 @@
     sceneEls.mid.style.transform = 'translate3d(' + (-((sceneDist * 0.45) % W)).toFixed(2) + 'px,0,0)';
     sceneEls.ceil.style.transform = 'translate3d(' + (-((sceneDist * 0.3) % W)).toFixed(2) + 'px,0,0)';
     sceneEls.tox.style.transform = 'translate3d(' + (-((sceneDist * 0.9) % W)).toFixed(2) + 'px,0,0)';
-    sceneEls.path.style.setProperty('--px', (-(sceneDist % 34)).toFixed(2) + 'px');
+    sceneEls.dash.style.transform = 'translate3d(' + (-(sceneDist % 34)).toFixed(2) + 'px,0,0)';
   }
 
   const SCENE_MIDS = [SCENE_MID, SCENE_MID, SCENE_MID, SCENE_MID, SCENE_MID];
@@ -2909,7 +2919,7 @@
     }catch(e){}
   }
   function spawnCoinPing(){
-    if(SCENE_REDUCED || pingsLive >= 6 || !sceneEls || !sceneEls.hero) return;
+    if(SCENE_REDUCED || state.lite || pingsLive >= 6 || !sceneEls || !sceneEls.hero) return;
     const target = els('coinCount'); if(!target) return;
     const a = sceneEls.hero.getBoundingClientRect(), t = target.getBoundingClientRect();
     if(!a.width || !t.width) return;
@@ -2956,7 +2966,7 @@
       + '<div class="sc-layer sc-mid">' + SCENE_MID + SCENE_MID + '</div>'
       + '<div class="sc-layer sc-ceil">' + SCENE_CEIL + SCENE_CEIL + '</div>'
       + '<div class="sc-mist"></div>'
-      + '<div class="sc-path"></div>'
+      + '<div class="sc-path"><i class="sc-dash"></i></div>'
       + '<div class="sc-layer sc-tox">' + SCENE_TOX + SCENE_TOX + '</div>'
       + '<div class="sc-tx">' + [48,58,66,74,82,90,97,62].map((x,i) => '<i class="tx" style="--x:' + x + '%;--d:' + (2.2 + (i*0.43)%1.9).toFixed(2) + ';animation-delay:-' + (i*0.6).toFixed(1) + 's;--y:' + (16 + (i*9)%34) + 'px"></i>').join('') + '</div>'
       + '<div class="finish">' + FINISH_SVG + '</div>'
@@ -2964,7 +2974,7 @@
       + '<div class="mascot-slot"></div>'
       + ['poison','cold','rad'].map(t => '<div class="cloud cl-' + t + '" data-t="' + t + '"><div class="cl-ic">' + hazardTypeInfo(t).icon + '</div></div>').join('')
       + '<div class="sc-gasfx"></div><div class="sc-vig"></div>';
-    sceneEls = { sc, far: sc.querySelector('.sc-far'), mid: sc.querySelector('.sc-mid'), ceil: sc.querySelector('.sc-ceil'), tox: sc.querySelector('.sc-tox'), path: sc.querySelector('.sc-path'), fin: sc.querySelector('.finish'), hero: sc.querySelector('.mascot-slot'), pet: sc.querySelector('.pet-slot') };
+    sceneEls = { sc, far: sc.querySelector('.sc-far'), mid: sc.querySelector('.sc-mid'), ceil: sc.querySelector('.sc-ceil'), tox: sc.querySelector('.sc-tox'), path: sc.querySelector('.sc-path'), dash: sc.querySelector('.sc-dash'), fin: sc.querySelector('.finish'), hero: sc.querySelector('.mascot-slot'), pet: sc.querySelector('.pet-slot') };
     sceneBio = -1; petKey = '\0';
     if(!sceneLoopOn){ sceneLoopOn = true; requestAnimationFrame(sceneFrame); }
   }
@@ -3007,6 +3017,7 @@
     }catch(e){}
     const WALK_SEC = [0.5, 0.85, 1.7, 3.2];
     sceneTarget = (walking && !SCENE_REDUCED) ? 34 * 0.6 / WALK_SEC[sp] : 0;
+    if(sceneTarget > 0 && !sceneLoopOn){ sceneLoopOn = true; sceneLast = performance.now(); requestAnimationFrame(sceneFrame); }
     const now = Date.now();
     ['poison','cold','rad'].forEach(t => {
       const h = hazards.find(x => x.type === t);
@@ -3086,30 +3097,30 @@
     try{ updateMascot(); renderCharacterPick(); }catch(e){}
     applyBiomaTheme();
     updateOverdriveBtn();
-    els('levelNum').textContent = state.level;
-    els('coinCount').textContent = fmtCoins(state.coins);
+    setText(els('levelNum'), state.level);
+    setText(els('coinCount'), fmtCoins(state.coins));
     const maxHp = computeMaxHp();
-    els('hpMax').textContent = fmt(maxHp);
-    els('hpNum').textContent = fmt(Math.max(0,state.hp));
+    setText(els('hpMax'), fmt(maxHp));
+    setText(els('hpNum'), fmt(Math.max(0,state.hp)));
     const ratio = Math.max(0, state.hp/maxHp);
-    els('hpFill').style.width = (ratio*100) + '%';
+    setStyle(els('hpFill'), 'width', (ratio*100).toFixed(1) + '%');
     const critical = ratio < 0.3;
     els('vitalsCard').classList.toggle('critical', critical);
     els('vitalsCard').classList.toggle('shielded', isShielded());
     els('vitalsCard').classList.toggle('boss', isBoss());
 
-    els('dpsValue').textContent = computeCurrentLoss().toFixed(2);
+    setText(els('dpsValue'), computeCurrentLoss().toFixed(2));
     const heal = computeHealPerSec();
     els('dpsGainPart').classList.toggle('hidden', heal <= 0);
-    if(heal > 0) els('dpsHealValue').textContent = heal.toFixed(2);
+    if(heal > 0) setText(els('dpsHealValue'), heal.toFixed(2));
 
     const target = computeTarget();
     setText(els('trailTime'), fmt(state.elapsed) + 's');
     const trailTip = 'Llevás ' + fmt(state.elapsed) + 's de ' + fmt(target) + 's para superar el nivel';
     if(els('trail').title !== trailTip) els('trail').title = trailTip;
     const trailP = Math.min(1, state.elapsed / target);
-    els('trailFill').style.width = (trailP*100) + '%';
-    els('trailDot').style.left = (trailP*100) + '%';
+    setStyle(els('trailFill'), 'width', (trailP*100).toFixed(1) + '%');
+    setStyle(els('trailDot'), 'left', (trailP*100).toFixed(1) + '%');
     els('trail').classList.toggle('done', trailP >= 1);
     setText(els('trailLeft'), trailP >= 1 ? '¡llegaste!' : 'faltan ' + fmt(Math.max(0, target - state.elapsed)) + 's');
     setText(els('passiveRate'), '+' + computeEffectiveRate().toFixed(2) + '/s');
@@ -3154,16 +3165,16 @@
     const canP = canPrestige();
     els('menuPrestigeBtn').disabled = !canP;
     const perksOwned = Object.values(state.perks||{}).reduce((a,b)=>a+b,0);
-    els('prestigeMenuSub').textContent = canP ? ('listo · ' + perksOwned + ' beneficio' + (perksOwned===1?'':'s') + ' acumulado' + (perksOwned===1?'':'s')) : (prestigeNeedsDiff() ? 'nivel ' + prestigeReq() + ': pasá a ' + DIFF_NAMES[prestigeNeedsDiff()] : 'bloqueado hasta nivel ' + prestigeReq() + ' (vas por el ' + state.peakLevel + ')');
+    setText(els('prestigeMenuSub'), canP ? ('listo · ' + perksOwned + ' beneficio' + (perksOwned===1?'':'s') + ' acumulado' + (perksOwned===1?'':'s')) : (prestigeNeedsDiff() ? 'nivel ' + prestigeReq() + ': pasá a ' + DIFF_NAMES[prestigeNeedsDiff()] : 'bloqueado hasta nivel ' + prestigeReq() + ' (vas por el ' + state.peakLevel + ')'));
 
-    els('soundLabel').textContent = 'Sonido: ' + (state.soundOn ? 'activado' : 'desactivado');
-    els('soundIconBadge').innerHTML = state.soundOn ? iconSound : iconMute;
-    els('musicLabel').textContent = 'Música: ' + (state.musicOn ? 'activada' : 'desactivada');
-    els('liteMenuSub').textContent = state.lite ? 'activado: menos efectos y más batería' : 'desactivado';
+    setText(els('soundLabel'), 'Sonido: ' + (state.soundOn ? 'activado' : 'desactivado'));
+    setHTML(els('soundIconBadge'), state.soundOn ? iconSound : iconMute);
+    setText(els('musicLabel'), 'Música: ' + (state.musicOn ? 'activada' : 'desactivada'));
+    setText(els('liteMenuSub'), state.lite ? 'activado: menos efectos y más batería' : 'desactivado');
 
-    els('autoMenuSub').textContent = !state.autoContinue.unlocked
+    setText(els('autoMenuSub'), !state.autoContinue.unlocked
       ? 'bloqueado — 500 monedas'
-      : (state.autoContinue.enabled ? 'activado' : 'desactivado');
+      : (state.autoContinue.enabled ? 'activado' : 'desactivado'));
 
     const diffNames = { facil:'Fácil', normal:'Normal', dificil:'Difícil' };
     els('menuDifficultyBtn').disabled = screen === 'running';
@@ -3376,10 +3387,11 @@
         const usable = has && running && !blocked && !(d.busy && d.busy());
         const off = has && (d.use && running && !usable);
         const poor = state.coins < d.cost;
-        it.className = 'cs-item ' + d.cls + (has ? ' use' : ' buy') + (off ? ' off' : '') + (poor ? ' poor' : '') + (has && d.count < d.cap ? ' can-more' : '');
-        it.querySelector('.cs-icon').innerHTML = d.icon;
-        it.querySelector('.cs-count').textContent = '×' + d.count;
-        it.querySelector('.cs-label').textContent = has ? (d.use ? 'usar' : 'auto') : '$' + fmtCoins(d.cost);
+        const itc = 'cs-item ' + d.cls + (has ? ' use' : ' buy') + (off ? ' off' : '') + (poor ? ' poor' : '') + (has && d.count < d.cap ? ' can-more' : '');
+        if(it.className !== itc) it.className = itc;
+        setHTML(it.querySelector('.cs-icon'), d.icon);
+        setText(it.querySelector('.cs-count'), '×' + d.count);
+        setText(it.querySelector('.cs-label'), has ? (d.use ? 'usar' : 'auto') : '$' + fmtCoins(d.cost));
         const tip = d.name + '. ' + d.tip + (has ? ' Tenés ' + d.count + '. Tocá el + para comprar otro ($' + fmtCoins(d.cost) + ').' : ' Tocá para comprarlo por $' + fmtCoins(d.cost) + '.');
         if(it.title !== tip) it.title = tip;
       });
@@ -4287,6 +4299,7 @@
     ensureQuests();
     setScreen(state.difficultyChosen ? 'ready' : 'difficulty');
     if(off) showOffline(off); else save();
+    if(liteAutoNote){ liteAutoNote = false; setTimeout(() => showToast('En el celular activamos el modo ahorro para que no se caliente. Lo podés apagar en Configuración.'), 2500); }
     if(petRefundNote){ const n = petRefundNote; petRefundNote = 0; setTimeout(() => showToast('Ahora cada compañero tiene una sola habilidad: te devolvimos ◆' + n + ' de Esencia de sus mejoras anteriores.'), 1500); }
   }
 
