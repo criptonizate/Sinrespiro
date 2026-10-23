@@ -1578,6 +1578,9 @@
   const CFG = window.PROTOCOLO_CONFIG || {};
   const LOCAL_KEY = 'protocolo-save';
   const GUEST_KEY = 'protocolo-guest';
+  // Temporada: al subirla, todas las partidas guardadas antes (en el dispositivo y en la nube) se descartan y todos empiezan de cero.
+  const SEASON = 2;
+  const inSeason = s => !!s && (s.season || 1) >= SEASON;
   let sb = null, authUser = null, cloudLoaded = false, cloudState = 'off';
   // La librería de Supabase se baja en paralelo (solo si hay nube configurada) y no frena la apertura del juego.
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
@@ -1669,7 +1672,7 @@
   async function save(){
     if(leaving || saveConflict) return;
     try{
-      state.lastSeen = Date.now();
+      state.lastSeen = Date.now(); state.season = SEASON;
       if(authUser) state._uid = authUser.id;
       await localSet(JSON.stringify(state));
     }catch(e){ console.error('no se pudo guardar', e); }
@@ -1678,6 +1681,7 @@
   async function load(){
     let local = null, remote = null;
     try{ const raw = await localGet(); if(raw) local = JSON.parse(raw); }catch(e){}
+    if(local && !inSeason(local)) local = null;
     await initCloud();
     if(!sb || !authUser) return local;
     // Una partida local de otra cuenta nunca se mezcla con la tuya.
@@ -1686,7 +1690,7 @@
       const r = await withTimeout(sb.from('saves').select('data').eq('user_id', authUser.id).maybeSingle(), 8000);
       if(!r) throw new Error('timeout');
       if(r.error) throw r.error;
-      if(r.data && r.data.data) remote = r.data.data;
+      if(r.data && r.data.data && inSeason(r.data.data)) remote = r.data.data;
       cloudLoaded = true; cloudState = 'ok';
     }catch(e){
       // Sin poder leer la nube no subimos nada: así no pisamos una partida más avanzada.
