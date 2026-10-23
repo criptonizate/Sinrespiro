@@ -348,7 +348,7 @@
   @keyframes petTail{from{transform:rotate(-12deg);}to{transform:rotate(14deg);}}
   .pet-fx{position:absolute;left:50%;bottom:calc(var(--sc) * 38px + 1px);transform:translateX(-50%);display:flex;gap:1px;pointer-events:none;}
   .fx{width:12px;height:12px;display:block;transform-origin:50% 100%;} .fx svg{width:100%;height:100%;display:block;overflow:visible;}
-  .fx-regen{animation:fxRise 1.8s ease-in-out infinite;} .fx-salud{animation:fxBeat 1s ease-in-out infinite;} .fx-inmu{animation:fxFloat 2.2s ease-in-out infinite;} .fx-eco{animation:fxSpin 2.4s linear infinite;}
+  .fx-regen{animation:fxRise 1.8s ease-in-out infinite;} .fx-salud{animation:fxBeat 1s ease-in-out infinite;} .fx-inmu{animation:fxFloat 2.2s ease-in-out infinite;} .fx-eco{animation:fxSpin 2.4s linear infinite;} .fx-hab{animation:fxBeat 1.4s ease-in-out infinite;}
   .fx.hi{filter:drop-shadow(0 0 3px rgba(255,255,255,.7));} .fx.mx{width:14px;height:14px;filter:drop-shadow(0 0 4px rgba(255,255,255,.95));}
   @keyframes fxRise{0%,100%{transform:translateY(0);opacity:.85;}50%{transform:translateY(-4px);opacity:1;}}
   @keyframes fxBeat{0%,100%{transform:scale(1);}15%{transform:scale(1.25);}30%{transform:scale(1);}45%{transform:scale(1.15);}}
@@ -467,6 +467,9 @@
   .tree-lines polyline.on{opacity:0.85;stroke-width:3.5;}
   .tn{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:var(--panel);border:2px solid var(--bc);color:var(--bc);display:flex;align-items:center;justify-content:center;transition:transform .15s, box-shadow .2s, opacity .2s;padding:0;}
   .tn svg.icon{width:24px;height:24px;}
+  .tn-pet{display:flex;align-items:center;justify-content:center;}
+  .tn-pet .pet-svg{width:36px;height:32px;transform:none;}
+  .ts-ic .tn-pet .pet-svg{width:30px;height:27px;}
   .tn[data-hub]{width:70px;height:70px;margin:-35px 0 0 -35px;border-width:2.5px;}
   .tn[data-hub] svg.icon{width:29px;height:29px;}
   .tn .tb{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;border-radius:10px;background:var(--panel-2);border:1px solid var(--bc);color:var(--text);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
@@ -1257,8 +1260,8 @@
     { id:'chal4',     name:'Maestro del riesgo', desc:'Superá los 4 desafíos.', check:s => Object.keys(s.challengesDone).length>=4, cepa:'Cepa Maestra', prog:s=>[Object.keys(s.challengesDone).length,4] },
     { id:'essence50', name:'Alquimista',     desc:'Ganá 50 Esencia en total.', check:s => s.stats.essenceEarned>=50, cepa:'Cepa Esencial', prog:s=>[s.stats.essenceEarned,50] },
     { id:'pet1',      name:'Mejor acompañado', desc:'Elegí un compañero.', check:s => !!(s.pet && s.pet.animal), cepa:'Cepa Compañera' },
-    { id:'petmax',    name:'Entrenador', desc:'Llevá una habilidad de tu compañero al nivel 5.', check:s => !!s.pet && ['regen','salud','inmu','eco'].some(k => (s.pet[k]||0) >= 5), cepa:'Cepa Domesticada' },
-    { id:'petelite',  name:'Compañero de élite', desc:'Sumá 12 niveles entre las habilidades de tu compañero.', check:s => !!s.pet && ['regen','salud','inmu','eco'].reduce((t,k) => t + (s.pet[k]||0), 0) >= 12, cepa:'Cepa Simbiótica', prog:s => [['regen','salud','inmu','eco'].reduce((t,k) => t + ((s.pet && s.pet[k])||0), 0), 12] },
+    { id:'petmax',    name:'Entrenador', desc:'Llevá la habilidad única de un compañero al nivel 5.', check:s => !!s.pet && Object.values(s.pet.ab || {}).some(v => v >= 5), cepa:'Cepa Domesticada' },
+    { id:'petelite',  name:'Compañero de élite', desc:'Descubrí la habilidad de los 5 compañeros.', check:s => !!s.pet && Object.keys(s.pet.known || {}).length >= 5, cepa:'Cepa Simbiótica', prog:s => [Object.keys((s.pet && s.pet.known) || {}).length, 5] },
     { id:'gas3',      name:'Pulmones de acero', desc:'Sobreviví a 3 gases densos.', check:s => (s.stats.gasSurvived||0) >= 3, cepa:'Cepa Respiratoria', prog:s => [s.stats.gasSurvived||0, 3] },
     { id:'hard10',    name:'Valiente',       desc:'Alcanzá el nivel 10 en dificultad Difícil.', check:s => (s.stats.maxLevelDiff.dificil||1)>=10, cepa:'Cepa Valiente', prog:s=>[s.stats.maxLevelDiff.dificil||1,10] },
   ];
@@ -1283,6 +1286,7 @@
   const OVERDRIVE_COOLDOWN = 45;
   const OVERDRIVE_UNLOCK = 6;
   let enteredCritical = false;
+  let petRefundNote = 0;
 
   function autoLite(){ try{ return (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2; }catch(e){ return false; } }
   function freshUpgrades(){ return { maxHp:0, coinRate:0, accel:0, regen:0, regenBranch:null, regenPost:0, antitox:0, aislante:0, blindajeRad:0, harvest:0 }; }
@@ -1296,7 +1300,7 @@
       totalRuns: 0, gamesUntilEvent: Math.floor(rand(1,11)),
       difficulty: 'normal', difficultyChosen: false, consecutiveDeathsThisLevel: 0,
       perks: {}, lastPlayedDate: null, dailyStreak: 0, bestStreak: 0, essenceLevels: {},
-      character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { dividendos:0, temple:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
+      character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{}, ab:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { dividendos:0, temple:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
       challengesDone: {}, quests: null, lastSeen: null,
       stats: { deaths:0, levelsDone:0, eventsCaught:0, eventsMissed:0, antidotesUsed:0, revivesUsed:0, overdrives:0, hazardLevels:0, timePlayed:0, essenceEarned:0, ppEarned:0, questsDone:0, gasSurvived:0, maxLevelDiff:{ facil:1, normal:1, dificil:1 } },
     };
@@ -1327,6 +1331,13 @@
     if(!s.pet.known || typeof s.pet.known !== 'object') s.pet.known = {};
     if(!['gato','tortuga','buho','ardilla','murcielago'].includes(s.pet.animal)) s.pet.animal = null;
     if(s.pet.animal) s.pet.known[s.pet.animal] = true;
+    // Cada compañero tiene una sola habilidad, con nivel propio. Las mejoras genéricas de antes se devuelven en Esencia.
+    if(!s.pet.ab || typeof s.pet.ab !== 'object') s.pet.ab = {};
+    if(s.pet.hab > 0 && s.pet.animal && !s.pet.ab[s.pet.animal]) s.pet.ab[s.pet.animal] = s.pet.hab;
+    s.pet.hab = 0;
+    let petRefund = 0;
+    ['regen','salud','inmu','eco'].forEach(k => { for(let l = 0; l < (s.pet[k] || 0); l++) petRefund += Math.round(3 * Math.pow(1.55, l)); s.pet[k] = 0; });
+    if(petRefund > 0){ s.essence = (typeof s.essence === 'number' ? s.essence : 0) + petRefund; petRefundNote += petRefund; }
     if(typeof s.lite !== 'boolean') s.lite = autoLite();
     if(typeof s.treeHintSeen !== 'boolean') s.treeHintSeen = false;
     if(s.consecutiveDeathsThisLevel===undefined) s.consecutiveDeathsThisLevel = 0;
@@ -1936,9 +1947,11 @@
     ['salud', '<svg viewBox="0 0 12 12"><path d="M6 11 C2 8 1 6 1 4 1 2.5 2.2 1.5 3.4 1.5 4.5 1.5 5.5 2.1 6 3 6.5 2.1 7.5 1.5 8.6 1.5 9.8 1.5 11 2.5 11 4 11 6 10 8 6 11Z" fill="#ff6b6b"/></svg>'],
     ['inmu', '<svg viewBox="0 0 12 12"><path d="M6 1 L10.5 2.8 V6 C10.5 8.6 8.6 10.4 6 11 3.4 10.4 1.5 8.6 1.5 6 V2.8Z" fill="#5aa9e6" stroke="#cfe9ff" stroke-width=".8"/></svg>'],
     ['eco', '<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#e8b65a" stroke="#fff3c4" stroke-width=".8"/><text x="6" y="8.6" text-anchor="middle" font-size="7" font-weight="700" fill="#7a5410">$</text></svg>'],
+    ['hab', '<svg viewBox="0 0 12 12"><path d="M6 .8 L7.5 4.4 L11.3 4.7 L8.4 7.2 L9.3 11 L6 9 L2.7 11 L3.6 7.2 L.7 4.7 L4.5 4.4Z" fill="#ffd36a" stroke="#fff3c4" stroke-width=".6"/></svg>'],
   ];
   function petOn(){ return !!(state && state.pet && PET_ANIMALS[state.pet.animal]); }
-  function petLv(k){ return petOn() ? (state.pet[k] || 0) : 0; }
+  function petLv(k){ if(!petOn()) return 0; return k === 'hab' ? (state.pet.ab[state.pet.animal] || 0) : (state.pet[k] || 0); }
+  function petAbCost(a){ return Math.round(PET_UP.hab.base * Math.pow(1.55, (state.pet.ab && state.pet.ab[a]) || 0)); }
   function petCost(k){ return Math.round(PET_UP[k].base * Math.pow(1.55, (state.pet && state.pet[k]) || 0)); }
   function petStage(){ const m = (state && state.maxLevelEverReached) || 1; return m >= 25 ? 2 : m >= 10 ? 1 : 0; }
   function choosePet(a){
@@ -1965,6 +1978,16 @@
     checkAchievements(); save(); render(); petPop();
   }
   let petKey = '\0', petMood = '';
+  function buyPetAb(a){
+    if(!petAb(a)) return;
+    const l = state.pet.ab[a] || 0;
+    if(l >= PET_UP.hab.max) return;
+    const c = petAbCost(a);
+    if(state.essence < c) return;
+    state.essence -= c; state.pet.ab[a] = l + 1;
+    playBeep(900, 0.15); setTimeout(() => playBeep(1180, 0.15), 90);
+    checkAchievements(); save(); render(); petPop();
+  }
   const PET_MYSTERY_SVG = '<svg class="pet-svg pet-ghost" viewBox="0 0 44 40"><path class="tail pg" d="M9 30 C0 30 -1 19 5 15" fill="none"/>'
     + '<g class="pleg a"><rect class="pg" x="13" y="31" width="4.6" height="8" rx="2.3"/></g><g class="pleg b"><rect class="pg" x="25" y="31" width="4.6" height="8" rx="2.3"/></g>'
     + '<ellipse class="pg" cx="21" cy="28" rx="13" ry="8.5"/><path class="pg" d="M27 12 L28 3.5 L34 10Z"/><path class="pg" d="M34 10 L39.5 4 L40.5 13Z"/><circle class="pg" cx="34" cy="18" r="9"/>'
@@ -1987,8 +2010,7 @@
     sl.removeAttribute('title');
     if(!a){ sl.className = 'pet-slot empty'; sl.innerHTML = '<div class="pet-in">' + PET_MYSTERY_SVG + '</div>'; sl.title = 'Compañero misterioso: elegilo gratis en el árbol de mejoras'; return; }
     const P = PET_ANIMALS[a], st = petStage();
-    const tot = PET_FX.reduce((t, f) => t + petLv(f[0]), 0);
-    sl.className = 'pet-slot s' + st + ' pa-' + a + (tot >= 12 ? ' elite' : '');
+    sl.className = 'pet-slot s' + st + ' pa-' + a + (petLv('hab') >= 5 ? ' elite' : '');
     petMood = '\0';
     sl.style.setProperty('--pc', P.pc); sl.style.setProperty('--pd', P.pd);
     const fx = PET_FX.filter(f => petLv(f[0]) > 0).map(f => '<span class="fx fx-' + f[0] + (petLv(f[0]) >= 5 ? ' mx' : petLv(f[0]) >= 3 ? ' hi' : '') + '">' + f[1] + '</span>').join('');
@@ -3400,7 +3422,7 @@
     { br:'inmunidad', hub:'antitox',  kids:['aislante','blindajeRad'] },
     { br:'prestigio', hub:'ppHub',    kids:['pp:dividendos','pp:temple','pp:legado','pp:ritmo','pp:arranque','pp:herencia','pp:ampliar'] },
     { br:'economia',  hub:'coinRate', kids:['harvest','accel','autoContinue'] },
-    { br:'mascota',   hub:'petHub',   kids:['pet:regen','pet:salud','pet:hab','pet:inmu','pet:eco'] },
+    { br:'mascota',   hub:'petHub',   kids:['pet:gato','pet:tortuga','pet:buho','pet:ardilla','pet:murcielago'] },
   ];
   // Requisitos: hay que comprar el nodo padre para desbloquear el hijo (las líneas van al padre).
   const TREE_PARENT = { regen:'maxHp', regenMit:'regen', regenReg:'regen', aislante:'antitox', blindajeRad:'aislante', accel:'coinRate', harvest:'accel', autoContinue:'accel' };
@@ -3464,7 +3486,7 @@
 
 
   const REC_W = { coinRate:3, accel:2.6, maxHp:2.2, regen:2, harvest:1.6, antitox:2.4, aislante:2.4, blindajeRad:2.4, antidoteMinor:0.6, antidoteMajor:0.7, shield:0.5, revive:0.8,
-    'ess:eco':2.5, 'ess:pulso':2.2, 'ess:semilla':1.2, 'ess:reserva':1, 'ess:hibernacion':1, 'ess:sobrecarga':1.2, 'pet:regen':1.4, 'pet:hab':2, 'pet:salud':1.8, 'pet:inmu':1.8, 'pet:eco':2.4 };
+    'ess:eco':2.5, 'ess:pulso':2.2, 'ess:semilla':1.2, 'ess:reserva':1, 'ess:hibernacion':1, 'ess:sobrecarga':1.2, 'pet:gato':2.2, 'pet:tortuga':2.2, 'pet:buho':2.2, 'pet:ardilla':2.2, 'pet:murcielago':2.2 };
   function treeRecommend(){
     const best = { coins:null, ess:null }, sc = { coins:-1, ess:-1 };
     TREE_NODES.forEach(n => {
@@ -3617,19 +3639,20 @@
     } else if(id === 'petHub'){
       const a = petOn() ? PET_ANIMALS[state.pet.animal] : null;
       I.name = 'Compañero'; I.icon = iconPaw; I.info = true;
-      I.desc = a ? 'Tu compañero es ' + a.name + ' · habilidad única: ' + PET_AB[state.pet.animal].name + '. Cambiarlo cuesta ◆' + PET_CHANGE_COST + ' de Esencia. Sus mejoras cuestan Esencia ◆ y se ven en él: cruz verde, corazón, escudito y moneda.' : 'Elegí un animalito que te acompañe. Solo podés tener uno, y cada uno tiene una habilidad única que no sabés cuál es hasta elegirlo. Elegir al primero es gratis; cambiarlo después cuesta ◆' + PET_CHANGE_COST + ' de Esencia.';
+      I.desc = a ? 'Tu compañero es ' + a.name + ' · habilidad única: ' + PET_AB[state.pet.animal].name + '. Cambiarlo cuesta ◆' + PET_CHANGE_COST + ' de Esencia. Solo puede mejorar su propia habilidad (con Esencia ◆); las de los otros animales quedan bloqueadas. Si lo cambiás, cada uno guarda su nivel.' : 'Elegí un animalito que te acompañe. Solo podés tener uno, y cada uno tiene una habilidad única que no sabés cuál es hasta elegirlo. Elegir al primero es gratis; cambiarlo después cuesta ◆' + PET_CHANGE_COST + ' de Esencia.';
     } else if(id.indexOf('pet:') === 0){
-      const k = id.slice(4), U = PET_UP[k];
-      I.name = U.name; I.icon = U.icon; I.lvl = state.pet[k] || 0; I.max = U.max; I.maxed = I.lvl >= U.max; I.ck = 'ess';
-      I.locked = !petOn(); I.lockMsg = 'Primero elegí un compañero en el nodo «Compañero».';
-      I.cost = petCost(k);
-      if(k === 'hab'){
-        const ab = petOn() ? PET_AB[state.pet.animal] : null;
-        I.name = ab ? ab.name : 'Habilidad secreta'; I.tag = 'habilidad única';
-        I.lockMsg = 'Elegí un compañero para descubrir su habilidad única.';
-        I.desc = !ab ? '' : (I.maxed ? 'Al máximo. ' + ab.desc(I.lvl) : (I.lvl ? 'Ahora: ' + ab.desc(I.lvl) + ' Próximo nivel: ' + ab.desc(I.lvl + 1) : 'Todavía sin mejorar. Primer nivel: ' + ab.desc(1)));
-      } else I.desc = I.maxed ? 'Al máximo. ' + U.shown : 'Próximo nivel: ' + U.desc(I.lvl) + ' ' + U.shown;
-      I.can = !I.locked && !I.maxed && state.essence >= I.cost; I.btnOn = I.can; I.buy = () => buyPetUp(k);
+      // Cada animal tiene su propia habilidad: solo se puede mejorar la del compañero elegido.
+      const a = id.slice(4), P = PET_ANIMALS[a], ab = PET_AB[a], known = !!state.pet.known[a], mine = petAb(a);
+      const lv = state.pet.ab[a] || 0, max = PET_UP.hab.max;
+      I.name = known ? ab.name : 'Habilidad secreta'; I.keepIcon = true;
+      I.icon = '<span class="tn-pet" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span>';
+      I.lvl = lv; I.max = max; I.maxed = lv >= max; I.ck = 'ess'; I.tag = P.name + ' · habilidad única';
+      I.locked = !mine;
+      I.lockMsg = !petOn() ? 'Elegí un compañero en el nodo «Compañero»: solo vas a poder mejorar su habilidad.'
+        : 'Solo ' + P.name + ' puede aprender ' + (known ? '«' + ab.name + '»' : 'esta habilidad') + '. Tu compañero es ' + PET_ANIMALS[state.pet.animal].name + '.' + (lv ? ' Guarda su nivel ' + lv + ' por si lo volvés a elegir.' : '');
+      I.cost = petAbCost(a);
+      I.desc = I.maxed ? 'Al máximo. ' + ab.desc(lv) : (lv ? 'Ahora: ' + ab.desc(lv) + ' Próximo nivel: ' + ab.desc(lv + 1) : 'Todavía sin mejorar. Primer nivel: ' + ab.desc(1));
+      I.can = mine && !I.maxed && state.essence >= I.cost; I.btnOn = I.can; I.buy = () => buyPetAb(a);
     } else if(id === 'hub'){
       I.name = 'Tu núcleo'; I.icon = ''; I.info = true;
       I.desc = 'Tenés $' + fmtCoins(state.coins) + ' y ◆' + state.essence + '. Las mejoras que brillan se pueden comprar ahora; las apagadas todavía no te alcanzan o están bloqueadas. Los consumibles (antídotos, escudo y reanimador) se compran directo en la partida, en la barra de abajo.';
@@ -3739,7 +3762,7 @@
       const info = document.createElement('div'); info.className = 'pet-ab';
       if(sel){
         const P = PET_ANIMALS[sel], kn = !!state.pet.known[sel];
-        info.innerHTML = '<b>' + P.name + '</b> · ' + (kn ? 'Habilidad: ' + PET_AB[sel].name + ' — ' + PET_AB[sel].desc(petLv('hab')) : 'Su habilidad es un secreto: la descubrís al elegirlo.');
+        info.innerHTML = '<b>' + P.name + '</b> · ' + (kn ? 'Habilidad: ' + PET_AB[sel].name + ' — ' + PET_AB[sel].desc(state.pet.ab[sel] || 0) : 'Su habilidad es un secreto: la descubrís al elegirlo.');
         const cb = document.createElement('button'); cb.className = 'ts-btn'; cb.id = 'petConfirmBtn';
         const paid = !!cur;
         cb.textContent = paid ? 'Cambiar a ' + P.name + ' (◆' + PET_CHANGE_COST + ')' : 'Elegir a ' + P.name + ' (gratis)';
@@ -3784,7 +3807,8 @@
       const justUnlocked = treePrev[n.id] === 'locked' && I.state !== 'locked';
       treePrev[n.id] = I.state;
       if(justUnlocked){ b.classList.remove('unlk'); void b.offsetWidth; b.classList.add('unlk'); setTimeout(() => b.classList.remove('unlk'), 1000); }
-      const ti = b.querySelector('.ti'); if(ti.innerHTML !== (I.locked ? iconLock : I.icon)) ti.innerHTML = I.locked ? iconLock : I.icon;
+      const ti = b.querySelector('.ti'), icH = (I.locked && !I.keepIcon) ? iconLock : I.icon;
+      if(ti._ic !== icH){ ti._ic = icH; ti.innerHTML = icH; }
       const tb = b.querySelector('.tb');
       const badge = I.locked ? '' : (I.maxed ? '✓' : (I.info ? '' : String(I.lvl)));
       tb.style.display = (badge === '' || (!I.maxed && I.lvl === 0 && n.id.indexOf('regen') !== 0 && I.state !== 'max' && badge === '0')) ? 'none' : '';
@@ -4091,6 +4115,7 @@
     ensureQuests();
     setScreen(state.difficultyChosen ? 'ready' : 'difficulty');
     if(off) showOffline(off); else save();
+    if(petRefundNote){ const n = petRefundNote; petRefundNote = 0; setTimeout(() => showToast('Ahora cada compañero tiene una sola habilidad: te devolvimos ◆' + n + ' de Esencia de sus mejoras anteriores.'), 1500); }
   }
 
   (async function boot(){
