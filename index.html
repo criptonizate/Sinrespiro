@@ -291,14 +291,16 @@
   .cloud.act .cl-ic,.cloud.out .cl-ic{opacity:0;animation:none;}
   /* caminar */
   .mascot{--walk:.5s;} .mascot.tired{--walk:.85s;} .mascot.bad{--walk:1.5s;} .mascot.crit{--walk:2.6s;}
-  .m-legL,.m-legR{transform-origin:34.5px 61px;}
-  .mascot.walking .m-legL{animation:mLegA var(--walk) ease-in-out infinite alternate;}
-  .mascot.walking .m-legR{animation:mLegA var(--walk) ease-in-out infinite alternate-reverse;}
+  .m-legL,.m-legR{transform-box:fill-box;transform-origin:50% 0;}
+  .mascot.walking .m-legL{animation:mWalkLeg var(--walk) linear infinite;}
+  .mascot.walking .m-legR{animation:mWalkLeg var(--walk) linear infinite;animation-delay:calc(var(--walk) * -0.5);}
   .mascot.walking.ok .m-armL{animation:mArmA var(--walk) ease-in-out infinite alternate-reverse;}
   .mascot.walking.ok .m-armR{animation:mArmA var(--walk) ease-in-out infinite alternate;}
   .mascot.walking .m-body{animation:mStep var(--walk) ease-in-out infinite alternate;}
   .mascot.c-planta.walking .m-body{animation:mHop var(--walk) ease-in-out infinite;}
   @keyframes mLegA{from{transform:rotate(-24deg);}to{transform:rotate(24deg);}}
+  /* 0-60%: pie apoyado, va hacia atrás (rotación positiva = pie a la izquierda). 60-100%: vuelve adelante levantado. */
+  @keyframes mWalkLeg{0%{transform:rotate(-22deg);}60%{transform:rotate(22deg);}80%{transform:translateY(-2px) rotate(0deg);}100%{transform:rotate(-22deg);}}
   @keyframes mArmA{from{transform:rotate(-20deg);}to{transform:rotate(20deg);}}
   @keyframes mStep{from{transform:translateY(0);}to{transform:translateY(-1.5px);}}
   @keyframes mHop{0%,100%{transform:translateY(0) scale(1,1);}50%{transform:translateY(-5px) scale(0.98,1.03);}}
@@ -342,7 +344,7 @@
   .pet-slot.pp .pet-in{animation:mPop .6s ease-out;} .pet-slot.pf .pet-in{animation:mHit .5s ease-out;}
   .pet-svg{width:46px;height:42px;display:block;overflow:visible;transform:scale(var(--sc,1));transform-origin:50% 100%;}
   .pleg,.tail,.wing{transform-box:fill-box;} .pleg{transform-origin:50% 0;} .tail{transform-origin:100% 100%;animation:petTail .7s ease-in-out infinite alternate;}
-  .scene.walk .pleg.a{animation:mLegA .3s ease-in-out infinite alternate;} .scene.walk .pleg.b{animation:mLegA .3s ease-in-out infinite alternate-reverse;}
+  .scene.walk .pleg.a{animation:mWalkLeg .4s linear infinite;} .scene.walk .pleg.b{animation:mWalkLeg .4s linear infinite;animation-delay:-.2s;}
   @keyframes petIdle{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.96);}}
   @keyframes petHop{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
   @keyframes petTail{from{transform:rotate(-12deg);}to{transform:rotate(14deg);}}
@@ -2899,7 +2901,7 @@
       if(tk !== tintLast){ tintLast = tk; const rs = document.documentElement.style; rs.setProperty('--tint', tk); rs.setProperty('--tinta', state.prestige > 0 ? '0.16' : '0'); }
     }catch(e){}
     const WALK_SEC = [0.5, 0.85, 1.7, 3.2];
-    sceneTarget = (walking && !SCENE_REDUCED) ? 34 / WALK_SEC[sp] : 0;
+    sceneTarget = (walking && !SCENE_REDUCED) ? 34 * 0.6 / WALK_SEC[sp] : 0;
     const now = Date.now();
     ['poison','cold','rad'].forEach(t => {
       const h = hazards.find(x => x.type === t);
