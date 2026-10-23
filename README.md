@@ -1,4 +1,4 @@
-# Protocolo de supervivencia
+# Sin Respiro
 
 Juego idle en un solo `index.html`. Se publica en Vercel, y Supabase pone el login con Google, el guardado en la nube y el ranking.
 

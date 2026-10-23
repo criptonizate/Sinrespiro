@@ -1,4 +1,4 @@
--- Protocolo de supervivencia: guardado en la nube + ranking.
+-- Sin Respiro: guardado en la nube + ranking.
 -- Pegalo entero en Supabase → SQL Editor → Run. Se puede correr más de una vez.
 
 -- Partidas: cada jugador solo puede ver y modificar la suya.
