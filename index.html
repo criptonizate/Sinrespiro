@@ -730,7 +730,16 @@
   .sh-tab.on{color:var(--text);border-color:var(--safe);} .sh-tab.dot::after{content:'•';color:var(--gold);margin-left:3px;}
   .up-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
   .col-info,.ci-card,.shop-box{min-width:0;}
-  #shopInline .up-grid{max-height:190px;overflow-y:auto;}
+  #shopInline .up-grid{max-height:var(--shopH,190px);overflow-y:auto;}
+  /* en el celu: una mejora por fila, con la descripción completa */
+  body:not(.wide) #shopInline .up-grid{grid-template-columns:1fr;}
+  body:not(.wide) #shopInline .up-tx small{white-space:normal;}
+  /* carteles de muerte y de nivel superado: arriba, compactos y sin oscurecer, para poder usar el panel de mejoras */
+  .overlay.overlay-top{top:72px;transform:translateX(-50%);max-height:none;padding:14px 16px;box-shadow:0 14px 40px rgba(0,0,0,.65);animation:overlayTopIn .25s ease;}
+  @keyframes overlayTopIn{from{opacity:0;transform:translate(-50%,-8px);}to{opacity:1;transform:translate(-50%,0);}}
+  .overlay-top .mascot-lg,.overlay-top p.sub{display:none;}
+  .overlay-top h2{font-size:18px;margin-bottom:8px;} .overlay-top .rows{gap:4px;margin-bottom:10px;} .overlay-top .row{font-size:12.5px;}
+  .overlay-top .btn-row{margin-top:0;} .overlay-top .btn-extract{padding:12px;}
   .up-it{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);text-align:left;min-width:0;}
   .up-it.can{border-color:var(--gold);box-shadow:0 0 0 1px rgba(232,182,90,.25) inset;} .up-it.locked{opacity:.4;} .up-it.maxed{opacity:.65;}
   .up-it.bought{animation:mPop .35s ease-out;}
@@ -748,9 +757,10 @@
 
   /* ===== Paneles laterales y tarjetas de la columna ===== */
   body.wide{gap:16px;}
-  .side{display:none;width:250px;flex:none;position:sticky;top:24px;align-self:flex-start;max-height:calc(var(--vhp,100vh) - 48px);overflow:hidden;flex-direction:column;gap:10px;}
+  .side{display:none;width:250px;flex:none;position:sticky;top:24px;align-self:flex-start;max-height:calc(var(--vhp,100vh) - 48px);overflow-y:auto;scrollbar-width:none;flex-direction:column;gap:10px;}
+  .side::-webkit-scrollbar{display:none;}
   body.wide .side{display:flex;}
-  .side-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:0;}
+  .side-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;flex:none;}
   .side-box h3{margin:0 0 8px;font-size:12px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
   .side-sub{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin:10px 0 4px;}
   .sq{margin-bottom:7px;} .sq-t{font-size:12px;line-height:1.3;} .sq.done .sq-t{color:var(--gold);} .sq .progress{margin-top:3px;}
@@ -976,7 +986,7 @@
       <button class="btn-secondary gold open-tree-btn" id="openTreeBtn">Mejoras <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button>
     </div>
 
-    <div class="overlay hidden" id="deathOverlay">
+    <div class="overlay overlay-top hidden" id="deathOverlay">
       <div class="mascot-slot mascot-lg" data-state="dead"></div>
       <h2 id="deathTitle">Sistema colapsado</h2>
       <p class="sub">Tus constantes llegaron a cero. Lo recolectado se queda contigo.</p>
@@ -985,10 +995,10 @@
         <div class="row"><span class="k">Monedas obtenidas esta corrida</span><span class="n" id="deathCoins">0</span></div>
         <div class="row"><span class="k">Mejor tiempo en este nivel</span><span class="n" id="deathBest">0.0s</span></div>
       </div>
-      <div class="btn-row"><button class="btn-extract" id="deathRetryBtn">Reintentar</button><button class="btn-secondary gold open-tree-btn"><svg class="coin-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e8b65a" stroke="#fff3c4" stroke-width="1.5"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="#7a5410" style="font-family:'IBM Plex Mono',monospace;">$</text></svg><span>Mejorar con tus monedas</span> <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button></div>
+      <div class="btn-row"><button class="btn-extract" id="deathRetryBtn">Reintentar</button></div>
     </div>
 
-    <div class="overlay hidden" id="completeOverlay">
+    <div class="overlay overlay-top hidden" id="completeOverlay">
       <div class="mascot-slot mascot-lg" data-state="win"></div>
       <h2 id="completeTitle">Nivel superado</h2>
       <p class="sub">Aguantaste lo suficiente. El siguiente nivel te va a exigir más.</p>
@@ -996,7 +1006,7 @@
         <div class="row"><span class="k">Bono por superar el nivel</span><span class="n" id="completeBonus">0</span></div>
         <div class="row"><span class="k">Próximo nivel</span><span class="n" id="completeNext">2</span></div>
       </div>
-      <div class="btn-row"><button class="btn-extract" id="continueBtn">Continuar</button><button class="btn-secondary gold open-tree-btn"><svg class="coin-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e8b65a" stroke="#fff3c4" stroke-width="1.5"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="#7a5410" style="font-family:'IBM Plex Mono',monospace;">$</text></svg><span>Mejorar con tus monedas</span> <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button></div>
+      <div class="btn-row"><button class="btn-extract" id="continueBtn">Continuar</button></div>
     </div>
 
     <div class="overlay hidden" id="prestigeOverlay">
@@ -2522,6 +2532,7 @@
     if(next === 'ready' || next === 'difficulty') challenge = null;
     if(next === 'difficulty') renderDifficulty();
     if(next !== 'running'){ clearPickups(); stopTicker(); } else if(!tickHandle) startTicker();
+    requestAnimationFrame(sizeShop);
     OVERLAY_IDS.forEach(id => els(id).classList.add('hidden'));
     if(SCREEN_OVERLAY[next]) els(SCREEN_OVERLAY[next]).classList.remove('hidden');
     render();
@@ -3304,7 +3315,7 @@
   }
   function sidePetHTML(){
     const ch = CHAR_BY_ID[currentChar()], chLine = '<div class="side-note" style="margin:0 0 8px">Personaje: <b>' + ch.name + '</b> · ' + ch.ab + '</div>';
-    if(!petOn()) return chLine + '<h3>Compañero</h3><div class="side-note">Todavía no elegiste uno. Es gratis: tocá el «?» que camina con vos o entrá al árbol de mejoras.</div>';
+    if(!petOn()) return chLine + '<h3>Compañero</h3><div class="side-note">Todavía no elegiste uno. Es gratis: tocá el «?» que camina con vos o entrá a la pestaña Compañero.</div>';
     const a = state.pet.animal, P = PET_ANIMALS[a], ab = PET_AB[a], lv = petLv('hab'), max = PET_UP.hab.max, c = petAbCost(a);
     return chLine + '<h3>Compañero</h3><div class="sp-row"><span class="sp-pic" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span><div><b>' + P.name + '</b><div class="side-note" style="margin-top:2px">' + esc(ab.name) + ' · nivel ' + lv + '/' + max + '</div></div></div>'
       + '<div class="side-note">' + esc(ab.desc(Math.max(1, lv))) + '</div>'
@@ -3360,7 +3371,7 @@
     setHTML(els('runSum'), runSumHTML());
     if(!document.body.classList.contains('wide')) return;
     setHTML(els('sideL'), '<section class="side-box">' + sideObjectivesHTML() + '</section><section class="side-box">' + sidePetHTML() + '</section>');
-    setHTML(els('sideR'), '<section class="side-box">' + sideRankHTML() + '</section><section class="side-box">' + oddsHTML() + '</section><section class="side-box side-journal">' + sideJournalHTML() + '</section>');
+    setHTML(els('sideR'), '<section class="side-box">' + sideRankHTML() + '</section><section class="side-box">' + oddsHTML() + '</section>');
   }
 
   function render(){
@@ -3684,7 +3695,7 @@
   function closePanel(){ setScreen(returnScreen); }
 
   /* ===== Mejoras por pestañas y Tienda de prestigio ===== */
-  const SHOP_TABS = [['salud','❤ Salud'], ['resistencia','🛡 Resistencia'], ['economia','$ Economía'], ['suerte','🍀 Suerte'], ['tienda','✦ Tienda'], ['esencia','◆ Esencia'], ['companero','🐾 Compañero']];
+  const SHOP_TABS = [['salud','❤ Salud'], ['resistencia','🛡 Resistencia'], ['economia','$ Economía'], ['suerte','🍀 Suerte'], ['esencia','◆ Esencia'], ['companero','🐾 Compañero'], ['tienda','✦ Tienda']];
   let shopTab = 'salud', petArmed = null;
   const f2 = v => v.toFixed(2).replace('.', ',');
   function upEffect(id, l){
@@ -3767,9 +3778,19 @@
     if(shopTab === 'suerte') h += '<div style="margin-top:8px">' + oddsHTML().replace('<h3>', '<div class="side-sub">').replace('</h3>', '</div>') + '</div>';
     return h;
   }
+  // En el celu (sin paneles laterales) la lista de mejoras crece hasta llenar el espacio libre de la pantalla.
+  function sizeShop(){
+    const box = els('shopInline'), grid = box && box.querySelector('.up-grid'); if(!grid) return;
+    if(document.body.classList.contains('wide') || uiZoom !== 1){ if(box._shH){ box._shH = 0; box.style.removeProperty('--shopH'); } return; }
+    // lo que hay debajo de la lista (resumen, consumibles, márgenes) + el margen inferior de la página (40 px)
+    const g = grid.getBoundingClientRect(), tail = els('app').getBoundingClientRect().bottom - g.bottom;
+    const h = Math.max(90, Math.min(600, Math.floor(innerHeight - g.top - tail - 42)));
+    if(Math.abs((box._shH || 0) - h) > 4){ box._shH = h; box.style.setProperty('--shopH', h + 'px'); }
+  }
   function renderShopNow(){
     const html = shopHTML();
     setHTML(els('shopInline'), html);
+    sizeShop();
     if(screen === 'shop'){ setHTML(els('shopModal'), html); setText(els('shopCoins'), fmtCoins(state.coins)); setText(els('shopEss'), String(state.essence)); setText(els('shopPP'), String(state.pp)); }
   }
   function shopClick(e){
@@ -3838,7 +3859,7 @@
     const unlockAudio = () => { startMusic(); document.removeEventListener('pointerdown', unlockAudio); };
     document.addEventListener('pointerdown', unlockAudio, { once:true });
 
-    window.addEventListener('resize', fitZoom);
+    window.addEventListener('resize', () => { fitZoom(); sizeShop(); });
     els('menuBtn').addEventListener('click', openMenu);
     els('sideL').addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-act="petup"]'); if(b && !b.disabled && petOn()) buyPetAb(state.pet.animal); });
     els('menuBackdrop').addEventListener('click', closeMenu);
