@@ -629,6 +629,7 @@
   /* ===== Mejoras por pestañas ===== */
   .sh-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;scrollbar-width:none;}
   .sh-tabs::-webkit-scrollbar{display:none;}
+  @media (hover: hover){ .sh-tabs{cursor:grab;} .sh-tabs.drag{cursor:grabbing;} .sh-tabs.drag .sh-tab{pointer-events:none;} }
   .sh-tab{flex:none;padding:5px 9px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);font-size:11.5px;font-weight:600;}
   .sh-tab.on{color:var(--text);border-color:var(--safe);} .sh-tab.dot::after{content:'•';color:var(--gold);margin-left:3px;}
   .up-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
@@ -3683,9 +3684,27 @@
   }
   function renderShopNow(){
     const html = shopHTML();
-    setHTML(els('shopInline'), html);
+    keepTabsScroll(els('shopInline'), () => setHTML(els('shopInline'), html));
     sizeShop();
-    if(screen === 'shop'){ setHTML(els('shopModal'), html); setText(els('shopCoins'), fmtCoins(state.coins)); setText(els('shopEss'), String(state.essence)); setText(els('shopPP'), String(state.pp)); }
+    if(screen === 'shop'){ keepTabsScroll(els('shopModal'), () => setHTML(els('shopModal'), html)); setText(els('shopCoins'), fmtCoins(state.coins)); setText(els('shopEss'), String(state.essence)); setText(els('shopPP'), String(state.pp)); }
+  }
+  function keepTabsScroll(box, draw){
+    const old = box.querySelector('.sh-tabs'), x = old ? old.scrollLeft : 0;
+    draw();
+    const row = box.querySelector('.sh-tabs'); if(!row || row === old) return;
+    row.scrollLeft = x;
+    const on = row.querySelector('.sh-tab.on'); if(!on) return;
+    if(on.offsetLeft < row.scrollLeft) row.scrollLeft = on.offsetLeft - 8;
+    else if(on.offsetLeft + on.offsetWidth > row.scrollLeft + row.clientWidth) row.scrollLeft = on.offsetLeft + on.offsetWidth - row.clientWidth + 8;
+  }
+  // Con mouse: la fila de pestañas se arrastra con clic sostenido y se mueve con la ruedita.
+  function tabsDrag(box){
+    let row = null, x0 = 0, s0 = 0, moved = false;
+    box.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse' || e.button !== 0) return; row = e.target.closest && e.target.closest('.sh-tabs'); if(!row) return; x0 = e.clientX; s0 = row.scrollLeft; moved = false; });
+    window.addEventListener('pointermove', e => { if(!row) return; const dx = e.clientX - x0; if(!moved && Math.abs(dx) > 5){ moved = true; row.classList.add('drag'); } if(moved) row.scrollLeft = s0 - dx; });
+    window.addEventListener('pointerup', () => { if(!row) return; const r = row; row = null; if(moved) setTimeout(() => r.classList.remove('drag'), 0); });
+    box.addEventListener('click', e => { if(moved && e.target.closest && e.target.closest('.sh-tabs')){ e.stopImmediatePropagation(); moved = false; } }, true);
+    box.addEventListener('wheel', e => { const r = e.target.closest && e.target.closest('.sh-tabs'); if(!r || r.scrollWidth <= r.clientWidth) return; const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if(!d) return; e.preventDefault(); r.scrollLeft += d; }, { passive:false });
   }
   function shopClick(e){
     const t = e.target.closest && e.target.closest('[data-tab],[data-buy],[data-pet]'); if(!t) return;
@@ -3865,6 +3884,7 @@
     els('menuLiteBtn').addEventListener('click', () => { state.lite = !state.lite; if(screen === 'running') startTicker(); save(); render(); showToast(state.lite ? 'Modo ahorro activado' : 'Modo ahorro desactivado'); });
     els('closeShopBtn').addEventListener('click', closePanel);
     els('shopInline').addEventListener('click', shopClick);
+    tabsDrag(els('shopInline')); tabsDrag(els('shopModal'));
     els('shopModal').addEventListener('click', shopClick);
     document.querySelectorAll('.open-tree-btn').forEach(b => b.addEventListener('click', () => openTree()));
     els('essenceChip').addEventListener('click', openEssence);
