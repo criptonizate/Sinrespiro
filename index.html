@@ -13,8 +13,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a1214'/%3E%3Cpath d='M32 52 C12 38 10 28 10 22 10 14 16 10 22 10 27 10 31 13 32 17 33 13 37 10 42 10 48 10 54 14 54 22 54 28 52 38 32 52Z' fill='%234ecdc4'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="config.js"></script>
 <style>
   :root{
@@ -1431,7 +1431,8 @@
     ['regen','salud','inmu','eco'].forEach(k => { for(let l = 0; l < (s.pet[k] || 0); l++) petRefund += Math.round(3 * Math.pow(1.55, l)); s.pet[k] = 0; });
     if(petRefund > 0){ s.essence = (typeof s.essence === 'number' ? s.essence : 0) + petRefund; petRefundNote += petRefund; }
     if(typeof s.lite !== 'boolean') s.lite = autoLite();
-    if(!s.liteChecked){ s.liteChecked = true; if(isMobileDevice() && !s.lite){ s.lite = true; liteAutoNote = true; } }
+    if(!s.liteChecked){ s.liteChecked = true; if(isMobileDevice()){ if(!s.lite || s.musicOn){ liteAutoNote = true; } s.lite = true; s.musicOn = false; } }
+    if(!s.mobileAudioChecked){ s.mobileAudioChecked = true; if(isMobileDevice() && s.musicOn){ s.musicOn = false; liteAutoNote = true; } }
     if(typeof s.treeHintSeen !== 'boolean') s.treeHintSeen = false;
     if(s.consecutiveDeathsThisLevel===undefined) s.consecutiveDeathsThisLevel = 0;
     if(s.dailyStreak===undefined) s.dailyStreak = 0;
@@ -1610,6 +1611,10 @@
   const LOCAL_KEY = 'protocolo-save';
   const GUEST_KEY = 'protocolo-guest';
   let sb = null, authUser = null, cloudLoaded = false, cloudState = 'off';
+  // La librería de Supabase se baja en paralelo (solo si hay nube configurada) y no frena la apertura del juego.
+  const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+  const supabaseScript = (CFG.supabaseUrl && CFG.supabaseAnonKey) ? new Promise(res => { const el = document.createElement('script'); el.src = SUPABASE_JS; el.async = true; el.onload = el.onerror = res; document.head.appendChild(el); }) : Promise.resolve();
+  let lbLastKey = '', lbLastAt = 0;
   // saveConflict: partida sin cuenta del dispositivo + partida de la cuenta; hasta que el jugador elija, no se guarda nada.
   let saveConflict = null, adoptNote = false;
   const hasProgress = s => (s.prestige || 0) > 0 || (s.maxLevelEverReached || 1) > 1 || (s.totalCoinsEarned || 0) > 0;
@@ -1623,7 +1628,9 @@
   function setGuest(on){ try{ if(on) localStorage.setItem(GUEST_KEY, '1'); else localStorage.removeItem(GUEST_KEY); }catch(e){} }
   async function initCloud(){
     try{
-      if(!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase || !window.supabase.createClient) return;
+      if(!CFG.supabaseUrl || !CFG.supabaseAnonKey) return;
+      if(!window.supabase) await withTimeout(supabaseScript, 8000);
+      if(!window.supabase || !window.supabase.createClient) return;
       sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } });
       const r = await withTimeout(sb.auth.getSession(), 8000);
       authUser = (r && r.data && r.data.session) ? r.data.session.user : null;
@@ -1645,12 +1652,14 @@
     const r1 = await sb.from('saves').upsert({ user_id: authUser.id, data: state, updated_at: now });
     if(r1.error) throw r1.error;
     const m = authUser.user_metadata || {};
-    const r2 = await sb.from('leaderboard').upsert({
-      user_id: authUser.id, name: playerName(), avatar_url: m.avatar_url || m.picture || null,
+    const lb = { user_id: authUser.id, name: playerName(), avatar_url: m.avatar_url || m.picture || null,
       prestige: state.prestige, max_level: Math.min(MAX_LEVEL, state.maxLevelEverReached), peak_level: Math.min(MAX_LEVEL, state.peakLevel),
-      total_coins: Math.floor(state.totalCoinsEarned), difficulty: state.difficulty, updated_at: now
-    });
-    if(r2.error) console.warn('ranking no actualizado', r2.error);
+      total_coins: Math.floor(state.totalCoinsEarned), difficulty: state.difficulty, updated_at: now };
+    const lbKey = [lb.name, lb.avatar_url, lb.prestige, lb.max_level, lb.peak_level, lb.difficulty].join('|');
+    if(lbKey !== lbLastKey || Date.now() - lbLastAt > 180000){
+      const r2 = await sb.from('leaderboard').upsert(lb);
+      if(r2.error) console.warn('ranking no actualizado', r2.error); else { lbLastKey = lbKey; lbLastAt = Date.now(); }
+    }
     cloudLastJson = js;
   }
   async function runCloud(){
@@ -1670,7 +1679,7 @@
   }
   function scheduleCloud(){
     if(!cloudReady() || cloudTimer) return;
-    const wait = Math.max(500, 15000 - (Date.now() - cloudLast));
+    const wait = Math.max(500, 30000 - (Date.now() - cloudLast));
     cloudTimer = setTimeout(async () => { cloudTimer = null; await runCloud(); if(cloudDirty) scheduleCloud(); }, wait);
   }
   async function flushCloud(){
@@ -1809,7 +1818,14 @@
 
   function ensureAudioCtx(){
     if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended' && !document.hidden) audioCtx.resume();
     return audioCtx;
+  }
+  // Sin música, el audio se duerme a los 2,5 s del último efecto para no tener el sonido del dispositivo encendido de gusto.
+  let audioIdleT = null;
+  function audioIdle(){
+    clearTimeout(audioIdleT);
+    audioIdleT = setTimeout(() => { if(!musicNodes && audioCtx && audioCtx.state === 'running') audioCtx.suspend(); }, 2500);
   }
   function playBeep(freq, dur, type){
     if(!state.soundOn) return;
@@ -1821,6 +1837,7 @@
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
       o.connect(g); g.connect(ctx.destination);
       o.start(); o.stop(ctx.currentTime + dur);
+      audioIdle();
     }catch(e){}
   }
   function vibrate(pattern){ if(navigator.vibrate) try{ navigator.vibrate(pattern); }catch(e){} }
@@ -2173,7 +2190,8 @@
   // ---- Sonido ambiente de cueva ----
   let dripTimer = null;
   function playDrip(){
-    if(!state.soundOn || document.hidden || !audioCtx || audioCtx.state !== 'running') return;
+    if(!state.soundOn || state.lite || document.hidden || !audioCtx) return;
+    ensureAudioCtx(); audioIdle();
     try{
       const ctx = audioCtx, t = ctx.currentTime;
       const bloop = Math.random() < 0.3 && state.level >= 6;
@@ -2457,7 +2475,7 @@
     screen = next;
     if(next === 'ready' || next === 'difficulty') challenge = null;
     if(next === 'difficulty') renderDifficulty();
-    if(next !== 'running') clearPickups();
+    if(next !== 'running'){ clearPickups(); stopTicker(); } else if(!tickHandle) startTicker();
     OVERLAY_IDS.forEach(id => els(id).classList.add('hidden'));
     if(SCREEN_OVERLAY[next]) els(SCREEN_OVERLAY[next]).classList.remove('hidden');
     render();
@@ -2485,7 +2503,7 @@
     screen = 'running';
     if(isBoss() && !challenge) showToast('☣ Epidemia letal: ' + bossName() + ' · todo pega 50% más fuerte');
     ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','essenceOverlay','dataOverlay','statsOverlay','characterOverlay','treeOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
-    if(!tickHandle) tickHandle = setInterval(tick, 100);
+    startTicker();
     render();
     save();
   }
@@ -2671,8 +2689,15 @@
   function toxicHit(){ const d = computeMaxHp() * 0.12; state.hp -= d; runStats.dmg += d; floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)'); }
 
   let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
+  function startTicker(){
+    if(tickHandle) clearInterval(tickHandle);
+    const lite = !!state.lite;
+    tickHandle = setInterval(() => { tick(); if(lite) tick(); }, lite ? 200 : 100);
+  }
+  function stopTicker(){ if(tickHandle){ clearInterval(tickHandle); tickHandle = null; } }
   function tick(){
-    if(screen !== 'running') return;
+    // con la app en segundo plano la partida queda en pausa (al volver, la ganancia sin conexión cubre el resto)
+    if(screen !== 'running' || document.hidden) return;
     sessionClock += 0.1;
     state.elapsed += 0.1;
     state.stats.timePlayed += 0.1;
@@ -3167,7 +3192,7 @@
   }
   let rankCache = null, rankAt = 0, rankBusy = false;
   async function refreshRank(){
-    if(!sb || rankBusy || Date.now() - rankAt < 60000) return;
+    if(!sb || rankBusy || document.hidden || Date.now() - rankAt < 120000) return;
     rankBusy = true; rankAt = Date.now();
     try{
       const r = await withTimeout(sb.from('leaderboard').select('user_id,name,prestige,max_level,total_coins').order('prestige', { ascending:false }).order('max_level', { ascending:false }).order('total_coins', { ascending:false }).limit(100), 8000);
@@ -4324,7 +4349,7 @@
     els('menuEssenceBtn').addEventListener('click', openEssence);
     els('menuTreeBtn').addEventListener('click', () => openTree());
     els('menuPetBtn').addEventListener('click', () => openTree('mascota'));
-    els('menuLiteBtn').addEventListener('click', () => { state.lite = !state.lite; save(); render(); showToast(state.lite ? 'Modo ahorro activado' : 'Modo ahorro desactivado'); });
+    els('menuLiteBtn').addEventListener('click', () => { state.lite = !state.lite; if(screen === 'running') startTicker(); save(); render(); showToast(state.lite ? 'Modo ahorro activado' : 'Modo ahorro desactivado'); });
     els('treeCenterBtn').addEventListener('click', () => treeScrollTo(TC));
     els('closeTreeBtn').addEventListener('click', () => { if(!state.treeHintSeen){ state.treeHintSeen = true; save(); } closePanel(); });
     els('treeZoomBtn').addEventListener('click', () => {
@@ -4399,7 +4424,8 @@
     });
 
     document.addEventListener('visibilitychange', () => {
-      if(document.hidden){ save().then(flushCloud); return; }
+      if(document.hidden){ save().then(flushCloud); if(audioCtx && audioCtx.state === 'running') audioCtx.suspend(); return; }
+      if(audioCtx && musicNodes) audioCtx.resume();
       if(screen === 'ready'){ const o = computeOffline(); if(o) showOffline(o); }
     });
     window.addEventListener('pagehide', () => { save().then(flushCloud); });
@@ -4484,7 +4510,7 @@
     ensureQuests();
     setScreen(state.difficultyChosen ? 'ready' : 'difficulty');
     if(off) showOffline(off); else save();
-    if(liteAutoNote){ liteAutoNote = false; setTimeout(() => showToast('En el celular activamos el modo ahorro para que no se caliente. Lo podés apagar en Configuración.'), 2500); }
+    if(liteAutoNote){ liteAutoNote = false; setTimeout(() => showToast('En el celular activamos el modo ahorro y apagamos la música para cuidar la batería. Lo podés cambiar en Configuración.'), 2500); }
     if(petRefundNote){ const n = petRefundNote; petRefundNote = 0; setTimeout(() => showToast('Ahora cada compañero tiene una sola habilidad: te devolvimos ◆' + n + ' de Esencia de sus mejoras anteriores.'), 1500); }
   }
 
