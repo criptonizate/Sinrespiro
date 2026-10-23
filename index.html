@@ -36,7 +36,7 @@
   body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:calc(.25 + .4*var(--tox,.3));background-image:radial-gradient(circle, rgba(160,255,110,.55) 0 1.2px, transparent 2px),radial-gradient(circle, rgba(160,255,110,.4) 0 1px, transparent 2px);background-size:97px 131px,61px 89px;background-position:0 0,30px 40px;animation:toxSpores 40s linear infinite;}
   @keyframes toxBreath{from{opacity:.75;}to{opacity:1;}}
   @keyframes toxSpores{to{background-position:0 -131px,30px -49px;}}
-  body{min-height:100vh;display:flex;justify-content:center;padding-block:24px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));}
+  body{min-height:100vh;min-height:var(--vhp,100vh);display:flex;justify-content:center;padding-block:24px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));}
   #app{width:100%;max-width:460px;position:relative;}
   svg.icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
   button{font-family:var(--sans);border:none;cursor:pointer;}
@@ -393,7 +393,7 @@
   @keyframes petShiver{0%,100%{transform:translateX(-1px);}50%{transform:translateX(1px);}}
   @keyframes petJump{0%,100%{transform:translateY(0);}45%{transform:translateY(-9px);}}
   .pet-pick{grid-template-columns:repeat(5,1fr);gap:4px;} .pp-btn span{font-size:9.5px;} .pp-btn .pet-svg{width:34px;height:32px;}
-  .tree-sheet{max-height:50vh;overflow-y:auto;}
+  .tree-sheet{max-height:50vh;max-height:calc(var(--vhp,100vh) * .5);overflow-y:auto;}
   .tree-sheet.compact{min-height:0;padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px));}
   .ts-hint{font-size:12px;color:var(--muted);text-align:center;}
   .ts-pre{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;}
@@ -454,7 +454,7 @@
   .confetti-piece{position:fixed;top:0;left:0;width:8px;height:12px;pointer-events:none;z-index:48;border-radius:2px;}
 
   /* ===== Árbol de mejoras ===== */
-  .overlay.tree-panel{top:0;left:0;transform:none;width:100%;height:100vh;height:100dvh;max-height:none;border-radius:0;padding:0;border:none;box-shadow:none;background:var(--bg);z-index:29;overflow:hidden;display:flex;flex-direction:column;animation:none;}
+  .overlay.tree-panel{top:0;left:0;transform:none;width:100%;height:100vh;height:var(--vhp,100dvh);max-height:none;border-radius:0;padding:0;border:none;box-shadow:none;background:var(--bg);z-index:29;overflow:hidden;display:flex;flex-direction:column;animation:none;}
   .overlay.tree-panel > :first-child{margin-top:0;} .overlay.tree-panel > :last-child{margin-bottom:0;}
   .tree-head{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);}
   .tree-title{font-weight:600;font-size:15px;flex:1;min-width:0;}
@@ -528,7 +528,7 @@
   @keyframes starpulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.3);opacity:0.75;}}
 
   /* Cartel centrado sobre un fondo oscuro: el spread del box-shadow oscurece toda la pantalla */
-  .overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(calc(100% - 32px), 428px);max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:0 0 0 100vmax rgba(3,7,8,0.94), 0 18px 48px rgba(0,0,0,0.5);display:flex;flex-direction:column;justify-content:flex-start;padding:24px 20px;animation:overlayIn .25s ease;z-index:25;overflow-y:auto;}
+  .overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(calc(100% - 32px), 428px);max-height:calc(100vh - 150px);max-height:calc(var(--vhp,100dvh) - 130px);background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:0 0 0 100vmax rgba(3,7,8,0.94), 0 18px 48px rgba(0,0,0,0.5);display:flex;flex-direction:column;justify-content:flex-start;padding:24px 20px;animation:overlayIn .25s ease;z-index:25;overflow-y:auto;}
   .overlay > :first-child{margin-top:auto;}
   .overlay > :last-child{margin-bottom:auto;}
   .overlay .shop-list,.overlay .ach-list{max-height:none;overflow:visible;}
@@ -1774,8 +1774,8 @@
       const d = document.createElement('div');
       d.className = 'float-text ' + (cls||'');
       d.textContent = msg;
-      d.style.left = (r.left + r.width/2 + (Math.random()*80-40)) + 'px';
-      d.style.top = (r.top + r.height*0.4) + 'px';
+      d.style.left = ((r.left + r.width/2) / uiZoom + (Math.random()*80-40)) + 'px';
+      d.style.top = ((r.top + r.height*0.4) / uiZoom) + 'px';
       document.body.appendChild(d);
       setTimeout(() => d.remove(), 1150);
     }catch(e){}
@@ -2239,6 +2239,7 @@
     OVERLAY_IDS.forEach(id => els(id).classList.add('hidden'));
     if(SCREEN_OVERLAY[next]) els(SCREEN_OVERLAY[next]).classList.remove('hidden');
     render();
+    fitZoom();
   }
 
   function startRun(){
@@ -2671,7 +2672,7 @@
     const target = els('coinCount'); if(!target) return;
     const a = sceneEls.hero.getBoundingClientRect(), t = target.getBoundingClientRect();
     if(!a.width || !t.width) return;
-    const x0 = a.left + a.width * 0.5, y0 = a.top + a.height * 0.25, x1 = t.left + t.width * 0.3, y1 = t.top + t.height * 0.5;
+    const zf = uiZoom, x0 = (a.left + a.width * 0.5) / zf, y0 = (a.top + a.height * 0.25) / zf, x1 = (t.left + t.width * 0.3) / zf, y1 = (t.top + t.height * 0.5) / zf;
     const d = document.createElement('div'); d.className = 'coin-ping'; document.body.appendChild(d);
     pingsLive++;
     const mx = x0 + (x1 - x0) * 0.35, my = Math.min(y0, y1) - 26;
@@ -2690,15 +2691,15 @@
     if(SCENE_REDUCED) return;
     try{
       const colors = ['#e8b65a','#4ecdc4','#ff5c4d','#a978d8','#5aa9e6','#c9d95a'];
-      const w = window.innerWidth;
+      const w = window.innerWidth / uiZoom, vh = window.innerHeight / uiZoom;
       const nPieces = state.lite ? 12 : 30;
       for(let i = 0; i < nPieces; i++){
         const d = document.createElement('div'); d.className = 'confetti-piece';
         d.style.background = colors[i % colors.length]; document.body.appendChild(d);
-        const x0 = w/2 + (Math.random()*80 - 40), x1 = Math.random()*w, y1 = window.innerHeight * (0.55 + Math.random()*0.4);
+        const x0 = w/2 + (Math.random()*80 - 40), x1 = Math.random()*w, y1 = vh * (0.55 + Math.random()*0.4);
         const dur = 1200 + Math.random()*1200;
         const an = d.animate([
-          { transform: 'translate(' + x0 + 'px,' + (window.innerHeight*0.25) + 'px) rotate(0deg)', opacity: 1 },
+          { transform: 'translate(' + x0 + 'px,' + (vh*0.25) + 'px) rotate(0deg)', opacity: 1 },
           { transform: 'translate(' + x1 + 'px,' + y1 + 'px) rotate(' + (Math.random()*720 - 360) + 'deg)', opacity: 0 }
         ], { duration: dur, easing: 'cubic-bezier(.2,.7,.4,1)' });
         an.onfinish = () => d.remove(); an.oncancel = () => d.remove();
@@ -3058,10 +3059,10 @@
     tip.classList.add('show');
     tip.style.left = '-9999px';
     tip.style.top = '-9999px';
-    const rect = btn.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
+    const zf = uiZoom, br = btn.getBoundingClientRect(), tr = tip.getBoundingClientRect();
+    const rect = { left: br.left / zf, top: br.top / zf, bottom: br.bottom / zf, width: br.width / zf }, tipRect = { width: tr.width / zf, height: tr.height / zf };
     let left = rect.left + rect.width/2 - tipRect.width/2;
-    left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+    left = Math.max(8, Math.min(left, window.innerWidth / zf - tipRect.width - 8));
     let top = rect.top - tipRect.height - 8;
     if(top < 8) top = rect.bottom + 8;
     tip.style.left = left + 'px';
@@ -3734,6 +3735,28 @@
   function openMenu(){ els('menuBackdrop').classList.add('open'); els('menuPanel').classList.add('open'); render(); }
   function closeMenu(){ els('menuBackdrop').classList.remove('open'); els('menuPanel').classList.remove('open'); }
 
+  // ---- Escala: en pantallas grandes el juego crece hasta llenar la ventana sin scroll ----
+  // Tiene que entrar la columna del juego (hasta la tarjeta de hito, más la alerta y la barra de abajo)
+  // y también el cartel de inicio entero, que es el más alto de los que se ven seguido.
+  let uiZoom = 1, fitKey = '', readyH = 560;
+  function fitZoom(){
+    try{
+      const ms = document.querySelector('#game > .milestone-card');
+      if(!ms || els('game').classList.contains('hidden')) return;
+      const reserve = els('hazardBanner').classList.contains('show') ? 0 : 38;
+      const ro = els('readyOverlay');
+      if(!ro.classList.contains('hidden')) readyH = ro.scrollHeight;
+      const h = Math.max(ms.offsetTop + ms.offsetHeight + reserve + 110 + 34, readyH + 130);
+      const key = innerWidth + 'x' + innerHeight + ':' + Math.round(h / 20);
+      if(key === fitKey) return;
+      fitKey = key;
+      uiZoom = Math.round(Math.max(1, Math.min(innerWidth / 492, innerHeight / h, 2.4)) * 100) / 100;
+      const root = document.documentElement;
+      root.style.zoom = uiZoom === 1 ? '' : String(uiZoom);
+      root.style.setProperty('--vhp', (innerHeight / uiZoom) + 'px');
+    }catch(e){}
+  }
+
   function init(){
     buildScene();
     buildTree();
@@ -3743,6 +3766,7 @@
     const unlockAudio = () => { startMusic(); document.removeEventListener('pointerdown', unlockAudio); };
     document.addEventListener('pointerdown', unlockAudio, { once:true });
 
+    window.addEventListener('resize', fitZoom);
     els('menuBtn').addEventListener('click', openMenu);
     els('menuBackdrop').addEventListener('click', closeMenu);
     document.querySelectorAll('.menu-group-head').forEach(h => h.addEventListener('click', () => {
