@@ -701,6 +701,9 @@
   .acct-btn img{width:100%;height:100%;object-fit:cover;display:block;}
   .acct-btn.on{border-color:var(--safe);}
 
+  .diff-save{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--gold);}
+  .branch-card.cur{border-color:var(--safe);}
+
   /* ===== Camino del nivel ===== */
   .trail{display:flex;align-items:center;gap:8px;margin-top:8px;padding:0 4px;}
   .tr-flag{width:16px;height:16px;flex:none;color:var(--muted);}
@@ -907,7 +910,7 @@
 
     <div class="overlay hidden" id="prestigeOverlay">
       <h2>Prestigio</h2>
-      <p class="sub">Volvés al nivel 1 y perdés tus mejoras y monedas actuales. A cambio, elegís un beneficio permanente que te queda para siempre y ganás puntos de prestigio ✦ para desbloquear mejoras únicas en el árbol.</p>
+      <p class="sub">Volvés al nivel 1 y perdés tus mejoras y monedas actuales en todas las dificultades. A cambio, elegís un beneficio permanente que te queda para siempre y ganás puntos de prestigio ✦ para desbloquear mejoras únicas en el árbol.</p>
       <p class="sub" id="prestigeGainNote" style="color:var(--gold);"></p>
       <div class="rows" id="prestigePerksSummary"></div>
       <button class="btn-extract" id="prestigeConfirmBtn">Hacer prestigio</button>
@@ -941,7 +944,7 @@
 
     <div class="overlay hidden" id="difficultyOverlay">
       <h2>Elegí la dificultad</h2>
-      <p class="sub">La podés cambiar después desde el menú cuando quieras.</p>
+      <p class="sub">Cada dificultad tiene su propia partida: el nivel, las monedas y las mejoras se guardan por separado. Lo de prestigio (beneficios y puntos ✦), la Esencia y tu compañero valen para todas. Al hacer prestigio se reinician las partidas de todas las dificultades.</p>
       <div class="branch-opts">
         <button class="branch-card" id="diffFacil">
           <div class="name"><span class="icon-badge"></span>Fácil</div>
@@ -1311,7 +1314,7 @@
       difficulty: 'normal', difficultyChosen: false, consecutiveDeathsThisLevel: 0,
       perks: {}, lastPlayedDate: null, dailyStreak: 0, bestStreak: 0, essenceLevels: {},
       character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{}, ab:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { dividendos:0, temple:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
-      challengesDone: {}, quests: null, lastSeen: null,
+      challengesDone: {}, quests: null, lastSeen: null, runs: {},
       stats: { deaths:0, levelsDone:0, eventsCaught:0, eventsMissed:0, antidotesUsed:0, revivesUsed:0, overdrives:0, hazardLevels:0, timePlayed:0, essenceEarned:0, ppEarned:0, questsDone:0, gasSurvived:0, maxLevelDiff:{ facil:1, normal:1, dificil:1 } },
     };
   }
@@ -1370,7 +1373,43 @@
     const st = Object.assign({}, d.stats, s.stats||{});
     st.maxLevelDiff = Object.assign({ facil:1, normal:1, dificil:1 }, (s.stats && s.stats.maxLevelDiff) || {});
     s.stats = st;
+    if(!s.runs || typeof s.runs !== 'object') s.runs = {};
+    delete s.runs[s.difficulty];
     return s;
+  }
+
+  // ---- Partidas por dificultad ----
+  // Cada dificultad guarda su propia partida; la activa vive en los campos de siempre del estado y las otras en state.runs.
+  const RUN_KEYS = ['level','peakLevel','coins','upgrades','consumables','treeBought','consecutiveDeathsThisLevel','essenceLevels','elapsed','hp','bestTime'];
+  function freshRun(){
+    return { level:1, peakLevel:1, coins: 60 * essLvl('semilla') + [0,150,350,700][ppLvl('arranque')], upgrades: freshUpgrades(),
+      consumables: { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 }, treeBought:{}, consecutiveDeathsThisLevel:0, essenceLevels:{}, elapsed:0, hp:10, bestTime:0 };
+  }
+  function switchDifficulty(d){
+    if(!LEVEL_CAP[d]) return;
+    if(!state.difficultyChosen || d === state.difficulty){ state.difficulty = d; state.difficultyChosen = true; return; }
+    const from = state.difficulty, snap = {};
+    RUN_KEYS.forEach(k => { snap[k] = JSON.parse(JSON.stringify(state[k] === undefined ? null : state[k])); });
+    state.runs[from] = snap;
+    const saved = state.runs[d], next = saved || freshRun();
+    RUN_KEYS.forEach(k => { if(next[k] !== undefined && next[k] !== null) state[k] = next[k]; });
+    state.upgrades = Object.assign(freshUpgrades(), state.upgrades);
+    state.consumables = Object.assign({ revive:0, antidoteMinor:0, antidoteMajor:0, shield:0 }, state.consumables);
+    delete state.runs[d];
+    state.difficulty = d;
+    showToast(saved ? 'Volviste a tu partida en ' + DIFF_NAMES[d] + ' (nivel ' + state.level + '). Tu partida en ' + DIFF_NAMES[from] + ' quedó guardada.'
+      : 'Nueva partida en ' + DIFF_NAMES[d] + ': empezás desde el nivel 1. Tu partida en ' + DIFF_NAMES[from] + ' quedó guardada.');
+  }
+  function renderDifficulty(){
+    ['facil','normal','dificil'].forEach(d => {
+      const card = els('diff' + d.charAt(0).toUpperCase() + d.slice(1));
+      let el = card.querySelector('.diff-save');
+      if(!el){ el = document.createElement('div'); el.className = 'diff-save'; card.appendChild(el); }
+      const cur = state.difficultyChosen && d === state.difficulty, r = cur ? state : state.runs[d];
+      el.textContent = cur ? '▶ Jugando ahora · nivel ' + state.level + ' · $' + fmtCoins(state.coins)
+        : r ? 'Partida guardada · nivel ' + r.level + ' · $' + fmtCoins(r.coins) : 'Empezás de cero, desde el nivel 1';
+      card.classList.toggle('cur', cur);
+    });
   }
 
   const PERKS = {
@@ -2316,6 +2355,7 @@
   function setScreen(next){
     screen = next;
     if(next === 'ready' || next === 'difficulty') challenge = null;
+    if(next === 'difficulty') renderDifficulty();
     OVERLAY_IDS.forEach(id => els(id).classList.add('hidden'));
     if(SCREEN_OVERLAY[next]) els(SCREEN_OVERLAY[next]).classList.remove('hidden');
     render();
@@ -3015,7 +3055,8 @@
       : (state.autoContinue.enabled ? 'activado' : 'desactivado');
 
     const diffNames = { facil:'Fácil', normal:'Normal', dificil:'Difícil' };
-    els('difficultyMenuSub').textContent = diffNames[state.difficulty] || 'Normal';
+    els('menuDifficultyBtn').disabled = screen === 'running';
+    setText(els('difficultyMenuSub'), screen === 'running' ? 'disponible al terminar la partida' : (diffNames[state.difficulty] || 'Normal') + ' · nivel ' + state.level);
 
     renderConsumables();
     renderExtras();
@@ -3351,6 +3392,7 @@
         if(keepF > 0) ['maxHp','coinRate','accel','antitox','aislante','blindajeRad','regen'].forEach(k => { state.upgrades[k] = Math.floor((oldUp[k] || 0) * keepF); });
         state.consumables = { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 };
         state.treeBought = {};
+        state.runs = {};
         state.consecutiveDeathsThisLevel = 0;
         checkAchievements();
         save();
@@ -3922,9 +3964,9 @@
       signOut();
     });
     els('menuDifficultyBtn').addEventListener('click', () => { closeMenu(); setScreen('difficulty'); });
-    els('diffFacil').addEventListener('click', () => { state.difficulty='facil'; state.difficultyChosen=true; save(); afterDifficulty(); });
-    els('diffNormal').addEventListener('click', () => { state.difficulty='normal'; state.difficultyChosen=true; save(); afterDifficulty(); });
-    els('diffDificil').addEventListener('click', () => { state.difficulty='dificil'; state.difficultyChosen=true; save(); afterDifficulty(); });
+    els('diffFacil').addEventListener('click', () => { switchDifficulty('facil'); save(); afterDifficulty(); });
+    els('diffNormal').addEventListener('click', () => { switchDifficulty('normal'); save(); afterDifficulty(); });
+    els('diffDificil').addEventListener('click', () => { switchDifficulty('dificil'); save(); afterDifficulty(); });
     els('diffFacil').querySelector('.icon-badge').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 20 C6 15 3 11.5 3 8.2 3 5.6 5 4 7.3 4 9 4 10.6 5 12 6.8 13.4 5 15 4 16.7 4 19 4 21 5.6 21 8.2 21 11.5 18 15 12 20 Z"/></svg>';
     els('diffNormal').querySelector('.icon-badge').innerHTML = iconShield;
     els('diffDificil').querySelector('.icon-badge').innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M13 2 L4 14 H11 L10 22 L20 9 H13 Z"/></svg>';
