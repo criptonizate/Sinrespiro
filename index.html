@@ -461,13 +461,15 @@
   .tree-scroll{flex:1;min-height:0;overflow:auto;position:relative;-webkit-overflow-scrolling:touch;cursor:grab;background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.035), transparent 60%);}
   .tree-scroll.drag{cursor:grabbing;}
   .tree-scroll{--z:.9;}
-  .tree-sizer{width:calc(880px * var(--z));height:calc(880px * var(--z));margin:0 auto;}
-  .tree-canvas{position:relative;width:880px;height:880px;transform:scale(var(--z));transform-origin:0 0;}
-  .tree-lines{position:absolute;inset:0;width:880px;height:880px;pointer-events:none;}
+  .tree-sizer{width:calc(1000px * var(--z));height:calc(1000px * var(--z));margin:0 auto;}
+  .tree-canvas{position:relative;width:1000px;height:1000px;transform:scale(var(--z));transform-origin:0 0;}
+  .tree-lines{position:absolute;inset:0;width:1000px;height:1000px;pointer-events:none;}
   .tree-lines polyline{fill:none;stroke-linejoin:round;stroke:var(--lc);stroke-width:2.5;opacity:0.22;stroke-linecap:round;}
   .tree-lines polyline.on{opacity:0.85;stroke-width:3.5;}
   .tn{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:var(--panel);border:2px solid var(--bc);color:var(--bc);display:flex;align-items:center;justify-content:center;transition:transform .15s, box-shadow .2s, opacity .2s;padding:0;}
   .tn svg.icon{width:24px;height:24px;}
+  .tn[data-hub]{width:70px;height:70px;margin:-35px 0 0 -35px;border-width:2.5px;}
+  .tn[data-hub] svg.icon{width:29px;height:29px;}
   .tn .tb{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;border-radius:10px;background:var(--panel-2);border:1px solid var(--bc);color:var(--text);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
   .tn.can{box-shadow:0 0 0 3px rgba(255,255,255,0.08),0 0 18px currentColor;animation:tnPulse 1.6s ease-in-out infinite;background:linear-gradient(135deg,var(--panel),var(--panel-2));}
   .tn.off{opacity:0.5;}
@@ -3373,30 +3375,43 @@
     salud:{ name:'Salud', color:'#ff7a6e' }, inmunidad:{ name:'Inmunidad', color:'#5aa9e6' }, economia:{ name:'Economía', color:'#e8b65a' },
     prestigio:{ name:'Prestigio', color:'#4ecdc4' }, esencia:{ name:'Esencia', color:'#a978d8' }, mascota:{ name:'Mascota', color:'#f2a65a' }
   };
-  const TREE_W = 880, TREE_H = 880, TREE_Z = 0.9;
-  const TC = { x:440, y:440 };
-  function SP(a, r, o){ const t = a * Math.PI / 180; return [Math.round(TC.x + r*Math.cos(t) - (o||0)*Math.sin(t)), Math.round(TC.y + r*Math.sin(t) + (o||0)*Math.cos(t))]; }
-  const RAY = { salud:-90, esencia:-30, inmunidad:30, economia:90, mascota:150, prestigio:210 };
-  const ESS_HUB = { x:SP(RAY.esencia,115)[0], y:SP(RAY.esencia,115)[1] };
-  const PET_HUB = { x:SP(RAY.mascota,115)[0], y:SP(RAY.mascota,115)[1] };
-  const PP_HUB = { x:SP(RAY.prestigio,115)[0], y:SP(RAY.prestigio,115)[1] };
-  const ESS_POS = { hibernacion:SP(RAY.esencia,215,-52), semilla:SP(RAY.esencia,215,52), reserva:SP(RAY.esencia,300,-52), eco:SP(RAY.esencia,300,52), pulso:SP(RAY.esencia,385,-52), sobrecarga:SP(RAY.esencia,385,52) };
-  const PET_POS = { regen:SP(RAY.mascota,215,-52), salud:SP(RAY.mascota,215,52), inmu:SP(RAY.mascota,300,-52), eco:SP(RAY.mascota,300,52), hab:SP(RAY.mascota,385,0) };
-  const PP_POS = { dividendos:SP(RAY.prestigio,215,-52), temple:SP(RAY.prestigio,215,52), legado:SP(RAY.prestigio,315,-104), ritmo:SP(RAY.prestigio,315,0), arranque:SP(RAY.prestigio,315,104), herencia:SP(RAY.prestigio,420,-52), ampliar:SP(RAY.prestigio,420,52) };
-  const NP = (id, br, pos, parent) => ({ id, br, x:pos[0], y:pos[1], parent });
-  const TREE_NODES = [
-    NP('maxHp','salud',SP(RAY.salud,115),'hub'), NP('regen','salud',SP(RAY.salud,215),'maxHp'),
-    NP('regenMit','salud',SP(RAY.salud,320,-50),'regen'), NP('regenReg','salud',SP(RAY.salud,320,50),'regen'),
-    NP('antitox','inmunidad',SP(RAY.inmunidad,115),'hub'), NP('aislante','inmunidad',SP(RAY.inmunidad,215),'antitox'), NP('blindajeRad','inmunidad',SP(RAY.inmunidad,320),'aislante'),
-    NP('coinRate','economia',SP(RAY.economia,115),'hub'), NP('accel','economia',SP(RAY.economia,215),'coinRate'),
-    NP('harvest','economia',SP(RAY.economia,320,-50),'accel'), NP('autoContinue','economia',SP(RAY.economia,320,50),'accel'),
-    NP('essHub','esencia',[ESS_HUB.x,ESS_HUB.y],'hub'), NP('petHub','mascota',[PET_HUB.x,PET_HUB.y],'hub'), NP('ppHub','prestigio',[PP_HUB.x,PP_HUB.y],'hub'),
+  const TREE_W = 1000, TREE_H = 1000, TREE_Z = 0.9;
+  const TC = { x:500, y:500 };
+  // Cada sector es una estrella: su nodo principal queda en el medio del sector y el resto se despliega alrededor.
+  // Los sectores alternan grandes y chicos, y cada uno recibe un ángulo según cuántas mejoras tiene, para que no se pisen.
+  const TREE_SECTORS = [
+    { br:'salud',     hub:'maxHp',    kids:['regenMit','regen','regenReg'] },
+    { br:'esencia',   hub:'essHub',   kids:['ess:hibernacion','ess:semilla','ess:reserva','ess:eco','ess:pulso','ess:sobrecarga'] },
+    { br:'inmunidad', hub:'antitox',  kids:['aislante','blindajeRad'] },
+    { br:'prestigio', hub:'ppHub',    kids:['pp:dividendos','pp:temple','pp:legado','pp:ritmo','pp:arranque','pp:herencia','pp:ampliar'] },
+    { br:'economia',  hub:'coinRate', kids:['harvest','accel','autoContinue'] },
+    { br:'mascota',   hub:'petHub',   kids:['pet:regen','pet:salud','pet:hab','pet:inmu','pet:eco'] },
   ];
-  Object.keys(ESS_POS).forEach(k => TREE_NODES.push(NP('ess:' + k, 'esencia', ESS_POS[k], 'essHub')));
-  Object.keys(PET_POS).forEach(k => TREE_NODES.push(NP('pet:' + k, 'mascota', PET_POS[k], 'petHub')));
-  Object.keys(PP_POS).forEach(k => TREE_NODES.push(NP('pp:' + k, 'prestigio', PP_POS[k], 'ppHub')));
+  // Requisitos: hay que comprar el nodo padre para desbloquear el hijo (las líneas van al padre).
+  const TREE_PARENT = { regen:'maxHp', regenMit:'regen', regenReg:'regen', aislante:'antitox', blindajeRad:'aislante', accel:'coinRate', harvest:'accel', autoContinue:'accel' };
+  const SECTOR_R = 260, KID_R = 155, KID_STEP = 45, KID_SPREAD = 240;
+  function SP(a, r){ const t = a * Math.PI / 180; return [Math.round(TC.x + r*Math.cos(t)), Math.round(TC.y + r*Math.sin(t))]; }
+  const NP = (id, br, pos, parent) => ({ id, br, x:pos[0], y:pos[1], parent });
+  const TREE_NODES = [], TREE_PILLS = [], SECTOR_HUB = {};
+  (function(){
+    const w = TREE_SECTORS.map(sec => sec.kids.length + 2), tot = w.reduce((a, b) => a + b, 0);
+    let acc = 0;
+    const rays = TREE_SECTORS.map((sec, k) => { const r = (acc + w[k] / 2) * 360 / tot; acc += w[k]; return r; });
+    const off = -90 - rays[0];
+    TREE_SECTORS.forEach((sec, k) => {
+      const a = rays[k] + off, hp = SP(a, SECTOR_R);
+      SECTOR_HUB[sec.br] = { x:hp[0], y:hp[1] };
+      TREE_NODES.push(Object.assign(NP(sec.hub, sec.br, hp, 'hub'), { from:'hub' }));
+      const pp = SP(a, 150); TREE_PILLS.push({ br:sec.br, x:pp[0], y:pp[1] });
+      const n = sec.kids.length, spread = Math.min(KID_SPREAD, KID_STEP * (n - 1));
+      sec.kids.forEach((id, i) => {
+        const t = (a + (n > 1 ? spread * (i / (n - 1) - 0.5) : 0)) * Math.PI / 180;
+        TREE_NODES.push(Object.assign(NP(id, sec.br, [Math.round(hp[0] + KID_R * Math.cos(t)), Math.round(hp[1] + KID_R * Math.sin(t))], TREE_PARENT[id] || sec.hub), { from:sec.hub }));
+      });
+    });
+  })();
+  const ESS_HUB = SECTOR_HUB.esencia, PET_HUB = SECTOR_HUB.mascota, PP_HUB = SECTOR_HUB.prestigio;
   const TREE_BY_ID = {}; TREE_NODES.forEach(n => TREE_BY_ID[n.id] = n);
-  const TREE_PILLS = [];
   let petPending = null;
   let treeSel = null, treeHover = null, treePending = null, treeBuilt = false, treePrev = {};
 
@@ -3493,7 +3508,7 @@
       if(el.classList.contains('tn')) el.classList.toggle('hit', !!q && hit);
     });
   }
-  function treeFitZ(){ const sc = els('treeScroll'); const w = sc && sc.clientWidth; return w ? Math.max(0.3, Math.min(TREE_Z, (w - 8) / TREE_W)) : 0.5; }
+  function treeFitZ(){ const sc = els('treeScroll'); const w = sc && sc.clientWidth; return w ? Math.max(0.3, Math.min(TREE_Z, (w - 8) / TREE_W, (sc.clientHeight - 8) / TREE_H)) : 0.5; }
   function treeScrollTo(pt){
     const sc = els('treeScroll'); if(!sc) return;
     const z = parseFloat(getComputedStyle(sc).getPropertyValue('--z')) || 1;
@@ -3613,9 +3628,9 @@
   function buildTree(){
     const cv = els('treeCanvas'); if(!cv || treeBuilt) return;
     treeBuilt = true;
-    let h = '<svg class="tree-lines" viewBox="0 0 880 880">';
+    let h = '<svg class="tree-lines" viewBox="0 0 1000 1000">';
     TREE_NODES.forEach(n => {
-      const par = n.parent === 'hub' ? TC : TREE_BY_ID[n.parent];
+      const par = n.from === 'hub' ? TC : TREE_BY_ID[n.from];
       const pts = par.x + ',' + par.y + ' ' + n.x + ',' + n.y;
       h += '<polyline data-id="' + n.id + '" points="' + pts + '" style="--lc:' + TREE_BR[n.br].color + '"/>';
     });
@@ -3623,8 +3638,8 @@
     TREE_PILLS.forEach(pl => { h += '<div class="tpill" style="left:' + pl.x + 'px;top:' + pl.y + 'px;--bc:' + TREE_BR[pl.br].color + '">' + TREE_BR[pl.br].name + '</div>'; });
     h += '<button class="th" id="treeHub" aria-label="Tu núcleo" style="left:' + TC.x + 'px;top:' + TC.y + 'px"><div class="mascot-slot" data-state="ok"></div></button>';
     TREE_NODES.forEach(n => {
-      h += '<button class="tn" data-id="' + n.id + '" style="left:' + n.x + 'px;top:' + n.y + 'px;--bc:' + TREE_BR[n.br].color + '"><span class="ti"></span><span class="tb"></span></button>';
-      h += '<div class="tl" data-id="' + n.id + '" style="left:' + n.x + 'px;top:' + (n.y + 34) + 'px"><b></b><span class="tc"></span></div>';
+      h += '<button class="tn" data-id="' + n.id + '"' + (n.parent === 'hub' ? ' data-hub="1"' : '') + ' style="left:' + n.x + 'px;top:' + n.y + 'px;--bc:' + TREE_BR[n.br].color + '"><span class="ti"></span><span class="tb"></span></button>';
+      h += '<div class="tl" data-id="' + n.id + '" style="left:' + n.x + 'px;top:' + (n.y + (n.parent === 'hub' ? 40 : 34)) + 'px"><b></b><span class="tc"></span></div>';
     });
     cv.innerHTML = h;
     const sel = id => { treeSel = id; treePending = null; if(id && !state.treeHintSeen){ state.treeHintSeen = true; save(); } renderTreeSheet(); cv.querySelectorAll('.tn,.th').forEach(b => b.classList.toggle('sel', (b.dataset.id || 'hub') === id)); };
@@ -3661,7 +3676,7 @@
       box.classList.toggle('compact', !!state.treeHintSeen);
       box.innerHTML = state.treeHintSeen
         ? '<div class="ts-hint">Tocá una mejora para ver qué hace · tocala dos veces para comprarla</div>'
-        : '<div class="ts-name">Tocá una mejora para ver qué hace</div><div class="ts-desc">Las que <b style="color:var(--text)">brillan</b> se pueden comprar ahora con lo que tenés. Las apagadas todavía no te alcanzan, y las punteadas están bloqueadas: se desbloquean al comprar la mejora anterior de su rama. Abajo a la izquierda está tu Compañero: elegirlo es gratis. Arriba a la izquierda, las mejoras únicas de prestigio ✦. Tocá dos veces una mejora para comprarla rápido. Deslizá para recorrer el árbol.</div>';
+        : '<div class="ts-name">Tocá una mejora para ver qué hace</div><div class="ts-desc">Las que <b style="color:var(--text)">brillan</b> se pueden comprar ahora con lo que tenés. Las apagadas todavía no te alcanzan, y las punteadas están bloqueadas: se desbloquean al comprar la mejora anterior de su rama. A la izquierda, arriba, está tu Compañero: elegirlo es gratis. Abajo, las mejoras únicas de prestigio ✦. Tocá dos veces una mejora para comprarla rápido. Deslizá para recorrer el árbol.</div>';
       return;
     }
     box.classList.remove('compact');
