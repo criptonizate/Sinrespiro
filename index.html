@@ -91,7 +91,7 @@
   .hazard-banner .icon-badge svg{color:inherit;}
 
 
-  .strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+  .strip:not(.has-event){display:none;}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 12px 8px;}
   .stat .icon-row{display:flex;align-items:center;gap:6px;color:var(--muted);}
   .stat .n{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:1px;}
@@ -106,12 +106,6 @@
 
   .event-btn{width:100%;margin-top:8px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg, var(--poison), #7a4fb0);color:#fff;display:none;align-items:center;gap:12px;position:relative;overflow:hidden;font-weight:600;font-size:13.5px;}
   .event-btn.show{display:flex;}
-  .strip.has-event{grid-template-columns:1fr 84px 1fr;}
-  .strip .event-btn{margin-top:0;width:auto;flex-direction:column;justify-content:center;gap:3px;padding:5px 4px;text-align:center;border-radius:12px;}
-  .strip .event-btn .ring{width:26px;height:26px;}
-  .strip .event-btn .txt{text-align:center;line-height:1.15;}
-  .strip .event-btn .txt #eventTitle{font-size:10.5px;}
-  .strip .event-btn .txt .sub{font-size:10px;margin-top:0;font-family:var(--mono);}
   .strip .event-btn.pulse{animation:evpulse .9s ease-in-out infinite;}
   @keyframes evpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
   .event-btn .ring{width:30px;height:30px;flex:none;}
@@ -709,6 +703,7 @@
   .tr-track{position:relative;flex:1;height:6px;border-radius:3px;background:repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 10px, transparent 10px 18px);}
   .tr-fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:linear-gradient(90deg, rgba(232,182,90,.3), var(--gold));transition:width .15s linear;}
   .tr-dot{position:absolute;top:50%;left:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--safe);border:2px solid var(--bg);box-shadow:0 0 8px var(--safe);transition:left .15s linear, background .3s;}
+  .tr-time{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--text);min-width:46px;white-space:nowrap;}
   .tr-left{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;min-width:70px;text-align:right;}
   .trail.done .tr-dot{background:var(--gold);box-shadow:0 0 10px var(--gold);}
   .trail.done .tr-left{color:var(--gold);}
@@ -793,16 +788,13 @@
 
     <div class="trail" id="trail" title="Camino del nivel: llegá a la bandera para superarlo">
       <svg class="icon tr-flag" viewBox="0 0 24 24"><path d="M6 21 V4"/><path d="M6 4 H18 L15.5 8.5 L18 13 H6"/></svg>
+      <span class="tr-time" id="trailTime">0s</span>
       <div class="tr-track"><div class="tr-fill" id="trailFill"></div><span class="tr-dot" id="trailDot"></span></div>
       <svg class="tr-flag" viewBox="0 0 24 24"><path d="M5 21 V3" stroke="#c9d6d6" stroke-width="1.8" stroke-linecap="round"/><rect x="5" y="3" width="15" height="10" fill="#fff"/><g fill="#14201f"><rect x="5" y="3" width="5" height="5"/><rect x="15" y="3" width="5" height="5"/><rect x="10" y="8" width="5" height="5"/></g></svg>
       <span class="tr-left" id="trailLeft"></span>
     </div>
 
     <div class="strip">
-      <div class="stat">
-        <div class="icon-row"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><circle cx="12" cy="12" r="9"/><path d="M12 7 L12 12 L15.5 14"/></svg><span class="l">tiempo con vida</span></div>
-        <div class="n" id="timeElapsed">0.0s</div>
-      </div>
       <button class="event-btn" id="eventBtn">
         <svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15"/><circle class="fg" id="eventRing" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="0"/></svg>
         <div class="txt">
@@ -810,11 +802,6 @@
           <div class="sub" id="eventSub">tocá para estabilizarlo</div>
         </div>
       </button>
-      <div class="stat">
-        <div class="icon-row"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 3 L12 6 M12 18 L12 21 M3 12 L6 12 M18 12 L21 12"/><circle cx="12" cy="12" r="3.2"/></svg><span class="l">objetivo del nivel</span></div>
-        <div class="n" id="timeTarget">20s</div>
-        <div class="progress"><div class="progress-fill" id="levelProgress" style="width:0%"></div></div>
-      </div>
     </div>
 
     <div class="milestone-card"><div class="ms-text"></div><div class="progress"><div class="progress-fill ms-fill" style="width:0%"></div></div></div>
@@ -2382,14 +2369,14 @@
     if(strip) strip.classList.add('has-event');
     const info = EVENT_INFO[event.type];
     btn.className = 'event-btn show ' + info.cls;
-    setText(els('eventTitle'), info.short);
+    setText(els('eventTitle'), info.title);
     const tt = info.title + ': ' + info.sub; if(btn.title !== tt) btn.title = tt;
     const total = event.expiresAt - event.startedAt;
     const remaining = Math.max(0, event.expiresAt - state.elapsed);
     const ratio = remaining/total;
     const circumference = 94.2;
     els('eventRing').style.strokeDashoffset = (circumference*(1-ratio)).toFixed(1);
-    els('eventSub').textContent = remaining.toFixed(1) + 's';
+    els('eventSub').textContent = info.sub + ' · ' + remaining.toFixed(1) + 's';
   }
   function catchEvent(){
     if(!event || screen !== 'running') return;
@@ -2909,10 +2896,10 @@
     els('dpsGainPart').classList.toggle('hidden', heal <= 0);
     if(heal > 0) els('dpsHealValue').textContent = heal.toFixed(2);
 
-    els('timeElapsed').textContent = fmt(state.elapsed) + 's';
     const target = computeTarget();
-    els('timeTarget').textContent = target + 's';
-    els('levelProgress').style.width = Math.min(100, (state.elapsed/target)*100) + '%';
+    setText(els('trailTime'), fmt(state.elapsed) + 's');
+    const trailTip = 'Llevás ' + fmt(state.elapsed) + 's de ' + fmt(target) + 's para superar el nivel';
+    if(els('trail').title !== trailTip) els('trail').title = trailTip;
     const trailP = Math.min(1, state.elapsed / target);
     els('trailFill').style.width = (trailP*100) + '%';
     els('trailDot').style.left = (trailP*100) + '%';
@@ -3640,7 +3627,7 @@
       h += '<div class="tl" data-id="' + n.id + '" style="left:' + n.x + 'px;top:' + (n.y + 34) + 'px"><b></b><span class="tc"></span></div>';
     });
     cv.innerHTML = h;
-    const sel = id => { treeSel = id; treePending = null; renderTreeSheet(); cv.querySelectorAll('.tn,.th').forEach(b => b.classList.toggle('sel', (b.dataset.id || 'hub') === id)); };
+    const sel = id => { treeSel = id; treePending = null; if(id && !state.treeHintSeen){ state.treeHintSeen = true; save(); } renderTreeSheet(); cv.querySelectorAll('.tn,.th').forEach(b => b.classList.toggle('sel', (b.dataset.id || 'hub') === id)); };
     const treeScrollEl = els('treeScroll');
     let moved = false, lastTap = { id:'', t:0 };
     cv.querySelectorAll('.tn').forEach(b => {
@@ -3654,6 +3641,7 @@
     });
     const hub = els('treeHub');
     hub.addEventListener('click', () => { if(!moved) sel('hub'); });
+    treeScrollEl.addEventListener('click', e => { if(moved || (e.target.closest && e.target.closest('.tn,.th')) || !treeSel) return; sel(null); });
     // arrastrar con el mouse (en el celular se desliza con el dedo)
     let drag = null;
     treeScrollEl.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse') return; drag = { x:e.clientX, y:e.clientY, sl:treeScrollEl.scrollLeft, st:treeScrollEl.scrollTop }; moved = false; });
@@ -3800,7 +3788,7 @@
     try{
       const ms = document.querySelector('#game > .milestone-card');
       if(!ms || els('game').classList.contains('hidden')) return;
-      const reserve = els('hazardBanner').classList.contains('show') ? 0 : 38;
+      const reserve = (els('hazardBanner').classList.contains('show') ? 0 : 38) + (els('eventBtn').classList.contains('show') ? 0 : 54);
       const ro = els('readyOverlay');
       if(!ro.classList.contains('hidden')) readyH = ro.scrollHeight;
       const h = Math.max(ms.offsetTop + ms.offsetHeight + reserve + 110 + 34, readyH + 130);
