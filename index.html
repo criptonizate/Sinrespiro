@@ -706,6 +706,11 @@
   .diff-save{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--gold);}
   .branch-card.cur{border-color:var(--safe);}
 
+  /* ===== Epidemia (nivel jefe) ===== */
+  .vitals.boss{border-color:rgba(255,92,77,.55);box-shadow:0 0 22px rgba(255,60,60,.25);}
+  .scene.boss .sc-vig{background:radial-gradient(ellipse 85% 100% at 50% 55%, transparent 40%, rgba(170,0,0,.6));animation:bossPulse 1.6s ease-in-out infinite;}
+  @keyframes bossPulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+
   /* ===== Camino del nivel ===== */
   .trail{display:flex;align-items:center;gap:8px;margin-top:8px;padding:0 4px;}
   .tr-flag{width:16px;height:16px;flex:none;color:var(--muted);}
@@ -1279,6 +1284,7 @@
     { id:'petelite',  name:'Compañero de élite', desc:'Descubrí la habilidad de los 5 compañeros.', check:s => !!s.pet && Object.keys(s.pet.known || {}).length >= 5, cepa:'Cepa Simbiótica', prog:s => [Object.keys((s.pet && s.pet.known) || {}).length, 5] },
     { id:'gas3',      name:'Pulmones de acero', desc:'Sobreviví a 3 gases densos.', check:s => (s.stats.gasSurvived||0) >= 3, cepa:'Cepa Respiratoria', prog:s => [s.stats.gasSurvived||0, 3] },
     { id:'hard10',    name:'Valiente',       desc:'Alcanzá el nivel 10 en dificultad Difícil.', check:s => (s.stats.maxLevelDiff.dificil||1)>=10, cepa:'Cepa Valiente', prog:s=>[s.stats.maxLevelDiff.dificil||1,10] },
+    { id:'boss10',    name:'Inmunólogo',     desc:'Superá 10 epidemias (niveles jefe).', check:s => (s.stats.bossesBeaten||0) >= 10, cepa:'Cepa Vacuna', prog:s=>[s.stats.bossesBeaten||0, 10] },
   ];
 
   let state = null;
@@ -1314,7 +1320,7 @@
       autoContinue: { unlocked:false, enabled:false }, notifiedKeys: {},
       totalRuns: 0, gamesUntilEvent: Math.floor(rand(1,11)),
       difficulty: 'normal', difficultyChosen: false, consecutiveDeathsThisLevel: 0,
-      perks: {}, lastPlayedDate: null, dailyStreak: 0, bestStreak: 0, essenceLevels: {},
+      perks: {}, lastPlayedDate: null, dailyStreak: 0, bestStreak: 0, essenceLevels: {}, bossBeat: {}, consumBought: {},
       character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{}, ab:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { dividendos:0, temple:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
       challengesDone: {}, quests: null, lastSeen: null, runs: {},
       stats: { deaths:0, levelsDone:0, eventsCaught:0, eventsMissed:0, antidotesUsed:0, revivesUsed:0, overdrives:0, hazardLevels:0, timePlayed:0, essenceEarned:0, ppEarned:0, questsDone:0, gasSurvived:0, maxLevelDiff:{ facil:1, normal:1, dificil:1 } },
@@ -1375,6 +1381,8 @@
     const st = Object.assign({}, d.stats, s.stats||{});
     st.maxLevelDiff = Object.assign({ facil:1, normal:1, dificil:1 }, (s.stats && s.stats.maxLevelDiff) || {});
     s.stats = st;
+    if(!s.bossBeat || typeof s.bossBeat !== 'object') s.bossBeat = {};
+    if(!s.consumBought || typeof s.consumBought !== 'object') s.consumBought = {};
     if(!s.runs || typeof s.runs !== 'object') s.runs = {};
     delete s.runs[s.difficulty];
     return s;
@@ -1382,10 +1390,10 @@
 
   // ---- Partidas por dificultad ----
   // Cada dificultad guarda su propia partida; la activa vive en los campos de siempre del estado y las otras en state.runs.
-  const RUN_KEYS = ['level','peakLevel','coins','upgrades','consumables','treeBought','consecutiveDeathsThisLevel','essenceLevels','elapsed','hp','bestTime'];
+  const RUN_KEYS = ['level','peakLevel','coins','upgrades','consumables','treeBought','consecutiveDeathsThisLevel','essenceLevels','elapsed','hp','bestTime','bossBeat','consumBought'];
   function freshRun(){
     return { level:1, peakLevel:1, coins: 60 * essLvl('semilla') + [0,150,350,700][ppLvl('arranque')], upgrades: freshUpgrades(),
-      consumables: { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 }, treeBought:{}, consecutiveDeathsThisLevel:0, essenceLevels:{}, elapsed:0, hp:10, bestTime:0 };
+      consumables: { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 }, treeBought:{}, consecutiveDeathsThisLevel:0, essenceLevels:{}, elapsed:0, hp:10, bestTime:0, bossBeat:{}, consumBought:{} };
   }
   function switchDifficulty(d){
     if(!LEVEL_CAP[d]) return;
@@ -1435,15 +1443,15 @@
   function overdriveDuration(){ return OVERDRIVE_DURATION + essLvl('sobrecarga'); }
   function overdriveCooldown(){ return OVERDRIVE_COOLDOWN - 5*essLvl('sobrecarga'); }
   function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult(); }
-  const DIFFICULTY_DRAIN_MULT = { facil: 0.95, normal: 1.2, dificil: 1.6 };
+  const DIFFICULTY_DRAIN_MULT = { facil: 0.9, normal: 1.2, dificil: 1.6 };
   const DIFFICULTY_COIN_MULT = { facil: 1.0, normal: 1.25, dificil: 1.6 };
   const DIFFICULTY_ESS_MULT = { facil: 1.0, normal: 1.25, dificil: 1.5 };
   const DIFFICULTY_HAZ_MULT = { facil: 0.65, normal: 1.0, dificil: 1.0 };
 
   function computeDrain(){
     const lvl = Math.min(state.level, levelCap());
-    // El drenaje crece 7% por nivel; Resistencia y Mitigación lo bajan en porcentaje.
-    let drain = 0.75 * Math.pow(1.07, lvl - 1);
+    // El drenaje crece 6,5% por nivel; Resistencia y Mitigación lo bajan en porcentaje.
+    let drain = 0.75 * Math.pow(1.065, lvl - 1);
     drain *= Math.pow(0.92, Math.min(state.upgrades.regen, 3));
     if(state.upgrades.regenBranch==='mitigacion') drain *= Math.pow(0.95, state.upgrades.regenPost);
     drain *= DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0;
@@ -1451,6 +1459,7 @@
     if(gasPhase === 'act' && screen === 'running') drain *= 1 + 0.35 * (1 - 0.1*petLv('inmu'));
     drain *= (1 - 0.03*essLvl('pulso')) * (1 - 0.05*ppLvl('temple'));
     if(petAb('tortuga') && state.hp < computeMaxHp() * 0.35) drain *= 1 - (0.15 + 0.04*petLv('hab'));
+    if(isBoss()) drain *= BOSS_MULT;
     if(challenge==='doble') drain *= 2;
     if(state.difficulty === 'facil' && state.consecutiveDeathsThisLevel >= 3) drain *= 0.8;
     if(overdriveActive) drain *= 2;
@@ -1467,16 +1476,18 @@
   function costFor(type){ return Math.round(REGULAR_UPGRADES[type].base * Math.pow(type === 'maxHp' || type === 'coinRate' ? 1.25 : 1.45, state.upgrades[type])); }
   function regenCost(){ return Math.round(20 * Math.pow(1.45, state.upgrades.regen)); }
   function regenPostCost(){ return Math.round(35 * Math.pow(1.25, state.upgrades.regenPost)); }
-  function shieldCost(){ return Math.round(600 * Math.pow(1.5, state.consumables.shield)); }
-  function reviveCost(){ return Math.round(1200 * Math.pow(1.6, state.consumables.revive)); }
-  function antidoteMinorCost(){ return Math.round(30 * Math.pow(1.3, state.consumables.antidoteMinor)); }
-  function antidoteMajorCost(){ return Math.round(150 * Math.pow(1.35, state.consumables.antidoteMajor)); }
+  // Los consumibles se encarecen con cada compra del ciclo (se reinicia al hacer prestigio) y con el nivel de la cueva.
+  function consumCost(base, g, key){ return Math.round(base * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * Math.pow(g, (state.consumBought && state.consumBought[key]) || 0)); }
+  function shieldCost(){ return consumCost(600, 1.5, 'shield'); }
+  function reviveCost(){ return consumCost(1200, 1.6, 'revive'); }
+  function antidoteMinorCost(){ return consumCost(30, 1.35, 'antidoteMinor'); }
+  function antidoteMajorCost(){ return consumCost(150, 1.4, 'antidoteMajor'); }
   function hazardResist(type){
     const lvl = type==='poison' ? state.upgrades.antitox : type==='cold' ? state.upgrades.aislante : state.upgrades.blindajeRad;
     if(challenge==='sinres') return 1;
     return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu'));
   }
-  function hazardMagnitude(){ return 0.6 * Math.pow(1.07, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
+  function hazardMagnitude(){ return (isBoss() ? BOSS_MULT : 1) * 0.6 * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
 
   function isShielded(){ return state.elapsed < shieldUntil; }
   // Cada prestigio pide unos 2,7 niveles más: el 1° en el nivel 20 y el 30° en el 100.
@@ -1499,7 +1510,7 @@
     const key = kind === 'minor' ? 'antidoteMinor' : 'antidoteMajor';
     if(state.consumables[key] <= 0) return;
     state.consumables[key] -= 1;
-    const heal = kind === 'minor' ? 2 : 6;
+    const heal = computeMaxHp() * (kind === 'minor' ? 0.15 : 0.4);
     const before = state.hp;
     state.hp = Math.min(computeMaxHp(), state.hp + heal);
     state.stats.antidotesUsed += 1; bumpQuest('antidote', 1);
@@ -2369,7 +2380,7 @@
     state.hp = computeMaxHp();
     state.elapsed = 0;
     hazards = [];
-    nextHazardTime = challenge === 'sinres' ? rand(4,6) : rand(11,17) * perkHazardDelayMult();
+    nextHazardTime = (challenge === 'sinres' || isBoss()) ? rand(4,6) : rand(11,17) * perkHazardDelayMult();
     nextHazard2Time = Infinity;
     gasPhase = ''; nextGasTime = state.level >= 8 ? rand(35, 55) : Infinity;
     shieldUntil = 0; boostUntil = 0;
@@ -2383,6 +2394,7 @@
     els('hazardBanner').className = 'hazard-banner';
     els('eventBtn').classList.remove('show'); if(els('eventBtn').parentElement) els('eventBtn').parentElement.classList.remove('has-event');
     screen = 'running';
+    if(isBoss() && !challenge) showToast('☣ Epidemia letal: ' + bossName() + ' · todo pega 50% más fuerte');
     ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','essenceOverlay','dataOverlay','statsOverlay','characterOverlay','treeOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
     if(!tickHandle) tickHandle = setInterval(tick, 100);
     render();
@@ -2409,12 +2421,17 @@
     { name:'Cámara ámbar',      rgb:'255,165,60' },
     { name:'Pozo ácido',        rgb:'215,230,70' },
   ];
+  // ---- Epidemias: cada 5 niveles hay un nivel jefe ----
+  const BOSS_MULT = 1.5;
+  const BOSSES = ['Peste negra','Fiebre de cristal','Plaga ácida','Gripe abisal','Virus carmesí','Moho devorador','Sarna espectral','Cólera de sombra','Toxina madre','Pandemia final'];
+  function isBoss(){ return state.level % 5 === 0; }
+  function bossName(){ return BOSSES[(state.level / 5 - 1) % BOSSES.length]; }
   // Una zona nueva cada 4 niveles (1-4, 5-8, ...); después del último color vuelve a empezar.
   function caveZone(){ return CAVE_ZONES[Math.floor((Math.min(state.level, MAX_LEVEL) - 1) / 4) % CAVE_ZONES.length]; }
   function applyBiomaTheme(){
     const b = currentBioma();
     document.documentElement.style.setProperty('--safe', b.accent);
-    setText(els('biomaName'), challenge ? ('Desafío · ' + CHALLENGES[challenge].name) : caveZone().name);
+    setText(els('biomaName'), challenge ? ('Desafío · ' + CHALLENGES[challenge].name) : isBoss() ? '☣ ' + bossName() : caveZone().name);
   }
 
   function hazardTypeInfo(type){
@@ -2656,8 +2673,13 @@
       if(challenge){ completeChallenge(); return; }
       if(state.difficulty === 'dificil' && state.level >= LEVEL_CAP.dificil && !state.stats.won100){ state.stats.won100 = true; setTimeout(() => showToast('🏆 ¡Superaste el nivel 100 en Difícil! Ganaste Sin Respiro.'), 2800); }
       state.consecutiveDeathsThisLevel = 0;
-      const bonus = Math.round((20 + state.level*10) * Math.pow(1.065, state.level - 1) * (1 + 0.25*state.upgrades.harvest) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1)) + (petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0);
+      const beatBoss = isBoss() ? bossName() : null;
+      const bonus = Math.round((beatBoss ? 3 : 1) * (20 + state.level*10) * Math.pow(1.065, state.level - 1) * (1 + 0.25*state.upgrades.harvest) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1)) + (petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0);
       state.coins += bonus; state.totalCoinsEarned += bonus;
+      if(beatBoss){
+        state.stats.bossesBeaten = (state.stats.bossesBeaten || 0) + 1;
+        if(!state.bossBeat[state.level]){ state.bossBeat[state.level] = true; gainEssence(1, 'epidemia superada'); }
+      }
       state.stats.levelsDone += 1; bumpQuest('level', 1);
       if(hazards.some(h => h.phase === 'active')){ state.stats.hazardLevels += 1; bumpQuest('hazard', 1); }
       const prevMax = state.maxLevelEverReached;
@@ -2675,7 +2697,7 @@
         startRun();
         return;
       }
-      els('completeTitle').textContent = 'Nivel superado';
+      els('completeTitle').textContent = beatBoss ? '☣ Epidemia superada: ' + beatBoss : 'Nivel superado';
       els('completeBonus').textContent = fmtCoins(bonus);
       els('completeNext').textContent = state.level >= levelCap() ? 'Tope de ' + DIFF_NAMES[state.difficulty] + ' (' + levelCap() + ')' : state.level;
       setScreen('complete');
@@ -2874,7 +2896,7 @@
       sceneEls.mid.innerHTML = m + m;
     }
     const gasOn = screen === 'running' && gasPhase !== '';
-    const c = 'scene' + (walking ? ' walk' : '') + ' spd-' + sp + ' bio-' + bi + (gasOn ? ' gas-' + gasPhase : '');
+    const c = 'scene' + (walking ? ' walk' : '') + ' spd-' + sp + ' bio-' + bi + (gasOn ? ' gas-' + gasPhase : '') + (isBoss() ? ' boss' : '');
     if(sc.className !== c) sc.className = c;
     if(sceneEls){
       const tgt = computeTarget();
@@ -2990,6 +3012,7 @@
     const critical = ratio < 0.3;
     els('vitalsCard').classList.toggle('critical', critical);
     els('vitalsCard').classList.toggle('shielded', isShielded());
+    els('vitalsCard').classList.toggle('boss', isBoss());
 
     els('dpsValue').textContent = computeCurrentLoss().toFixed(2);
     const heal = computeHealPerSec();
@@ -3008,7 +3031,9 @@
     setText(els('passiveRate'), '+' + computeEffectiveRate().toFixed(2) + '/s');
 
     if(screen === 'ready'){
-      els('readyTitle').textContent = (state.level === 1 && state.coins === 0 && state.prestige===0) ? 'Bóveda de contención' : 'De vuelta en la bóveda';
+      const bossNow = isBoss();
+      els('readyTitle').textContent = bossNow ? '☣ Epidemia: ' + bossName() : (state.level === 1 && state.coins === 0 && state.prestige===0) ? 'Bóveda de contención' : 'De vuelta en la bóveda';
+      setText(els('readySub'), bossNow ? 'Nivel jefe: el drenaje y las fugas pegan 50% más fuerte y la primera fuga llega enseguida. Superarlo paga el triple y la primera vez te da ◆1 de Esencia.' : 'Tus constantes se estabilizan aquí. Cuando salgas, empiezan a caer solas.');
       els('readyMaxHp').textContent = fmt(maxHp);
       els('readyDrain').textContent = computeDrain().toFixed(2) + '/seg';
       const readyHeal = computeHealPerSec();
@@ -3077,7 +3102,7 @@
   function buyShieldQuick(){
     const cost = shieldCost();
     if(state.consumables.shield < 3 && state.coins >= cost){
-      state.coins -= cost; state.consumables.shield += 1; bumpQuest('buy', 1); save(); render();
+      state.coins -= cost; state.consumables.shield += 1; state.consumBought.shield = (state.consumBought.shield || 0) + 1; bumpQuest('buy', 1); save(); render();
       showToast('Escudo comprado (x' + state.consumables.shield + ')');
       playBeep(880, 0.12);
     }
@@ -3101,7 +3126,7 @@
     const cap = kind === 'minor' ? 9 : 5;
     const cost = kind === 'minor' ? antidoteMinorCost() : antidoteMajorCost();
     if(state.consumables[key] < cap && state.coins >= cost){
-      state.coins -= cost; state.consumables[key] += 1; bumpQuest('buy', 1); save(); render();
+      state.coins -= cost; state.consumables[key] += 1; state.consumBought[key] = (state.consumBought[key] || 0) + 1; bumpQuest('buy', 1); save(); render();
       const name = kind === 'minor' ? 'Antídoto' : 'Antídoto mayor';
       showToast(name + ' comprado (x' + state.consumables[key] + ')');
       playBeep(880, 0.12);
@@ -3109,7 +3134,7 @@
   }
   function buyReviveQuick(){
     const cost = reviveCost();
-    if(state.consumables.revive < 5 && state.coins >= cost){ state.coins -= cost; state.consumables.revive += 1; bumpQuest('buy', 1); save(); render(); }
+    if(state.consumables.revive < 5 && state.coins >= cost){ state.coins -= cost; state.consumables.revive += 1; state.consumBought.revive = (state.consumBought.revive || 0) + 1; bumpQuest('buy', 1); save(); render(); }
   }
   function buyAutoContinueQuick(){
     if(!state.autoContinue.unlocked && state.coins >= 500){
@@ -3157,14 +3182,14 @@
       const locked = state.maxLevelEverReached < ANTIDOTE_MINOR_UNLOCK;
       const capped = state.consumables.antidoteMinor >= 9;
       const cost = antidoteMinorCost();
-      const desc = locked ? `Antídoto. Se desbloquea en el nivel ${ANTIDOTE_MINOR_UNLOCK}.` : 'Usalo durante una corrida para curar 2 de vida al instante.';
+      const desc = locked ? `Antídoto. Se desbloquea en el nivel ${ANTIDOTE_MINOR_UNLOCK}.` : 'Usalo durante una corrida para curar 15% de tu vida máxima al instante.';
       return { icon:iconVial, locked, unlockLevel:ANTIDOTE_MINOR_UNLOCK, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.antidoteMinor, onClick: () => buyAntidoteQuick('minor'), name:'Antídoto', desc };
     }
     if(id === 'antidoteMajor'){
       const locked = state.maxLevelEverReached < ANTIDOTE_MAJOR_UNLOCK;
       const capped = state.consumables.antidoteMajor >= 5;
       const cost = antidoteMajorCost();
-      const desc = locked ? `Antídoto mayor. Se desbloquea en el nivel ${ANTIDOTE_MAJOR_UNLOCK}.` : 'Usalo durante una corrida para curar 6 de vida al instante.';
+      const desc = locked ? `Antídoto mayor. Se desbloquea en el nivel ${ANTIDOTE_MAJOR_UNLOCK}.` : 'Usalo durante una corrida para curar 40% de tu vida máxima al instante.';
       return { icon:iconVialPlus, locked, unlockLevel:ANTIDOTE_MAJOR_UNLOCK, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.antidoteMajor, onClick: () => buyAntidoteQuick('major'), name:'Antídoto mayor', desc };
     }
     if(id === 'shield'){
@@ -3223,8 +3248,8 @@
   function consumDefs(){
     const c = state.consumables;
     return [
-      { id:'antidoteMinor', cls:'minor',  icon:iconVial,      name:'Antídoto',       unlocked: state.maxLevelEverReached >= ANTIDOTE_MINOR_UNLOCK, count:c.antidoteMinor, cap:9, cost:antidoteMinorCost(), use:() => useAntidote('minor'), buy:() => buyAntidoteQuick('minor'), tip:'Cura 2 de vida al instante.', blocked:'sinantidotos' },
-      { id:'antidoteMajor', cls:'major',  icon:iconVialPlus,  name:'Antídoto mayor', unlocked: state.maxLevelEverReached >= ANTIDOTE_MAJOR_UNLOCK, count:c.antidoteMajor, cap:5, cost:antidoteMajorCost(), use:() => useAntidote('major'), buy:() => buyAntidoteQuick('major'), tip:'Cura 6 de vida al instante.', blocked:'sinantidotos' },
+      { id:'antidoteMinor', cls:'minor',  icon:iconVial,      name:'Antídoto',       unlocked: state.maxLevelEverReached >= ANTIDOTE_MINOR_UNLOCK, count:c.antidoteMinor, cap:9, cost:antidoteMinorCost(), use:() => useAntidote('minor'), buy:() => buyAntidoteQuick('minor'), tip:'Cura 15% de tu vida máxima al instante.', blocked:'sinantidotos' },
+      { id:'antidoteMajor', cls:'major',  icon:iconVialPlus,  name:'Antídoto mayor', unlocked: state.maxLevelEverReached >= ANTIDOTE_MAJOR_UNLOCK, count:c.antidoteMajor, cap:5, cost:antidoteMajorCost(), use:() => useAntidote('major'), buy:() => buyAntidoteQuick('major'), tip:'Cura 40% de tu vida máxima al instante.', blocked:'sinantidotos' },
       { id:'shield',        cls:'shield', icon:iconBubble,    name:'Escudo',         unlocked: state.prestige >= 1, count:c.shield, cap:3, cost:shieldCost(), use:useShield, buy:buyShieldQuick, tip:'6 segundos sin recibir daño.', blocked:'sinantidotos', busy:() => isShielded() },
       { id:'revive',        cls:'revive', icon:iconHeartPulse,name:'Reanimador',     unlocked: state.maxLevelEverReached >= REVIVE_UNLOCK, count:c.revive, cap:5, cost:reviveCost(), use:null, buy:buyReviveQuick, tip:'Se usa solo: si llegás a cero, te revive al 50%.' }
     ];
@@ -3394,7 +3419,7 @@
         if(keepF > 0) ['maxHp','coinRate','accel','antitox','aislante','blindajeRad','regen'].forEach(k => { state.upgrades[k] = Math.floor((oldUp[k] || 0) * keepF); });
         state.consumables = { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 };
         state.treeBought = {};
-        state.runs = {};
+        state.runs = {}; state.bossBeat = {}; state.consumBought = {};
         state.consecutiveDeathsThisLevel = 0;
         checkAchievements();
         save();
@@ -3670,14 +3695,14 @@
       if(own){ I.btn = state.autoContinue.enabled ? 'Apagar' : 'Activar'; I.btnOn = true; I.costText = state.autoContinue.enabled ? 'activo' : 'apagado'; I.buy = () => { state.autoContinue.enabled = !state.autoContinue.enabled; save(); render(); }; }
       else { I.can = coins >= I.cost; I.btnOn = I.can; I.buy = () => buyAutoContinueQuick(); }
     } else if(id === 'antidoteMinor' || id === 'antidoteMajor' || id === 'shield' || id === 'revive'){
-      const D = { antidoteMinor:{ n:'Antídoto', ic:iconVial, key:'antidoteMinor', cap:9, un:ANTIDOTE_MINOR_UNLOCK, cost:antidoteMinorCost, buy:() => buyAntidoteQuick('minor'), d:'Cura 2 de vida al instante cuando lo usás durante la partida.' },
-        antidoteMajor:{ n:'Antídoto mayor', ic:iconVialPlus, key:'antidoteMajor', cap:5, un:ANTIDOTE_MAJOR_UNLOCK, cost:antidoteMajorCost, buy:() => buyAntidoteQuick('major'), d:'Cura 6 de vida al instante cuando lo usás durante la partida.' },
+      const D = { antidoteMinor:{ n:'Antídoto', ic:iconVial, key:'antidoteMinor', cap:9, un:ANTIDOTE_MINOR_UNLOCK, cost:antidoteMinorCost, buy:() => buyAntidoteQuick('minor'), d:'Cura 15% de tu vida máxima al instante cuando lo usás durante la partida.' },
+        antidoteMajor:{ n:'Antídoto mayor', ic:iconVialPlus, key:'antidoteMajor', cap:5, un:ANTIDOTE_MAJOR_UNLOCK, cost:antidoteMajorCost, buy:() => buyAntidoteQuick('major'), d:'Cura 40% de tu vida máxima al instante cuando lo usás durante la partida.' },
         shield:{ n:'Escudo', ic:iconBubble, key:'shield', cap:3, pr:1, cost:shieldCost, buy:buyShieldQuick, d:'Seis segundos sin recibir ningún daño cuando lo usás.' },
         revive:{ n:'Reanimador', ic:iconHeartPulse, key:'revive', cap:5, un:REVIVE_UNLOCK, cost:reviveCost, buy:buyReviveQuick, d:'Si tus constantes llegan a cero, te revive solo al 50% de la vida máxima.' } }[id];
       I.name = D.n; I.icon = D.ic; I.lvl = state.consumables[D.key]; I.max = D.cap; I.maxed = I.lvl >= D.cap; I.tag = 'consumible';
       I.locked = D.pr ? state.prestige < D.pr : state.maxLevelEverReached < D.un;
       I.lockMsg = D.pr ? 'Se desbloquea con el primer prestigio.' : 'Se desbloquea al llegar al nivel ' + D.un + '.';
-      I.cost = D.cost(); I.desc = D.d + ' Tenés ' + I.lvl + ' (máximo ' + D.cap + '). Se pierden al hacer prestigio.';
+      I.cost = D.cost(); I.desc = D.d + ' Tenés ' + I.lvl + ' (máximo ' + D.cap + '). Cada compra lo encarece hasta el próximo prestigio.';
       I.btn = 'Comprar +1'; I.can = !I.locked && !I.maxed && coins >= I.cost; I.btnOn = I.can; I.buy = D.buy;
     } else if(id === 'essHub'){
       I.name = 'Núcleo de Esencia'; I.icon = iconEssence; I.info = true;
