@@ -32,8 +32,8 @@
   *{box-sizing:border-box;}
   html{background:var(--bg);}
   html,body{margin:0;padding:0;color:var(--text);font-family:var(--sans);}
-  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 130% 45% at 50% 108%, rgba(110,225,70,calc(.10 + .22*var(--tox,.3))), transparent 70%),radial-gradient(ellipse 100% 40% at 50% -8%, rgba(var(--tint,0,0,0),var(--tinta,0)), transparent 70%),radial-gradient(ellipse 90% 80% at 50% 50%, transparent 55%, rgba(0,0,0,.35));animation:toxBreath 7s ease-in-out infinite alternate;}
-  body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:calc(.25 + .4*var(--tox,.3));background-image:radial-gradient(circle, rgba(160,255,110,.55) 0 1.2px, transparent 2px),radial-gradient(circle, rgba(160,255,110,.4) 0 1px, transparent 2px);background-size:97px 131px,61px 89px;background-position:0 0,30px 40px;animation:toxSpores 40s linear infinite;}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 130% 45% at 50% 108%, rgba(var(--cave,110,225,70),calc(.10 + .22*var(--tox,.3))), transparent 70%),radial-gradient(ellipse 100% 40% at 50% -8%, rgba(var(--tint,0,0,0),var(--tinta,0)), transparent 70%),radial-gradient(ellipse 90% 80% at 50% 50%, transparent 55%, rgba(0,0,0,.35));animation:toxBreath 7s ease-in-out infinite alternate;}
+  body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:calc(.25 + .4*var(--tox,.3));background-image:radial-gradient(circle, rgba(var(--cave,160,255,110),.55) 0 1.2px, transparent 2px),radial-gradient(circle, rgba(var(--cave,160,255,110),.4) 0 1px, transparent 2px);background-size:97px 131px,61px 89px;background-position:0 0,30px 40px;animation:toxSpores 40s linear infinite;}
   @keyframes toxBreath{from{opacity:.75;}to{opacity:1;}}
   @keyframes toxSpores{to{background-position:0 -131px,30px -49px;}}
   body{min-height:100vh;min-height:var(--vhp,100vh);display:flex;justify-content:center;padding-block:24px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));}
@@ -44,7 +44,7 @@
   .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:7px;position:sticky;top:0;z-index:26;background:var(--bg);padding:6px 0;}
   .menu-btn{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--text);}
   .head .level{font-size:14px;color:var(--muted);flex:1;text-align:center;min-width:0;}
-  .bioma-name{font-size:10px;color:var(--safe);font-family:var(--mono);margin-top:1px;transition:color .4s;}
+  .bioma-name{font-size:10px;color:rgb(var(--cave,120,230,90));font-family:var(--mono);margin-top:1px;transition:color .4s;}
   .head .level b{color:var(--text);font-weight:600;}
   .head .coins{font-family:var(--mono);font-size:15px;color:var(--gold);display:flex;flex-direction:column;align-items:flex-end;gap:1px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px 12px;min-height:40px;justify-content:center;}
   .coin-main{display:flex;align-items:center;gap:6px;}
@@ -258,8 +258,7 @@
   .c-planta.poison .m-petal{fill:#c9a0e8;} .c-planta.cold .m-petal{fill:#bcd9f2;} .c-planta.rad .m-petal{fill:#e8e7a0;}
 
   /* ===== Camino (escena) ===== */
-  .scene{position:relative;height:84px;margin:-10px -16px 8px;overflow:hidden;background:linear-gradient(180deg,#040908 0,#07120d 50%,#0c2217 100%);--spd:1;--cg:120,230,90;}
-  .scene.bio-1{--cg:80,225,165;} .scene.bio-2{--cg:200,230,70;} .scene.bio-3{--cg:150,235,110;} .scene.bio-4{--cg:232,205,70;}
+  .scene{position:relative;height:84px;margin:-10px -16px 8px;overflow:hidden;background:linear-gradient(180deg,#040908 0,#07120d 50%,#0c2217 100%);--spd:1;--cg:var(--cave,120,230,90);}
   .scene.spd-1{--spd:1.5;} .scene.spd-2{--spd:2.3;} .scene.spd-3{--spd:3.6;}
   .sc-layer{position:absolute;left:0;bottom:14px;width:200%;height:48px;display:flex;will-change:transform;}
   .sc-layer svg{width:50%;height:100%;display:block;flex:none;}
@@ -313,11 +312,11 @@
   .sc-ceil .dr{fill:rgba(var(--cg),.95);transform-box:fill-box;transform-origin:center;opacity:0;animation:dripFall 2.6s ease-in infinite;}
   @keyframes dripFall{0%{transform:translateY(0) scale(.6);opacity:0;}12%{transform:translateY(0) scale(1);opacity:1;}85%{opacity:.9;}100%{transform:translateY(54px) scale(.8);opacity:0;}}
   .sc-tox{bottom:12px;height:48px;pointer-events:none;}
-  .sc-tox .tpool{fill:rgba(120,235,70,.55);} .sc-tox .tpool2{fill:rgba(200,255,150,.35);}
+  .sc-tox .tpool{fill:rgba(var(--cg),.55);} .sc-tox .tpool2{fill:rgba(255,255,255,.28);}
   .sc-tox .tbar{fill:#33502a;stroke:#1a2a16;stroke-width:1;} .sc-tox .tband{fill:#d8e34a;} .sc-tox .tsym{fill:#10201f;}
   .sc-tox .tdead{stroke:#2e3d26;stroke-width:2;fill:none;stroke-linecap:round;}
-  .sc-tox .tdrip{stroke:rgba(150,255,100,.85);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-dasharray:10;animation:gooRun 2.2s ease-in infinite;}
-  .sc-tox .tbub{fill:#c8ffa0;transform-box:fill-box;transform-origin:center;opacity:0;animation:tBub 1.9s ease-in infinite;}
+  .sc-tox .tdrip{stroke:rgba(var(--cg),.9);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-dasharray:10;animation:gooRun 2.2s ease-in infinite;}
+  .sc-tox .tbub{fill:rgb(var(--cg));transform-box:fill-box;transform-origin:center;opacity:0;animation:tBub 1.9s ease-in infinite;}
   @keyframes gooRun{from{stroke-dashoffset:10;}to{stroke-dashoffset:-10;}}
   @keyframes tBub{0%{transform:translateY(0) scale(.4);opacity:0;}30%{opacity:.9;}100%{transform:translateY(-9px) scale(1);opacity:0;}}
   .sc-mist{position:absolute;left:0;right:0;bottom:10px;height:30px;pointer-events:none;background:radial-gradient(ellipse 70px 14px at 40px 22px, rgba(var(--cg),.42), transparent 70%),radial-gradient(ellipse 90px 12px at 120px 26px, rgba(var(--cg),.30), transparent 70%);background-size:170px 30px;opacity:calc(.35 + .65*var(--tox,.3));animation:mistDrift 16s linear infinite;}
@@ -1333,6 +1332,7 @@
     if(s.consecutiveDeathsThisLevel===undefined) s.consecutiveDeathsThisLevel = 0;
     if(s.dailyStreak===undefined) s.dailyStreak = 0;
     if(typeof s.elapsed !== 'number') s.elapsed = 0;
+    if(typeof s.coins !== 'number' || !isFinite(s.coins)) s.coins = 0;
     if(typeof s.hp !== 'number') s.hp = 10;
     if(s.lastPlayedDate===undefined) s.lastPlayedDate = null;
     if(s.bestStreak===undefined) s.bestStreak = s.dailyStreak||0;
@@ -2318,10 +2318,22 @@
   function currentBioma(){
     return BIOMAS.find(b => state.level <= b.max) || BIOMAS[BIOMAS.length-1];
   }
+  const CAVE_ZONES = [
+    { name:'Pantano tóxico',    rgb:'120,230,90' },
+    { name:'Gruta turquesa',    rgb:'80,225,190' },
+    { name:'Caverna eléctrica', rgb:'90,170,255' },
+    { name:'Abismo violeta',    rgb:'170,120,255' },
+    { name:'Fosa magenta',      rgb:'240,100,200' },
+    { name:'Galería de lava',   rgb:'255,95,70' },
+    { name:'Cámara ámbar',      rgb:'255,165,60' },
+    { name:'Pozo ácido',        rgb:'215,230,70' },
+  ];
+  // Una zona nueva cada 4 niveles (1-4, 5-8, ...); después del último color vuelve a empezar.
+  function caveZone(){ return CAVE_ZONES[Math.floor((Math.min(state.level, MAX_LEVEL) - 1) / 4) % CAVE_ZONES.length]; }
   function applyBiomaTheme(){
     const b = currentBioma();
     document.documentElement.style.setProperty('--safe', b.accent);
-    els('biomaName').textContent = challenge ? ('Desafío · ' + CHALLENGES[challenge].name) : b.name;
+    setText(els('biomaName'), challenge ? ('Desafío · ' + CHALLENGES[challenge].name) : caveZone().name);
   }
 
   function hazardTypeInfo(type){
@@ -2571,6 +2583,7 @@
       state.maxLevelEverReached = Math.max(state.maxLevelEverReached, state.level);
       state.peakLevel = Math.max(state.peakLevel, state.level);
       state.stats.maxLevelDiff[state.difficulty] = Math.max(state.stats.maxLevelDiff[state.difficulty]||1, state.level);
+      if(state.level > 1 && (state.level - 1) % 4 === 0) showToast('🎨 Nueva zona de la cueva: ' + caveZone().name);
       if(state.maxLevelEverReached > prevMax) announceUnlocks(state.maxLevelEverReached);
       if(state.peakLevel === prestigeReq() && state.prestige > 0) showToast('★ ¡Ya podés volver a hacer prestigio!');
       checkAchievements();
@@ -2748,7 +2761,7 @@
     }catch(e){}
   }
   const TINTS = ['169,120,216','90,169,230','232,182,90','255,92,77','236,120,180','120,230,200'];
-  let toxLast = '', tintLast = '';
+  let toxLast = '', tintLast = '', caveLast = '';
   const fogState = { poison:{cls:'', at:0}, cold:{cls:'', at:0}, rad:{cls:'', at:0} };
   function buildScene(){
     const sc = els('scene'); if(!sc) return;
@@ -2800,6 +2813,8 @@
       document.body.classList.toggle('gas', gasOn);
       const tox = (0.3 + 0.7 * Math.min(state.level, MAX_LEVEL) / MAX_LEVEL).toFixed(2);
       if(tox !== toxLast){ toxLast = tox; document.documentElement.style.setProperty('--tox', tox); }
+      const cz = caveZone().rgb;
+      if(cz !== caveLast){ caveLast = cz; document.documentElement.style.setProperty('--cave', cz); }
       const tk = state.prestige > 0 ? TINTS[(state.prestige - 1) % TINTS.length] : '0,0,0';
       if(tk !== tintLast){ tintLast = tk; const rs = document.documentElement.style; rs.setProperty('--tint', tk); rs.setProperty('--tinta', state.prestige > 0 ? '0.16' : '0'); }
     }catch(e){}
@@ -3380,7 +3395,7 @@
   // Cada sector es una estrella: su nodo principal queda en el medio del sector y el resto se despliega alrededor.
   // Los sectores alternan grandes y chicos, y cada uno recibe un ángulo según cuántas mejoras tiene, para que no se pisen.
   const TREE_SECTORS = [
-    { br:'salud',     hub:'maxHp',    kids:['regenMit','regen','regenReg'] },
+    { br:'salud',     hub:'maxHp',    kids:['regen'], kidR:120 },
     { br:'esencia',   hub:'essHub',   kids:['ess:hibernacion','ess:semilla','ess:reserva','ess:eco','ess:pulso','ess:sobrecarga'] },
     { br:'inmunidad', hub:'antitox',  kids:['aislante','blindajeRad'] },
     { br:'prestigio', hub:'ppHub',    kids:['pp:dividendos','pp:temple','pp:legado','pp:ritmo','pp:arranque','pp:herencia','pp:ampliar'] },
@@ -3389,12 +3404,14 @@
   ];
   // Requisitos: hay que comprar el nodo padre para desbloquear el hijo (las líneas van al padre).
   const TREE_PARENT = { regen:'maxHp', regenMit:'regen', regenReg:'regen', aislante:'antitox', blindajeRad:'aislante', accel:'coinRate', harvest:'accel', autoContinue:'accel' };
-  const SECTOR_R = 260, KID_R = 155, KID_STEP = 45, KID_SPREAD = 240;
+  // Algunas mejoras son a su vez una estrella chica: sus especializaciones se despliegan desde ellas.
+  const TREE_SUBSTARS = { regen:['regenMit','regenReg'] };
+  const SECTOR_R = 260, KID_R = 155, KID_STEP = 45, KID_SPREAD = 240, SUB_R = 105, SUB_SPREAD = 110;
   function SP(a, r){ const t = a * Math.PI / 180; return [Math.round(TC.x + r*Math.cos(t)), Math.round(TC.y + r*Math.sin(t))]; }
   const NP = (id, br, pos, parent) => ({ id, br, x:pos[0], y:pos[1], parent });
   const TREE_NODES = [], TREE_PILLS = [], SECTOR_HUB = {};
   (function(){
-    const w = TREE_SECTORS.map(sec => sec.kids.length + 2), tot = w.reduce((a, b) => a + b, 0);
+    const w = TREE_SECTORS.map(sec => sec.kids.reduce((t, id) => t + 1 + (TREE_SUBSTARS[id] || []).length, 2)), tot = w.reduce((a, b) => a + b, 0);
     let acc = 0;
     const rays = TREE_SECTORS.map((sec, k) => { const r = (acc + w[k] / 2) * 360 / tot; acc += w[k]; return r; });
     const off = -90 - rays[0];
@@ -3404,9 +3421,16 @@
       TREE_NODES.push(Object.assign(NP(sec.hub, sec.br, hp, 'hub'), { from:'hub' }));
       const pp = SP(a, 150); TREE_PILLS.push({ br:sec.br, x:pp[0], y:pp[1] });
       const n = sec.kids.length, spread = Math.min(KID_SPREAD, KID_STEP * (n - 1));
+      const kr = sec.kidR || KID_R;
       sec.kids.forEach((id, i) => {
-        const t = (a + (n > 1 ? spread * (i / (n - 1) - 0.5) : 0)) * Math.PI / 180;
-        TREE_NODES.push(Object.assign(NP(id, sec.br, [Math.round(hp[0] + KID_R * Math.cos(t)), Math.round(hp[1] + KID_R * Math.sin(t))], TREE_PARENT[id] || sec.hub), { from:sec.hub }));
+        const ad = a + (n > 1 ? spread * (i / (n - 1) - 0.5) : 0), t = ad * Math.PI / 180;
+        const kp = [Math.round(hp[0] + kr * Math.cos(t)), Math.round(hp[1] + kr * Math.sin(t))];
+        TREE_NODES.push(Object.assign(NP(id, sec.br, kp, TREE_PARENT[id] || sec.hub), { from:sec.hub }));
+        const subs = TREE_SUBSTARS[id] || [], m = subs.length;
+        subs.forEach((sid, k) => {
+          const st = (ad + (m > 1 ? SUB_SPREAD * (k / (m - 1) - 0.5) : 0)) * Math.PI / 180;
+          TREE_NODES.push(Object.assign(NP(sid, sec.br, [Math.round(kp[0] + SUB_R * Math.cos(st)), Math.round(kp[1] + SUB_R * Math.sin(st))], TREE_PARENT[sid] || id), { from:id }));
+        });
       });
     });
   })();
