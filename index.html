@@ -715,6 +715,29 @@
   .branch-card.sel{border-color:var(--gold);background:var(--gold-dim);}
   .cf-confirm{font-size:11.5px;color:var(--gold);margin-top:6px;} .cf-confirm:empty{display:none;}
 
+  /* ===== Mejoras por pestañas ===== */
+  .sh-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;scrollbar-width:none;}
+  .sh-tabs::-webkit-scrollbar{display:none;}
+  .sh-tab{flex:none;padding:5px 9px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);font-size:11.5px;font-weight:600;}
+  .sh-tab.on{color:var(--text);border-color:var(--safe);} .sh-tab.dot::after{content:'•';color:var(--gold);margin-left:3px;}
+  .up-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+  .col-info,.ci-card,.shop-box{min-width:0;}
+  #shopInline .up-grid{max-height:190px;overflow-y:auto;}
+  .up-it{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);text-align:left;min-width:0;}
+  .up-it.can{border-color:var(--gold);box-shadow:0 0 0 1px rgba(232,182,90,.25) inset;} .up-it.locked{opacity:.4;} .up-it.maxed{opacity:.65;}
+  .up-it.bought{animation:mPop .35s ease-out;}
+  .up-ic{flex:none;width:22px;text-align:center;font-size:15px;color:var(--safe);line-height:1;} .up-ic svg.icon{width:18px;height:18px;}
+  .up-tx{flex:1;min-width:0;display:flex;flex-direction:column;} .up-tx b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .up-tx small{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #shopModal .up-tx small{white-space:normal;}
+  .up-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;font-family:var(--mono);} .up-c{font-size:11px;color:var(--gold);} .up-lv{font-size:9.5px;color:var(--muted);}
+  .shop-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;} .shop-head h2{margin:0;}
+  .pet-row{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px;}
+  .hp-sh{font-family:var(--mono);font-size:12.5px;color:var(--cold);margin-left:6px;}
+  .sh-bar{height:3px;border-radius:2px;background:rgba(90,169,230,.15);margin-top:3px;overflow:hidden;} .sh-bar-fill{height:100%;background:var(--cold);transition:width .15s linear;}
+  .od{display:flex;gap:6px;font-size:12px;padding:2px 0;} .od.good{color:var(--safe);} .od.bad{color:#ff8a7e;} .od-n{flex:1;} .od b{font-family:var(--mono);font-weight:600;}
+  .sj-coin{color:var(--gold);} .sj-dmg{color:#ff8a7e;} .sj-heal{color:var(--safe);} .sj-shield{color:var(--cold);} .sj-boss{color:#ff6b9a;}
+
   /* ===== Paneles laterales y tarjetas de la columna ===== */
   body.wide{gap:16px;}
   .side{display:none;width:250px;flex:none;position:sticky;top:24px;align-self:flex-start;max-height:calc(var(--vhp,100vh) - 48px);overflow:hidden;flex-direction:column;gap:10px;}
@@ -835,7 +858,7 @@
           <div class="hp-line"><div class="hp-num" id="hpNum">10</div><div class="hp-max">/ <span id="hpMax">10</span></div></div>
           <div class="hp-label">
             <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M12 20 C6 15 3 11.5 3 8.2 3 5.6 5 4 7.3 4 9 4 10.6 5 12 6.8 13.4 5 15 4 16.7 4 19 4 21 5.6 21 8.2 21 11.5 18 15 12 20 Z"/></svg>
-            constantes vitales
+            constantes vitales <span class="hp-sh hidden" id="hpSh"></span>
           </div>
         </div>
           <div class="dps-row" id="dpsRow">
@@ -850,6 +873,7 @@
           </div>
       </div>
       <div class="hp-bar"><div class="hp-bar-fill" id="hpFill" style="width:100%"></div></div>
+      <div class="sh-bar hidden" id="shBar"><div class="sh-bar-fill" id="shFill"></div></div>
       <div class="hazard-banner" id="hazardBanner">
         <div class="icon-badge" id="hazardIconBadge"></div>
         <div>
@@ -879,7 +903,7 @@
 
     <div class="milestone-card"><div class="ms-text"></div><div class="progress"><div class="progress-fill ms-fill" style="width:0%"></div></div></div>
 
-    <div class="col-info" id="colInfo"><div class="ci-card" id="bossCard"></div><div class="ci-card run-sum" id="runSum"></div></div>
+    <div class="col-info" id="colInfo"><div class="ci-card shop-box" id="shopInline"></div><div class="ci-card run-sum" id="runSum"></div></div>
 
     <div class="action">
       <div class="group-label consum-title">consumibles</div>
@@ -941,7 +965,7 @@
         <div class="row hidden" id="readyEssenceRow"><span class="k">Esencia</span><span class="n" id="readyEssence" style="color:var(--poison);">0</span></div>
       </div>
       <button class="btn-extract" id="startBtn">Comenzar</button>
-      <button class="btn-secondary gold open-tree-btn" id="openTreeBtn">Árbol de mejoras <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button>
+      <button class="btn-secondary gold open-tree-btn" id="openTreeBtn">Mejoras <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button>
     </div>
 
     <div class="overlay hidden" id="deathOverlay">
@@ -965,21 +989,6 @@
         <div class="row"><span class="k">Próximo nivel</span><span class="n" id="completeNext">2</span></div>
       </div>
       <div class="btn-row"><button class="btn-extract" id="continueBtn">Continuar</button><button class="btn-secondary gold open-tree-btn"><svg class="coin-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e8b65a" stroke="#fff3c4" stroke-width="1.5"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="#7a5410" style="font-family:'IBM Plex Mono',monospace;">$</text></svg><span>Mejorar con tus monedas</span> <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg></button></div>
-    </div>
-
-    <div class="overlay hidden" id="branchOverlay">
-      <h2>Especializá tu resistencia</h2>
-      <p class="sub">Elegí un camino. No se puede cambiar después.</p>
-      <div class="branch-opts">
-        <button class="branch-card" id="branchMitigacion">
-          <div class="name"><span class="icon-badge"></span>Mitigación</div>
-          <div class="desc">Seguís bajando la pérdida de vida por segundo, cada vez más.</div>
-        </button>
-        <button class="branch-card" id="branchRegeneracion">
-          <div class="name"><span class="icon-badge"></span>Regeneración</div>
-          <div class="desc">Dejás de reducir el drenaje base y empezás a curar vida por segundo, incluso durante una anomalía.</div>
-        </button>
-      </div>
     </div>
 
     <div class="overlay hidden" id="prestigeOverlay">
@@ -1061,16 +1070,10 @@
       <button class="btn-secondary" id="closeChallengesBtn">Volver</button>
     </div>
 
-    <div class="overlay tree-panel hidden" id="treeOverlay">
-      <div class="tree-head">
-        <div class="tree-title">Árbol de mejoras</div>
-        <div class="tree-wallet"><span class="tw-coins">$<span id="treeCoins">0</span></span><span class="tw-ess">◆<span id="treeEss">0</span></span><span class="tw-pp">✦<span id="treePP">0</span></span></div>
-        <button class="tree-close tree-zoom" id="treeZoomBtn" aria-label="Vista general" title="Vista general / zoom">⤢</button>
-        <button class="tree-close" id="closeTreeBtn" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="tree-tools" id="treeTools"><button id="treeCenterBtn" aria-label="Centrar" title="Centrar en tu personaje">◎</button></div>
-      <div class="tree-scroll" id="treeScroll"><div class="tree-sizer" id="treeSizer"><div class="tree-canvas" id="treeCanvas"></div></div></div>
-      <div class="tree-sheet" id="treeSheet"></div>
+    <div class="overlay hidden" id="shopOverlay">
+      <div class="shop-head"><h2>Mejoras</h2><div class="tree-wallet"><span class="tw-coins">$<span id="shopCoins">0</span></span><span class="tw-ess">◆<span id="shopEss">0</span></span><span class="tw-pp">✦<span id="shopPP">0</span></span></div></div>
+      <div class="shop-box" id="shopModal"></div>
+      <button class="btn-secondary" id="closeShopBtn">Volver</button>
     </div>
 
     <div class="overlay hidden" id="characterOverlay">
@@ -1151,7 +1154,7 @@
       <div class="menu-group-body">
     <button class="menu-item" id="menuTreeBtn">
       <span class="icon-badge"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px;"><circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="4.5" r="1.8"/><circle cx="19.5" cy="12" r="1.8"/><circle cx="12" cy="19.5" r="1.8"/><circle cx="4.5" cy="12" r="1.8"/><path d="M12 9.4 V6.3 M14.6 12 H17.7 M12 14.6 V17.7 M9.4 12 H6.3"/></svg></span>
-      <span class="lbl">Árbol de mejoras <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg> <div class="sub" id="treeMenuSub">al terminar la partida</div></span>
+      <span class="lbl">Mejoras y Tienda <svg class="notif-star" viewBox="0 0 24 24"><path d="M12 3 L14.5 9 L21 9.5 L16 14 L17.5 20.5 L12 17 L6.5 20.5 L8 14 L3 9.5 L9.5 9 Z" fill="currentColor" stroke="none"/></svg> <div class="sub" id="treeMenuSub">al terminar la partida</div></span>
     </button>
     <button class="menu-item" id="menuEssenceBtn">
       <span class="icon-badge"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px;"><path d="M12 3 L19 10 L12 21 L5 10 Z"/><path d="M5 10 H19"/></svg></span>
@@ -1273,14 +1276,27 @@
   const iconFlag = '<svg class="icon" viewBox="0 0 24 24"><path d="M6 21 V4"/><path d="M6 4 H18 L15.5 8.5 L18 13 H6"/></svg>';
   const iconLoop = '<svg class="icon" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.7-6"/><path d="M20 4 L20 9 L15 9"/></svg>';
 
-  const REGULAR_UPGRADES = {
-    maxHp:      { name:'Blindaje vital',    base:15, unlock:1,  icon:iconHeart, desc:l => `+8% de vida máxima (nivel ${l+1}). Se acumula con cada nivel.` },
-    coinRate:   { name:'Extracción pasiva', base:25, unlock:3,  icon:iconPeso,   desc:l => `Producción base de ${(0.6+(l+1)*0.35).toFixed(2)} monedas/seg. Cada nivel de la cueva paga 6,5% más.` },
-    antitox:    { name:'Antitoxina',        base:90, unlock:5,  icon:iconDrop,   desc:l => `Reduce el daño de fugas de veneno en ${Math.min(90,(l+1)*15)}%.` },
-    aislante:   { name:'Aislante térmico',  base:220, unlock:8,  icon:iconSnow,   desc:l => `Reduce el daño de anomalías de frío en ${Math.min(90,(l+1)*15)}%.` },
-    blindajeRad:{ name:'Blindaje de radiación', base:450, unlock:11, icon:iconRad, desc:l => `Reduce el daño de fugas radiactivas en ${Math.min(90,(l+1)*15)}%.` },
-    harvest:    { name:'Cosecha',          base:1500, unlock:999, reqPrestige:3, max:8, icon:iconCoins, desc:l => `El bono por superar cada nivel sube a +${(l+1)*25}% extra.` },
-    accel:      { name:'Aceleración',       base:700, unlock:14, max:7, icon:iconFastFwd,   desc:l => `La generación llega a su máximo en ${Math.max(6, 25-(l+1)*3)}s de vida en vez de 25s.` },
+  const iconClover = '<svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><circle cx="15" cy="9" r="3.2"/><circle cx="9" cy="15" r="3.2"/><circle cx="15" cy="15" r="3.2"/><path d="M13 14 L18 21"/></svg>';
+  // Mejoras con monedas, por pestaña. Se reinician al hacer prestigio.
+  const UPGRADES = {
+    maxHp:       { tab:'salud', name:'Vida',                    base:15,   g:1.25, unlock:1,  icon:iconHeart },
+    shield:      { tab:'salud', name:'Escudo',                  base:60,   g:1.35, unlock:4,  max:15, icon:iconShieldPlus },
+    healRegen:   { tab:'salud', name:'Regeneración de vida',    base:35,   g:1.45, unlock:2,  max:10, icon:iconHeartPlus },
+    shieldRegen: { tab:'salud', name:'Regeneración de escudo',  base:120,  g:1.45, unlock:6,  max:10, icon:iconLoop, req:'shield' },
+    resist:      { tab:'resistencia', name:'Resistencia',       base:20,   g:1.45, unlock:1,  max:10, icon:iconShield },
+    antitox:     { tab:'resistencia', name:'Antitoxina',        base:90,   g:1.45, unlock:5,  max:6,  icon:iconDrop },
+    aislante:    { tab:'resistencia', name:'Aislante térmico',  base:220,  g:1.45, unlock:8,  max:6,  icon:iconSnow },
+    blindajeRad: { tab:'resistencia', name:'Blindaje de radiación', base:450, g:1.45, unlock:11, max:6, icon:iconRad },
+    bossRes:     { tab:'resistencia', name:'Inmunidad a epidemias', base:300, g:1.5, unlock:5, max:8, icon:iconFlag },
+    coinRate:    { tab:'economia', name:'Extracción pasiva',    base:25,   g:1.25, unlock:1,  icon:iconPeso },
+    levelBonus:  { tab:'economia', name:'Bono de nivel',        base:100,  g:1.45, unlock:3,  max:10, icon:iconCoins },
+    bossLoot:    { tab:'economia', name:'Botín de epidemia',    base:250,  g:1.5,  unlock:5,  max:8,  icon:iconFlag },
+    odProfit:    { tab:'economia', name:'Sobrecarga rentable',  base:400,  g:1.5,  unlock:6,  max:5,  icon:iconBolt },
+    goldCaps:    { tab:'economia', name:'Cápsulas de oro',      base:200,  g:1.5,  unlock:7,  max:5,  icon:iconBubble },
+    interest:    { tab:'economia', name:'Interés',              base:1000, g:1.6,  unlock:12, max:5,  icon:iconSeed },
+    luck:        { tab:'suerte', name:'Buena fortuna',          base:150,  g:1.5,  unlock:4,  max:5,  icon:iconClover },
+    trapScan:    { tab:'suerte', name:'Detector de trampas',    base:200,  g:1.5,  unlock:4,  max:5,  icon:iconShieldSlash },
+    lifeIns:     { tab:'suerte', name:'Seguro de vida',         base:300,  g:1.6,  unlock:6,  max:5,  icon:iconHeartPulse },
   };
   const REGEN_UNLOCK = 1;
   const ANTIDOTE_MINOR_UNLOCK = 2;
@@ -1295,15 +1311,17 @@
   const HAZARD_UNLOCK = { poison: 5, cold: 8, rad: 11 };
   const HAZARD2_LEVEL = 25;
   const OFFLINE_CAP_BASE = 3600;
-  const PRESTIGE_UNLOCKS = { 1:'Escudo y mejoras de prestigio', 2:'Desafíos', 3:'Cosecha (más bono por nivel)' };
+  const PRESTIGE_UNLOCKS = { 1:'Burbuja y la Tienda de prestigio', 2:'Desafíos' };
   const MILESTONES = [
-    { lvl:2,  text:'Antídoto menor' },
-    { lvl:3,  text:'Extracción pasiva' },
-    { lvl:5,  text:'Antitoxina y fugas de veneno' },
-    { lvl:6,  text:'Antídoto mayor y Sobrecarga' },
+    { lvl:2,  text:'Antídoto menor y Regeneración de vida' },
+    { lvl:3,  text:'Bono de nivel' },
+    { lvl:4,  text:'Escudo y mejoras de Suerte' },
+    { lvl:5,  text:'Epidemias, fugas de veneno y su resistencia' },
+    { lvl:6,  text:'Antídoto mayor, Sobrecarga y regeneración de escudo' },
+    { lvl:7,  text:'Cápsulas de oro' },
     { lvl:8,  text:'Aislante térmico y anomalías de frío' },
     { lvl:11, text:'Blindaje de radiación y fugas radiactivas' },
-    { lvl:14, text:'Aceleración' },
+    { lvl:12, text:'Interés' },
     { lvl:17, text:'Reanimador' },
     { lvl:20, text:'Prestigio' },
     { lvl:25, text:'Doble peligro: dos fugas a la vez' },
@@ -1380,7 +1398,19 @@
 
   function isMobileDevice(){ try{ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform)); }catch(e){ return false; } }
   function autoLite(){ try{ return isMobileDevice() || (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2; }catch(e){ return false; } }
-  function freshUpgrades(){ return { maxHp:0, coinRate:0, accel:0, regen:0, regenBranch:null, regenPost:0, antitox:0, aislante:0, blindajeRad:0, harvest:0 }; }
+  function freshUpgrades(){ const u = {}; Object.keys(UPGRADES).forEach(k => { u[k] = 0; }); return u; }
+  // Partidas viejas: Resistencia + Mitigación pasan a Resistencia, Regeneración celular a Regeneración de vida, Cosecha a Bono de nivel.
+  function migrateUpgrades(u){
+    u = (u && typeof u === 'object') ? u : {};
+    if(u.regen !== undefined || u.regenPost !== undefined || u.accel !== undefined || u.harvest !== undefined){
+      const mit = u.regenBranch === 'mitigacion', reg = u.regenBranch === 'regeneracion';
+      u.resist = Math.min(10, (u.resist || 0) + (u.regen || 0) + (mit ? (u.regenPost || 0) : 0));
+      u.healRegen = Math.min(10, (u.healRegen || 0) + (reg ? (u.regenPost || 0) : 0));
+      u.levelBonus = Math.min(10, (u.levelBonus || 0) + (u.harvest || 0));
+      ['regen','regenPost','regenBranch','accel','harvest'].forEach(k => delete u[k]);
+    }
+    return Object.assign(freshUpgrades(), u);
+  }
   function defaultState(){
     return {
       coins: 0, totalCoinsEarned: 0, level: 1, elapsed: 0, hp: 10,
@@ -1391,7 +1421,7 @@
       totalRuns: 0, gamesUntilEvent: Math.floor(rand(1,11)),
       difficulty: 'normal', difficultyChosen: false, consecutiveDeathsThisLevel: 0,
       perks: {}, lastPlayedDate: null, dailyStreak: 0, bestStreak: 0, essenceLevels: {}, bossBeat: {}, consumBought: {},
-      character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{}, ab:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { dividendos:0, temple:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
+      character: 'hombre', characterChosen: false, treeBought: {}, pet: { animal:null, regen:0, salud:0, inmu:0, eco:0, hab:0, known:{}, ab:{} }, lite: null, treeHintSeen: false, peakLevel: 1, pp: 0, ppTree: { casco:0, armadura:0, inyector:0, generador:0, guantes:0, arranque:0, ritmo:0, herencia:0, ampliar:0, legado:0 }, essence: 0, essenceTree: { hibernacion:0, semilla:0, reserva:0, eco:0, pulso:0, sobrecarga:0 },
       challengesDone: {}, quests: null, lastSeen: null, runs: {},
       stats: { deaths:0, levelsDone:0, eventsCaught:0, eventsMissed:0, antidotesUsed:0, revivesUsed:0, overdrives:0, hazardLevels:0, timePlayed:0, essenceEarned:0, ppEarned:0, questsDone:0, gasSurvived:0, maxLevelDiff:{ facil:1, normal:1, dificil:1 } },
     };
@@ -1399,7 +1429,7 @@
 
   function ensureShape(s){
     const d = defaultState();
-    s.upgrades = Object.assign(d.upgrades, s.upgrades||{});
+    s.upgrades = migrateUpgrades(s.upgrades);
     s.consumables = Object.assign(d.consumables, s.consumables||{});
     s.autoContinue = Object.assign(d.autoContinue, s.autoContinue||{});
     s.levelBestTimes = s.levelBestTimes || {};
@@ -1444,6 +1474,10 @@
     if(s.peakLevel===undefined) s.peakLevel = s.prestige>0 ? (s.level||1) : (s.maxLevelEverReached||1);
     if(s.essence===undefined) s.essence = 0;
     s.ppTree = Object.assign(d.ppTree, s.ppTree||{});
+    // Dividendos y Temple pasan a Guantes y Armadura de la Tienda.
+    if(s.ppTree.dividendos) s.ppTree.guantes = (s.ppTree.guantes || 0) + s.ppTree.dividendos;
+    if(s.ppTree.temple) s.ppTree.armadura = (s.ppTree.armadura || 0) + s.ppTree.temple;
+    delete s.ppTree.dividendos; delete s.ppTree.temple;
     if(typeof s.pp !== 'number') s.pp = s.prestige > 0 ? 9 * s.prestige : 0;
     s.essenceTree = Object.assign(d.essenceTree, s.essenceTree||{});
     s.challengesDone = s.challengesDone || {};
@@ -1456,6 +1490,7 @@
     if(!s.bossBeat || typeof s.bossBeat !== 'object') s.bossBeat = {};
     if(!s.consumBought || typeof s.consumBought !== 'object') s.consumBought = {};
     if(!s.runs || typeof s.runs !== 'object') s.runs = {};
+    Object.values(s.runs).forEach(r => { if(r) r.upgrades = migrateUpgrades(r.upgrades); });
     delete s.runs[s.difficulty];
     return s;
   }
@@ -1475,7 +1510,7 @@
     state.runs[from] = snap;
     const saved = state.runs[d], next = saved || freshRun();
     RUN_KEYS.forEach(k => { if(next[k] !== undefined && next[k] !== null) state[k] = next[k]; });
-    state.upgrades = Object.assign(freshUpgrades(), state.upgrades);
+    state.upgrades = migrateUpgrades(state.upgrades);
     state.consumables = Object.assign({ revive:0, antidoteMinor:0, antidoteMajor:0, shield:0 }, state.consumables);
     delete state.runs[d];
     state.difficulty = d;
@@ -1514,7 +1549,10 @@
   function chalMult(){ return 1 + 0.02*Object.keys(state.challengesDone||{}).length; }
   function overdriveDuration(){ return OVERDRIVE_DURATION + essLvl('sobrecarga'); }
   function overdriveCooldown(){ return OVERDRIVE_COOLDOWN - 5*essLvl('sobrecarga'); }
-  function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult(); }
+  function computeMaxHp(){ if(challenge==='cristal') return 10; return 10 * Math.pow(1.08, state.upgrades.maxHp) * perkMaxHpMult() * Math.pow(1.05, ppLvl('casco')); }
+  // Escudo: absorbe fugas, esporas y trampas antes que la vida; el drenaje base siempre va a la vida.
+  function shieldMax(){ if(challenge==='cristal') return 0; return computeMaxHp() * (0.04 * state.upgrades.shield + 0.02 * ppLvl('generador')); }
+  function shieldRegenPerSec(){ return shieldMax() * (0.02 * state.upgrades.shieldRegen + 0.01 * ppLvl('generador')); }
   const DIFFICULTY_DRAIN_MULT = { facil: 0.9, normal: 1.2, dificil: 1.6 };
   const DIFFICULTY_COIN_MULT = { facil: 1.0, normal: 1.25, dificil: 1.6 };
   const DIFFICULTY_ESS_MULT = { facil: 1.0, normal: 1.25, dificil: 1.5 };
@@ -1522,33 +1560,36 @@
 
   function computeDrain(){
     const lvl = Math.min(state.level, levelCap());
-    // El drenaje crece 6,5% por nivel; Resistencia y Mitigación lo bajan en porcentaje.
-    let drain = 0.75 * Math.pow(1.065, lvl - 1);
-    drain *= Math.pow(0.92, Math.min(state.upgrades.regen, 3));
-    if(state.upgrades.regenBranch==='mitigacion') drain *= Math.pow(0.95, state.upgrades.regenPost);
+    // El drenaje crece 7,6% por nivel; Resistencia lo baja 5% por nivel (hasta 50%).
+    let drain = 0.75 * Math.pow(1.076, lvl - 1);
+    drain *= 1 - 0.05 * Math.min(10, state.upgrades.resist);
     drain *= DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0;
     drain *= perkDrainMult();
     if(gasPhase === 'act' && screen === 'running') drain *= 1 + 0.35 * (1 - 0.1*petLv('inmu'));
-    drain *= (1 - 0.03*essLvl('pulso')) * (1 - 0.05*ppLvl('temple'));
+    drain *= (1 - 0.03*essLvl('pulso')) * Math.pow(0.97, ppLvl('armadura'));
     if(petAb('tortuga') && state.hp < computeMaxHp() * 0.35) drain *= 1 - (0.15 + 0.04*petLv('hab'));
-    if(isBoss()) drain *= BOSS_MULT;
+    if(isBoss()) drain *= bossMult();
     if(challenge==='doble') drain *= 2;
     if(state.difficulty === 'facil' && state.consecutiveDeathsThisLevel >= 3) drain *= 0.8;
     if(overdriveActive) drain *= 2;
     return drain;
   }
   function computeHealPerSec(){
-    return (state.upgrades.regenBranch==='regeneracion' ? computeMaxHp() * 0.0008 * state.upgrades.regenPost : 0)
-      + (screen === 'running' && state.elapsed < regenBoostUntil ? computeMaxHp() * 0.03 : 0);
+    return computeMaxHp() * (0.0008 * state.upgrades.healRegen + 0.0005 * ppLvl('inyector'))
+      + (screen === 'running' && state.elapsed < regenBoostUntil ? computeMaxHp() * 0.03 : 0)
+      + (screen === 'running' && levelSafe ? computeCurrentLoss() : 0);
   }
-  function computeCoinRate(){ return (0.6 + state.upgrades.coinRate*0.35) * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * perkCoinMult() * achMult() * chalMult() * (1 + 0.1*essLvl('eco')) * (1 + 0.10*ppLvl('dividendos')) * (1 + 0.06*petLv('eco')) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1); }
-  function computeGrowthDivisor(){ return Math.max(6, 25 - state.upgrades.accel*3); }
-  function computeGrowth(){ return 1 + Math.min(state.elapsed/computeGrowthDivisor(), 1.5); }
-  function computeEffectiveRate(){ return computeCoinRate()*computeGrowth()*(overdriveActive ? 3 : 1)*(state.elapsed < boostUntil ? 2 : 1); }
+  // Ingreso pasivo fijo: no sube con el tiempo ni con el nivel, solo con mejoras.
+  function computeCoinRate(){ return (0.5 + 0.25 * state.upgrades.coinRate) * perkCoinMult() * achMult() * chalMult() * (1 + 0.1*essLvl('eco')) * (1 + 0.1*ppLvl('guantes')) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1); }
+  function computeEffectiveRate(){ return computeCoinRate()*(overdriveActive ? 3 + 0.5 * state.upgrades.odProfit : 1)*(state.elapsed < boostUntil ? 2 : 1); }
   function computeTarget(){ return Math.min(150, 20 + (Math.min(state.level, levelCap())-1)*5) * (1 - 0.05*ppLvl('ritmo')); }
-  function costFor(type){ return Math.round(REGULAR_UPGRADES[type].base * Math.pow(type === 'maxHp' || type === 'coinRate' ? 1.25 : 1.45, state.upgrades[type])); }
-  function regenCost(){ return Math.round(20 * Math.pow(1.45, state.upgrades.regen)); }
-  function regenPostCost(){ return Math.round(35 * Math.pow(1.25, state.upgrades.regenPost)); }
+  function costFor(type){ const u = UPGRADES[type]; return Math.round(u.base * Math.pow(u.g, state.upgrades[type] || 0)); }
+  // Bono por superar un nivel: es la fuente grande de monedas y crece con el nivel.
+  function levelBonusCoins(boss){
+    const L = state.level;
+    return (boss ? 3 * (1 + 0.5 * state.upgrades.bossLoot) : 1) * (160 + 80 * L) * Math.pow(1.065, L - 1) * (1 + 0.2 * state.upgrades.levelBonus)
+      * (DIFFICULTY_COIN_MULT[state.difficulty] || 1) * (1 + 0.1 * ppLvl('guantes'));
+  }
   // Los consumibles se encarecen con cada compra del ciclo (se reinicia al hacer prestigio) y con el nivel de la cueva.
   function consumCost(base, g, key){ return Math.round(base * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * Math.pow(g, (state.consumBought && state.consumBought[key]) || 0)); }
   function shieldCost(){ return consumCost(600, 1.5, 'shield'); }
@@ -1560,7 +1601,7 @@
     if(challenge==='sinres') return 1;
     return Math.max(0.1, 1 - lvl*0.15) * perkHazardResistMult() * (1 - 0.05*petLv('inmu'));
   }
-  function hazardMagnitude(){ return (isBoss() ? BOSS_MULT : 1) * 0.6 * Math.pow(1.065, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
+  function hazardMagnitude(){ return (isBoss() ? bossMult() : 1) * 0.6 * Math.pow(1.076, Math.min(state.level, levelCap()) - 1) * (DIFFICULTY_DRAIN_MULT[state.difficulty] || 1.0) * (DIFFICULTY_HAZ_MULT[state.difficulty] || 1.0) * (challenge==='doble' ? 2 : 1); }
 
   function isShielded(){ return state.elapsed < shieldUntil; }
   // Cada prestigio pide unos 2,7 niveles más: el 1° en el nivel 20 y el 30° en el 100.
@@ -1594,11 +1635,11 @@
   }
   function useShield(){
     if(screen !== 'running') return;
-    if(challenge === 'sinantidotos'){ showToast('Desafío: sin antídotos ni escudo'); return; }
+    if(challenge === 'sinantidotos'){ showToast('Desafío: sin antídotos ni burbuja'); return; }
     if(state.consumables.shield <= 0 || isShielded()) return;
     state.consumables.shield -= 1;
     shieldUntil = state.elapsed + 6;
-    floatText('Escudo 6s', 'cold'); heroPop('shield');
+    floatText('Burbuja 6s', 'cold'); heroPop('shield');
     playBeep(520, 0.2, 'triangle'); setTimeout(()=>playBeep(780,0.2,'triangle'),90);
     save();
     render();
@@ -1947,7 +1988,7 @@
   }
 
   function announceUnlocks(level){
-    Object.values(REGULAR_UPGRADES).forEach(u => { if(u.unlock === level) showToast('★ Nuevo desbloqueo: ' + u.name); });
+    Object.values(UPGRADES).forEach(u => { if(u.unlock === level) showToast('★ Nuevo desbloqueo: ' + u.name); });
     if(REVIVE_UNLOCK === level) showToast('★ Nuevo desbloqueo: Reanimador');
     if(OVERDRIVE_UNLOCK === level) showToast('★ Nuevo desbloqueo: Sobrecarga (botón del encabezado)');
     if(level === 5) showToast('★ Objetivo desbloqueado: llegá al nivel 20 para hacer prestigio');
@@ -1999,14 +2040,19 @@
   function fanfare(){ [660, 880, 1180].forEach((f,i) => setTimeout(() => playBeep(f, 0.18), i*90)); try{ confetti(); }catch(e){} }
 
   // ---- Puntos de prestigio: mejoras únicas que solo da el prestigio ----
+  // Tienda de prestigio: equipamiento permanente que se compra con puntos ✦ y nunca se pierde.
+  const ppCosts = (base, g, max) => Array.from({ length:max }, (_, i) => Math.round(base * Math.pow(g, i)));
   const PP_UP = {
-    dividendos:{ name:'Dividendos',            max:5, costs:[2,3,4,6,8],  icon:iconPeso,       desc:l => `+${(l+1)*10}% de generación de monedas, para siempre.` },
-    temple:    { name:'Temple',                max:5, costs:[2,3,4,6,8],  icon:iconPulse,      desc:l => `-${(l+1)*5}% de pérdida de vida por segundo, para siempre.` },
-    arranque:  { name:'Capital de arranque',   max:3, costs:[2,4,6],      icon:iconSeed,       desc:l => `Cada prestigio empieza con ${[150,350,700][l]} monedas extra.` },
-    ritmo:     { name:'Ritmo veloz',           max:5, costs:[3,4,6,8,10], icon:iconBolt,       desc:l => `Cada nivel dura ${(l+1)*5}% menos.` },
-    herencia:  { name:'Reanimador de herencia',max:2, costs:[4,7],        icon:iconHeartPulse, desc:l => `Cada prestigio empieza con ${l+1} reanimador${l ? 'es' : ''} de regalo.` },
-    legado:    { name:'Legado',                max:3, costs:[3,5,8],    icon:iconHeartPlus,  desc:l => `Al hacer prestigio conservás el ${(l+1)*25}% de los niveles de tus mejoras de monedas (redondeado hacia abajo).` },
-    ampliar:   { name:'Elección ampliada',     max:1, costs:[5],          icon:iconEssence,    desc:l => 'Al hacer prestigio elegís entre 4 beneficios en vez de 3.' },
+    casco:     { name:'Casco de filtro',          max:15, costs:ppCosts(3, 1.3, 15),  icon:'🪖', eff:l => '+' + Math.round((Math.pow(1.05, l) - 1) * 100) + '% de vida' },
+    armadura:  { name:'Armadura sellada',         max:15, costs:ppCosts(4, 1.3, 15),  icon:'🦺', eff:l => '-' + Math.round((1 - Math.pow(0.97, l)) * 100) + '% de drenaje' },
+    inyector:  { name:'Inyector de regeneración', max:10, costs:ppCosts(5, 1.35, 10), icon:'💉', eff:l => 'cura ' + (0.05 * l).toFixed(2).replace('.', ',') + '% de tu vida/s' },
+    generador: { name:'Generador de escudo',      max:10, costs:ppCosts(5, 1.35, 10), icon:'⚡', eff:l => '+' + 2 * l + '% de escudo · +' + l + '%/s de recarga' },
+    guantes:   { name:'Guantes de recolector',    max:20, costs:ppCosts(3, 1.25, 20), icon:'🧤', eff:l => '+' + 10 * l + '% de monedas' },
+    arranque:  { name:'Mochila de suministros',   max:3,  costs:[2,4,6],     icon:'🎒', eff:l => 'empezás con $' + [0,150,350,700][l] },
+    ritmo:     { name:'Reloj de arena',           max:5,  costs:[3,4,6,8,10], icon:'⌛', eff:l => 'niveles ' + 5 * l + '% más cortos' },
+    herencia:  { name:'Amuleto del fénix',        max:2,  costs:[4,7],       icon:'🔥', eff:l => 'empezás con ' + l + ' reanimador' + (l === 1 ? '' : 'es') },
+    legado:    { name:'Manual del superviviente', max:3,  costs:[3,5,8],     icon:'📖', eff:l => 'conservás ' + 25 * l + '% de tus mejoras' },
+    ampliar:   { name:'Lupa de elección',         max:1,  costs:[5],         icon:'🔍', eff:l => 'elegís entre ' + (3 + l) + ' beneficios' },
   };
   function ppCost(id){ const U = PP_UP[id], l = ppLvl(id); return U.costs[Math.min(l, U.costs.length - 1)]; }
   function buyPP(id){
@@ -2263,7 +2309,7 @@
         state.coins += r; state.totalCoinsEarned += r;
         const eq = 2 + petEssBonus();
         showToast('★ Misión cumplida: +' + fmtCoins(r) + ' monedas · ◆ +' + eq + ' Esencia');
-        logEvent('🎯', 'Misión cumplida · +$' + fmtCoins(r));
+        logEvent('🎯', 'Misión cumplida · +$' + fmtCoins(r), 'coin');
         state.essence += eq; state.stats.essenceEarned += eq;
         floatText('+' + fmtCoins(r), 'gold');
         playBeep(900, 0.15);
@@ -2297,7 +2343,7 @@
 
   // ---- Desafíos ----
   const CHALLENGES = {
-    sinantidotos:{ name:'Sin muletas',      icon:iconVial,   desc:'Sin antídotos ni escudo durante la corrida.' },
+    sinantidotos:{ name:'Sin muletas',      icon:iconVial,   desc:'Sin antídotos ni burbuja durante la corrida.' },
     doble:       { name:'Doble daño',       icon:iconBolt,   desc:'La pérdida de vida y las fugas hacen el doble.' },
     sinres:      { name:'Sin resistencias', icon:iconShieldSlash, desc:'Tus resistencias no funcionan y la primera fuga llega enseguida.' },
     cristal:     { name:'Vida de cristal',  icon:iconHeart, desc:'Tu vida máxima queda fija en 10, sin mejoras ni beneficios.' },
@@ -2324,18 +2370,7 @@
   }
   let autoSeen = '';
   function autoGo(){
-    if(!(state.autoContinue.unlocked && state.autoContinue.enabled)) return false;
-    try{
-      const r = treeRecommend();
-      for(const k of ['coins', 'ess']){
-        if(!r[k]) continue;
-        const I = treeInfo(r[k]);
-        if(!I.can) continue;
-        const key = r[k] + ':' + I.lvl;
-        if(autoSeen !== key){ autoSeen = key; showToast('Podés mejorar «' + I.name + '». Reinicio automático en pausa.'); return false; }
-      }
-    }catch(e){}
-    return true;
+    return !!(state.autoContinue.unlocked && state.autoContinue.enabled);
   }
   function startChallenge(id){
     if(state.level < 5){ showToast('Necesitás estar en el nivel 5 o más'); return; }
@@ -2369,7 +2404,7 @@
     const secs = (Date.now() - state.lastSeen) / 1000;
     if(secs < 120) return null;
     const used = Math.min(secs, offlineCap());
-    const coins = Math.floor(computeCoinRate() * 1.5 * offlineRate() * used);
+    const coins = Math.floor(computeCoinRate() * offlineRate() * used);
     if(coins < 1) return null;
     return { secs, used, coins };
   }
@@ -2425,14 +2460,12 @@
       els('menuEssenceBtn').disabled = !essUnlocked;
       setText(els('essenceChipN'), String(state.essence));
       try{
-        const aff = screen !== 'running' && treeAffordable();
+        const aff = shopAffordable();
         document.querySelectorAll('.open-tree-btn .notif-star,#menuTreeBtn .notif-star').forEach(st => st.classList.toggle('show', aff));
-        els('menuTreeBtn').disabled = screen === 'running';
         els('mgStarMejoras').classList.toggle('show', aff);
         els('mgStarJuego').classList.toggle('show', canPrestige());
-        setText(els('treeMenuSub'), screen === 'running' ? 'disponible al terminar la partida' : (aff ? 'tenés mejoras para comprar' : 'gastá tus monedas y tu esencia'));
-        els('menuPetBtn').disabled = screen === 'running';
-        setText(els('petMenuSub'), screen === 'running' ? 'disponible al terminar la partida' : (petOn() ? PET_ANIMALS[state.pet.animal].name : 'elegí uno gratis'));
+        setText(els('treeMenuSub'), aff ? 'tenés mejoras para comprar' : 'salud, resistencia, economía y Tienda ✦');
+        setText(els('petMenuSub'), petOn() ? PET_ANIMALS[state.pet.animal].name : 'elegí uno gratis');
       }catch(e){}
       const chip = els('essenceChip');
       chip.classList.toggle('locked', !essUnlocked);
@@ -2469,8 +2502,8 @@
     else el.textContent = '☁ Nube: no disponible. Se guarda en este dispositivo.';
   }
 
-  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','branchOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','essenceOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','treeOverlay','loginOverlay','rankingOverlay','conflictOverlay'];
-  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', essence:'essenceOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', tree:'treeOverlay', login:'loginOverlay', ranking:'rankingOverlay', conflict:'conflictOverlay' };
+  const OVERLAY_IDS = ['readyOverlay','deathOverlay','completeOverlay','prestigeOverlay','perkChoiceOverlay','statsOverlay','difficultyOverlay','offlineOverlay','essenceOverlay','challengesOverlay','questsOverlay','dataOverlay','characterOverlay','shopOverlay','loginOverlay','rankingOverlay','conflictOverlay'];
+  const SCREEN_OVERLAY = { ready:'readyOverlay', dead:'deathOverlay', complete:'completeOverlay', stats:'statsOverlay', difficulty:'difficultyOverlay', offline:'offlineOverlay', essence:'essenceOverlay', challenges:'challengesOverlay', quests:'questsOverlay', data:'dataOverlay', character:'characterOverlay', shop:'shopOverlay', login:'loginOverlay', ranking:'rankingOverlay', conflict:'conflictOverlay' };
   function setScreen(next){
     screen = next;
     if(next === 'ready' || next === 'difficulty') challenge = null;
@@ -2490,7 +2523,7 @@
     nextHazardTime = (challenge === 'sinres' || isBoss()) ? rand(4,6) : rand(11,17) * perkHazardDelayMult();
     nextHazard2Time = Infinity;
     gasPhase = ''; nextGasTime = state.level >= 8 ? rand(35, 55) : Infinity;
-    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; pickupsThisRun = 0; runStats = { coins:0, caps:0, dmg:0 }; panelsAt = 0; nextPickupAt = computeTarget() * rand(0.2, 0.45); clearPickups();
+    shieldUntil = 0; boostUntil = 0; regenBoostUntil = 0; pickupsThisRun = 0; levelSafe = false; shieldHp = shieldMax(); runStats = { coins:0, caps:0, dmg:0 }; panelsAt = 0; nextPickupAt = computeTarget() * rand(0.2, 0.45); clearPickups();
     event = null;
     const gift = essLvl('reserva');
     if(gift > 0 && state.consumables.antidoteMinor < gift) state.consumables.antidoteMinor = gift;
@@ -2501,8 +2534,8 @@
     els('hazardBanner').className = 'hazard-banner';
     els('eventBtn').classList.remove('show'); if(els('eventBtn').parentElement) els('eventBtn').parentElement.classList.remove('has-event');
     screen = 'running';
-    if(isBoss() && !challenge) showToast('☣ Epidemia letal: ' + bossName() + ' · todo pega 50% más fuerte');
-    ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','essenceOverlay','dataOverlay','statsOverlay','characterOverlay','treeOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
+    if(isBoss() && !challenge) showToast('☣ Epidemia letal: ' + bossName() + ' · todo pega ' + Math.round((bossMult() - 1) * 100) + '% más fuerte');
+    ['readyOverlay','deathOverlay','completeOverlay','challengesOverlay','offlineOverlay','questsOverlay','essenceOverlay','dataOverlay','statsOverlay','characterOverlay','shopOverlay','rankingOverlay','loginOverlay'].forEach(id => els(id).classList.add('hidden'));
     startTicker();
     render();
     save();
@@ -2532,6 +2565,7 @@
   const BOSS_MULT = 1.5;
   const BOSSES = ['Peste negra','Fiebre de cristal','Plaga ácida','Gripe abisal','Virus carmesí','Moho devorador','Sarna espectral','Cólera de sombra','Toxina madre','Pandemia final'];
   function isBoss(){ return state.level % 5 === 0; }
+  function bossMult(){ return Math.max(1.1, BOSS_MULT - 0.05 * (state.upgrades.bossRes || 0)); }
   function bossName(){ return BOSSES[(state.level / 5 - 1) % BOSSES.length]; }
   // Una zona nueva cada 4 niveles (1-4, 5-8, ...); después del último color vuelve a empezar.
   function caveZone(){ return CAVE_ZONES[Math.floor((Math.min(state.level, MAX_LEVEL) - 1) / 4) % CAVE_ZONES.length]; }
@@ -2648,45 +2682,75 @@
 
   // ---- Sorpresas en el camino ----
   // Cada pocos segundos aparece una cápsula que viene hacia vos: tocala para agarrarla, o reventala si es tóxica.
-  const PICKUPS = {
-    vida:     { w:30, cls:'pk-vida', icon:'+', tip:'Cápsula de vida: tocala para regenerar' },
-    monedas:  { w:30, cls:'pk-coin', icon:'$', tip:'Bolsa de monedas: tocala para agarrarla' },
-    misterio: { w:20, cls:'pk-mist', icon:'?', tip:'Cápsula misteriosa: puede ser buena… o no' },
-    toxica:   { w:20, cls:'pk-tox',  icon:'☣', tip:'Espora tóxica: reventala antes de que te alcance' },
+  // Cápsulas incógnitas: lo que traen se decide al aparecer, con estas chances (la pestaña Suerte las mejora).
+  const CAPSULES = {
+    monedas:   { w:29, good:true,  icon:'💰', name:'Bolsa de monedas' },
+    regen:     { w:16, good:true,  icon:'💚', name:'Regeneración por 6 s' },
+    cura:      { w:14, good:true,  icon:'❤', name:'Curación del 25%' },
+    escudo:    { w:10, good:true,  icon:'🛡', name:'Escudo extra' },
+    asegurado: { w:4,  good:true,  icon:'✅', name:'Paso asegurado' },
+    espora:    { w:10, good:false, icon:'☣', name:'Espora (te pega si no la tocás)' },
+    trampa:    { w:14, good:false, icon:'⚠', name:'Trampa: -15% de vida' },
+    muerte:    { w:2,  good:false, icon:'☠', name:'Muerte súbita' },
   };
+  function capsuleWeights(){
+    const u = state.upgrades, luck = 1 + 0.1 * (u.luck || 0);
+    return Object.keys(CAPSULES).map(k => {
+      let w = CAPSULES[k].w;
+      if(CAPSULES[k].good) w *= luck;
+      if(k === 'trampa') w *= 1 - 0.2 * (u.trapScan || 0);
+      if(k === 'muerte') w *= 1 - 0.2 * (u.lifeIns || 0);
+      if(k === 'espora' && isBoss()) w *= 2;
+      return [k, Math.max(0, w)];
+    });
+  }
+  function capsuleOdds(){ const ws = capsuleWeights(), t = ws.reduce((a, b) => a + b[1], 0); return ws.map(([k, w]) => [k, t ? w / t * 100 : 0]); }
+  function rollCapsule(){ const ws = capsuleWeights(); let r = Math.random() * ws.reduce((a, b) => a + b[1], 0); for(const [k, w] of ws){ if((r -= w) <= 0) return k; } return 'monedas'; }
+  function addCoins(c){ state.coins += c; state.totalCoinsEarned += c; runStats.coins += c; }
+  // Daño: el escudo absorbe primero (salvo el drenaje base); con "paso asegurado" no se pierde vida en este nivel.
+  let shieldHp = 0, levelSafe = false;
+  function hurt(x, viaShield){
+    if(levelSafe || x <= 0) return;
+    runStats.dmg += x;
+    if(viaShield && shieldHp > 0){ const a = Math.min(shieldHp, x); shieldHp -= a; x -= a; }
+    state.hp -= x;
+  }
   let regenBoostUntil = 0, nextPickupAt = Infinity, pickupsThisRun = 0;
   function clearPickups(){ if(sceneEls) sceneEls.sc.querySelectorAll('.pk').forEach(p => p.remove()); }
   function spawnPickup(){
     const sc = sceneEls && sceneEls.sc; if(!sc || sc.querySelectorAll('.pk').length >= 2) return;
-    const pool = Object.keys(PICKUPS).map(k => [k, k === 'toxica' && isBoss() ? PICKUPS[k].w * 2 : PICKUPS[k].w]);
-    let r = Math.random() * pool.reduce((t, p) => t + p[1], 0), type = 'vida';
-    for(const [k, w] of pool){ if((r -= w) <= 0){ type = k; break; } }
+    const out = rollCapsule();
     const b = document.createElement('button'), dur = 4.6;
     b.className = 'pk pk-inc'; b.textContent = '?'; b.title = 'Cápsula: tocala para ver qué trae'; b.setAttribute('aria-label', b.title);
     b.style.setProperty('--pkd', dur + 's'); b.style.setProperty('--pky', Math.round(18 + Math.random() * 26) + 'px');
-    // llegó al personaje sin que la toques: las buenas se pierden, la tóxica te pega
-    const arrive = () => { if(b._done) return; b._done = true; if(type === 'toxica' && screen === 'running') toxicHit(); b.remove(); };
-    b.addEventListener('click', e => { e.stopPropagation(); if(screen !== 'running' || b._done) return; b._done = true; collectPickup(type, b); });
+    // llegó al personaje sin que la toques: lo bueno se pierde y la espora te pega
+    const arrive = () => { if(b._done) return; b._done = true; if(out === 'espora' && screen === 'running') toxicHit(); b.remove(); };
+    b.addEventListener('click', e => { e.stopPropagation(); if(screen !== 'running' || b._done) return; b._done = true; collectPickup(out, b); });
     if(SCENE_REDUCED){ b.style.left = '70%'; setTimeout(arrive, dur * 1000); }
     else b.addEventListener('animationend', e => { if(e.animationName === 'pkMove') arrive(); });
     sc.appendChild(b);
-    if(!state.notifiedKeys.pk){ state.notifiedKeys.pk = true; showToast('¡Tocá las cápsulas que vienen por el camino! Pueden traer vida, monedas… o algo tóxico que te pega si no la tocás a tiempo.'); }
+    if(!state.notifiedKeys.pk){ state.notifiedKeys.pk = true; showToast('¡Tocá las cápsulas que vienen por el camino! Las chances de lo que traen están en la pestaña Suerte.'); }
   }
-  function collectPickup(type, b){
+  function collectPickup(out, b){
     state.stats.pickups = (state.stats.pickups || 0) + 1; runStats.caps++;
     b.style.left = getComputedStyle(b).left; b.classList.add('got'); setTimeout(() => b.remove(), 320);
-    const mh = computeMaxHp();
-    if(type === 'misterio') type = Math.random() < 0.3 ? 'trampa' : (Math.random() < 0.5 ? 'x2' : 'cura');
-    if(type === 'vida'){ regenBoostUntil = state.elapsed + 6; floatText('Regeneración +3%/s · 6s', 'good'); heroPop('heal'); playBeep(880, 0.12); }
-    else if(type === 'monedas'){ const c = Math.round(computeEffectiveRate() * 12); state.coins += c; state.totalCoinsEarned += c; runStats.coins += c; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
-    else if(type === 'x2'){ boostUntil = state.elapsed + 8; floatText('¡Monedas x2 · 8s!', 'gold'); heroPop('boost'); playBeep(1100, 0.12); }
-    else if(type === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25); floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
-    else if(type === 'trampa'){ state.hp -= mh * 0.15; runStats.dmg += mh * 0.15; floatText('¡Era una trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
-    else { const c = Math.round(computeEffectiveRate() * 3); state.coins += c; state.totalCoinsEarned += c; runStats.coins += c; floatText('Espora reventada +' + fmtCoins(c), 'gold'); playBeep(600, 0.08, 'square'); }
-    logEvent('❔', 'Cápsula: ' + ({ vida:'regeneración por 6 s', monedas:'bolsa de monedas', x2:'monedas ×2 por 8 s', cura:'curación del 25%', trampa:'¡era una trampa! (-15% vida)' }[type] || 'espora reventada'));
+    const mh = computeMaxHp(), C = CAPSULES[out], gold = 1 + 0.5 * state.upgrades.goldCaps;
+    let msg, kind = 'heal';
+    if(out === 'monedas'){ const c = Math.round(levelBonusCoins(false) * 0.3 * gold); addCoins(c); msg = '+$' + fmtCoins(c); kind = 'coin'; floatText('+' + fmtCoins(c), 'gold'); playBeep(1000, 0.1); }
+    else if(out === 'regen'){ regenBoostUntil = state.elapsed + 6; msg = 'regeneración +3%/s por 6 s'; floatText('Regeneración +3%/s · 6s', 'good'); heroPop('heal'); playBeep(880, 0.12); }
+    else if(out === 'cura'){ const before = state.hp; state.hp = Math.min(mh, state.hp + mh * 0.25); msg = '+' + fmt(state.hp - before) + ' de vida'; floatText('+' + fmt(state.hp - before) + ' vida', 'good'); heroPop('heal'); playBeep(880, 0.12); }
+    else if(out === 'escudo'){ shieldHp += mh * 0.3; msg = '+' + fmt(mh * 0.3) + ' de escudo'; kind = 'shield'; floatText('🛡 +' + fmt(mh * 0.3), 'cold'); heroPop('shield'); playBeep(700, 0.12, 'triangle'); }
+    else if(out === 'asegurado'){ levelSafe = true; msg = '¡paso asegurado! No perdés vida en este nivel'; floatText('✅ ¡Paso asegurado!', 'good'); heroPop('heal'); playBeep(660, 0.15); setTimeout(() => playBeep(990, 0.18), 110); }
+    else if(out === 'trampa'){ hurt(mh * 0.15, true); msg = 'era una trampa (-15% de vida)'; kind = 'dmg'; floatText('¡Trampa! -15% vida', 'bad'); impact(); playBeep(220, 0.2, 'sawtooth'); }
+    else if(out === 'muerte'){
+      if(levelSafe){ msg = 'muerte súbita… pero el paso asegurado te salvó'; floatText('☠ Esquivaste la muerte súbita', 'good'); }
+      else { state.hp = 0; msg = '¡muerte súbita!'; kind = 'dmg'; floatText('☠ ¡Muerte súbita!', 'bad'); impact(); playBeep(150, 0.4, 'sawtooth'); }
+    }
+    else { const c = Math.round(levelBonusCoins(false) * 0.05 * gold); addCoins(c); msg = 'espora reventada · +$' + fmtCoins(c); kind = 'coin'; floatText('Espora reventada +' + fmtCoins(c), 'gold'); playBeep(600, 0.08, 'square'); }
+    logEvent(C.icon, 'Cápsula: ' + msg, kind);
     render();
   }
-  function toxicHit(){ const d = computeMaxHp() * 0.12; state.hp -= d; runStats.dmg += d; floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)'); }
+  function toxicHit(){ hurt(computeMaxHp() * 0.12, true); floatText('Espora tóxica -12% vida', 'bad'); impact(); logEvent('☣', 'Una espora tóxica te alcanzó (-12% vida)', 'dmg'); }
 
   let gasPhase = '', gasEnds = 0, nextGasTime = Infinity, tickN = 0;
   function startTicker(){
@@ -2703,8 +2767,9 @@
     state.stats.timePlayed += 0.1;
     bumpQuest('time', 0.1);
     const shielded = isShielded();
-    if(!shielded){ const dd = computeDrain()*0.1; state.hp -= dd; runStats.dmg += dd; }
+    if(!shielded) hurt(computeDrain()*0.1, false);
     state.hp = Math.min(computeMaxHp(), state.hp + computeHealPerSec()*0.1);
+    if(shieldHp < shieldMax()) shieldHp = Math.min(shieldMax(), shieldHp + shieldRegenPerSec()*0.1);
 
     if(overdriveActive && sessionClock >= overdriveEndsAt){
       overdriveActive = false;
@@ -2737,7 +2802,7 @@
         updateHazardBanner();
         impact();
       }
-      if(h.phase === 'active' && !shielded){ const hd = hazardMagnitude()*hazardResist(h.type)*0.1; state.hp -= hd; runStats.dmg += hd; }
+      if(h.phase === 'active' && !shielded) hurt(hazardMagnitude()*hazardResist(h.type)*0.1, true);
     });
 
     if(!gasPhase && state.elapsed >= nextGasTime){
@@ -2758,7 +2823,7 @@
     if(event){
       if(state.elapsed >= event.expiresAt){
         if(event.type === 'nucleo'){
-          state.hp -= computeMaxHp()*0.08;
+          hurt(computeMaxHp()*0.08, true);
           state.stats.eventsMissed += 1;
           floatText('-8% vida', 'bad');
           impact();
@@ -2788,7 +2853,7 @@
       if(petAb('gato') && Math.random() < 0.10 + 0.04*petLv('hab')){
         state.hp = computeMaxHp()*0.4;
         showToast('Siete vidas: ¡tu gatito te salvó!');
-        petAbFx('gato', '¡7 vidas!'); heroPop('heal'); logEvent('🐱', 'Siete vidas: tu gatito te salvó');
+        petAbFx('gato', '¡7 vidas!'); heroPop('heal'); logEvent('🐱', 'Siete vidas: tu gatito te salvó', 'heal');
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save(); render();
         return;
@@ -2797,7 +2862,7 @@
         state.consumables.revive -= 1;
         state.stats.revivesUsed += 1;
         state.hp = computeMaxHp()*0.5;
-        showToast('Reanimador activado'); logEvent('💗', 'Reanimador activado');
+        showToast('Reanimador activado'); logEvent('💗', 'Reanimador activado', 'heal');
         playBeep(660,0.2); setTimeout(()=>playBeep(880,0.2),100);
         save();
         render();
@@ -2810,7 +2875,7 @@
         showToast('Desafío fallido — no perdiste nada');
       } else {
         state.consecutiveDeathsThisLevel += 1;
-        logEvent('✝', 'Caíste en el nivel ' + state.level + ' a los ' + fmt(state.elapsed) + ' s');
+        logEvent('✝', 'Caíste en el nivel ' + state.level + ' a los ' + fmt(state.elapsed) + ' s', 'dmg');
         state.stats.deaths += 1;
         if(state.level >= 5 && state.elapsed >= computeTarget()*0.5 && !state.essenceLevels[state.level]){
           state.essenceLevels[state.level] = true;
@@ -2838,9 +2903,11 @@
       const beatBoss = isBoss() ? bossName() : null;
       const squirrelBonus = petAb('ardilla') ? Math.round(computeCoinRate() * (10 + 4*petLv('hab'))) : 0;
       if(squirrelBonus) petAbFx('ardilla', '+' + fmtCoins(squirrelBonus));
-      const bonus = Math.round((beatBoss ? 3 : 1) * (60 + state.level*30) * Math.pow(1.065, state.level - 1) * (1 + 0.25*state.upgrades.harvest) * (DIFFICULTY_COIN_MULT[state.difficulty] || 1)) + squirrelBonus;
+      const bonus = Math.round(levelBonusCoins(!!beatBoss)) + squirrelBonus;
       state.coins += bonus; state.totalCoinsEarned += bonus; runStats.coins += bonus;
-      logEvent(beatBoss ? '☣' : '✓', (beatBoss ? 'Superaste la epidemia ' + beatBoss : 'Nivel ' + state.level + ' superado') + ' · +$' + fmtCoins(bonus));
+      const interest = Math.floor(state.coins * 0.01 * state.upgrades.interest);
+      if(interest > 0){ addCoins(interest); logEvent('📈', 'Interés: +$' + fmtCoins(interest), 'coin'); }
+      logEvent(beatBoss ? '☣' : '✓', (beatBoss ? 'Superaste la epidemia ' + beatBoss : 'Nivel ' + state.level + ' superado') + ' · +$' + fmtCoins(bonus), beatBoss ? 'boss' : 'coin');
       if(beatBoss){
         state.stats.bossesBeaten = (state.stats.bossesBeaten || 0) + 1;
         if(!state.bossBeat[state.level]){ state.bossBeat[state.level] = true; gainEssence(1, 'epidemia superada'); }
@@ -3169,7 +3236,7 @@
   const journal = [];
   let runStats = { coins:0, caps:0, dmg:0 }, panelsAt = 0;
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
-  function logEvent(icon, text){ journal.unshift({ icon, text }); if(journal.length > 12) journal.pop(); panelsAt = 0; }
+  function logEvent(icon, text, kind){ journal.unshift({ icon, text, kind: kind || 'info' }); if(journal.length > 12) journal.pop(); panelsAt = 0; }
   function sideObjectivesHTML(){
     const quests = state.quests ? state.quests.list.map(q => {
       const d = questDef(q.id), pct = Math.min(100, q.progress / q.goal * 100);
@@ -3221,26 +3288,11 @@
     return h;
   }
   function sideJournalHTML(){
-    return '<h3>Bitácora</h3>' + (journal.length ? journal.map(j => '<div class="sj"><span>' + j.icon + '</span>' + esc(j.text) + '</div>').join('') : '<div class="side-note">Acá vas a ver lo que pasa en tus partidas.</div>');
+    return '<h3>Bitácora</h3>' + (journal.length ? journal.map(j => '<div class="sj sj-' + j.kind + '"><span>' + j.icon + '</span>' + esc(j.text) + '</div>').join('') : '<div class="side-note">Acá vas a ver lo que pasa en tus partidas.</div>');
   }
-  // Próxima epidemia: cuánto aguantarías con tus mejoras de ahora y qué conviene mejorar.
-  function bossCardHTML(){
-    const L = state.level, next = isBoss() ? L : Math.ceil(L / 5) * 5;
-    if(next > levelCap()) return '';
-    const keep = state.level; let hp, drain, heal, haz, target, resLow;
-    try{
-      state.level = next;
-      hp = computeMaxHp(); drain = computeDrain(); heal = computeHealPerSec(); target = computeTarget();
-      const types = Object.keys(HAZARD_UNLOCK).filter(t => next >= HAZARD_UNLOCK[t]);
-      haz = types.length ? hazardMagnitude() * types.reduce((t, k) => t + hazardResist(k), 0) / types.length : 0;
-      resLow = types.some(k => hazardResist(k) > 0.35);
-    }finally{ state.level = keep; }
-    const den = drain - heal + haz, t = den > 0 ? (hp + 6 * haz) / den : Infinity, ok = t >= target;
-    const name = BOSSES[(next / 5 - 1) % BOSSES.length];
-    const head = isBoss() ? '☣ Ahora: <b>' + name + '</b>' : '☣ En ' + (next - L) + ' nivel' + (next - L === 1 ? '' : 'es') + ': <b>' + name + '</b> (nivel ' + next + ')';
-    const tip = haz > drain * 0.4 && resLow ? 'tus resistencias (Antitoxina, Aislante, Blindaje)' : 'Blindaje vital o Resistencia';
-    const verdict = ok ? '✅ Con tus mejoras de ahora lo aguantás.' : '⚠ Aguantarías ~' + fmt(Math.max(0, t)) + ' s de ' + fmt(target) + ' s. Mejorá ' + tip + '.';
-    return '<div class="ci-h">' + head + '</div><div class="ci-s ' + (ok ? 'ok' : 'warn') + '">' + verdict + '</div>';
+  function oddsHTML(){
+    return '<h3>Cápsulas · chances</h3>' + capsuleOdds().map(([k, p]) => { const C = CAPSULES[k]; return '<div class="od ' + (C.good ? 'good' : 'bad') + '"><span>' + C.icon + '</span><span class="od-n">' + C.name + '</span><b>' + p.toFixed(1).replace('.', ',') + '%</b></div>'; }).join('')
+      + '<div class="side-note">Se decide al aparecer. Mejoralas en la pestaña Suerte.</div>';
   }
   function runSumHTML(){
     const best = state.levelBestTimes[state.level] || 0;
@@ -3251,11 +3303,11 @@
     const now = Date.now();
     if(now - panelsAt < 500) return;
     panelsAt = now;
-    setHTML(els('bossCard'), bossCardHTML());
+    renderShopNow();
     setHTML(els('runSum'), runSumHTML());
     if(!document.body.classList.contains('wide')) return;
     setHTML(els('sideL'), '<section class="side-box">' + sideObjectivesHTML() + '</section><section class="side-box">' + sidePetHTML() + '</section>');
-    setHTML(els('sideR'), '<section class="side-box">' + sideRankHTML() + '</section><section class="side-box side-journal">' + sideJournalHTML() + '</section>');
+    setHTML(els('sideR'), '<section class="side-box">' + sideRankHTML() + '</section><section class="side-box">' + oddsHTML() + '</section><section class="side-box side-journal">' + sideJournalHTML() + '</section>');
   }
 
   function render(){
@@ -3268,6 +3320,9 @@
     const maxHp = computeMaxHp();
     setText(els('hpMax'), fmt(maxHp));
     setText(els('hpNum'), fmt(Math.max(0,state.hp)));
+    const shM = shieldMax(), shOn = shM > 0 || shieldHp > 0;
+    els('hpSh').classList.toggle('hidden', !shOn); els('shBar').classList.toggle('hidden', !shOn);
+    if(shOn){ setText(els('hpSh'), '🛡 ' + fmt(Math.max(0, screen === 'running' ? shieldHp : shM))); setStyle(els('shFill'), 'width', Math.min(100, (screen === 'running' ? shieldHp : shM) / Math.max(1, shM || shieldHp) * 100).toFixed(1) + '%'); }
     const ratio = Math.max(0, state.hp/maxHp);
     setStyle(els('hpFill'), 'width', (ratio*100).toFixed(1) + '%');
     const critical = ratio < 0.3;
@@ -3294,7 +3349,7 @@
     if(screen === 'ready'){
       const bossNow = isBoss();
       els('readyTitle').textContent = bossNow ? '☣ Epidemia: ' + bossName() : (state.level === 1 && state.coins === 0 && state.prestige===0) ? 'Bóveda de contención' : 'De vuelta en la bóveda';
-      setText(els('readySub'), bossNow ? 'Nivel jefe: el drenaje y las fugas pegan 50% más fuerte y la primera fuga llega enseguida. Superarlo paga el triple y la primera vez te da ◆1 de Esencia.' : 'Tus constantes se estabilizan aquí. Cuando salgas, empiezan a caer solas.');
+      setText(els('readySub'), bossNow ? 'Nivel jefe: el drenaje y las fugas pegan ' + Math.round((bossMult() - 1) * 100) + '% más fuerte y la primera fuga llega enseguida. Superarlo paga el triple y la primera vez te da ◆1 de Esencia.' : 'Tus constantes se estabilizan aquí. Cuando salgas, empiezan a caer solas.');
       els('readyMaxHp').textContent = fmt(maxHp);
       els('readyDrain').textContent = computeDrain().toFixed(2) + '/seg';
       const readyHeal = computeHealPerSec();
@@ -3326,7 +3381,6 @@
         }
       }
     }
-    renderQuickBuy();
 
     const canP = canPrestige();
     els('menuPrestigeBtn').disabled = !canP;
@@ -3356,32 +3410,14 @@
     const cost = costFor(type);
     if(state.coins >= cost){ state.coins -= cost; state.upgrades[type] += 1; bumpQuest('buy', 1); save(); render(); }
   }
-  function upgradeMax(id){
-    const u = REGULAR_UPGRADES[id];
-    if(u.max) return u.max;
-    return (id === 'antitox' || id === 'aislante' || id === 'blindajeRad') ? 6 : Infinity;
-  }
+  function upgradeMax(id){ return UPGRADES[id].max || Infinity; }
   function buyShieldQuick(){
     const cost = shieldCost();
     if(state.consumables.shield < 3 && state.coins >= cost){
       state.coins -= cost; state.consumables.shield += 1; state.consumBought.shield = (state.consumBought.shield || 0) + 1; bumpQuest('buy', 1); save(); render();
-      showToast('Escudo comprado (x' + state.consumables.shield + ')');
+      showToast('Burbuja comprada (x' + state.consumables.shield + ')');
       playBeep(880, 0.12);
     }
-  }
-  function buyRegenQuick(){
-    const cost = regenCost();
-    if(state.upgrades.regen < 3 && state.coins >= cost){
-      state.coins -= cost; state.upgrades.regen += 1; bumpQuest('buy', 1); save();
-      if(state.upgrades.regen >= 3 && state.upgrades.regenBranch === null){
-        els('branchOverlay').classList.remove('hidden');
-      }
-      render();
-    }
-  }
-  function buyRegenPostQuick(){
-    const cost = regenPostCost();
-    if(state.coins >= cost){ state.coins -= cost; state.upgrades.regenPost += 1; bumpQuest('buy', 1); save(); render(); }
   }
   function buyAntidoteQuick(kind){
     const key = kind === 'minor' ? 'antidoteMinor' : 'antidoteMajor';
@@ -3406,113 +3442,12 @@
     }
   }
 
-  function openBranchFromQuickBuy(){
-    if(state.upgrades.regen >= 3 && state.upgrades.regenBranch === null){
-      els('branchOverlay').classList.remove('hidden');
-    }
-  }
-
-  function buildQuickBuyItem(id){
-    if(id in REGULAR_UPGRADES){
-      const u = REGULAR_UPGRADES[id];
-      const locked = u.reqPrestige ? state.prestige < u.reqPrestige : state.maxLevelEverReached < u.unlock;
-      const isResist = (id === 'antitox' || id === 'aislante' || id === 'blindajeRad');
-      const capped = state.upgrades[id] >= upgradeMax(id);
-      const cost = costFor(id);
-      const desc = locked ? `${u.name}. Se desbloquea en el nivel ${u.unlock}.`
-        : capped ? (isResist ? `${u.name}. Ya está al máximo (90% de reducción) — comprar más no suma nada.` : `${u.name}. Ya está al máximo.`)
-        : u.desc(state.upgrades[id]);
-      return { icon:u.icon, locked, unlockLevel:u.unlock, cost: capped ? 'máx' : '$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.upgrades[id], onClick: () => buyUpgradeQuick(id), name:u.name, desc };
-    }
-    if(id === 'regen'){
-      if(state.upgrades.regenBranch === null){
-        if(state.upgrades.regen < 3){
-          const cost = regenCost();
-          const desc = `-8% de pérdida de vida por segundo (nivel ${state.upgrades.regen+1}/3).`;
-          return { icon:iconShield, locked:false, cost:'$'+fmtCoins(cost), affordable: state.coins>=cost, badge: state.upgrades.regen, onClick: buyRegenQuick, name:'Resistencia', desc };
-        }
-        return { icon:iconShield, locked:false, cost:'elegir', affordable:true, badge:'★', onClick: openBranchFromQuickBuy, name:'Resistencia', desc:'Lista para especializarse: Mitigación o Regeneración. Tocá para elegir.' };
-      }
-      const cost = regenPostCost();
-      const branchName = state.upgrades.regenBranch === 'mitigacion' ? 'Mitigación avanzada' : 'Regeneración celular';
-      const desc = state.upgrades.regenBranch === 'mitigacion'
-        ? `-5% de pérdida de vida por segundo por nivel (nivel ${state.upgrades.regenPost}).`
-        : `Cura ${fmt(computeHealPerSec())} de vida por segundo (0,08% de tu vida máxima por nivel), incluso durante anomalías.`;
-      return { icon: state.upgrades.regenBranch === 'mitigacion' ? iconShield : iconHeartPlus, locked:false, cost:'$'+fmtCoins(cost), affordable: state.coins>=cost, badge: state.upgrades.regenPost, onClick: buyRegenPostQuick, name:branchName, desc };
-    }
-    if(id === 'antidoteMinor'){
-      const locked = state.maxLevelEverReached < ANTIDOTE_MINOR_UNLOCK;
-      const capped = state.consumables.antidoteMinor >= 9;
-      const cost = antidoteMinorCost();
-      const desc = locked ? `Antídoto. Se desbloquea en el nivel ${ANTIDOTE_MINOR_UNLOCK}.` : 'Usalo durante una corrida para curar 15% de tu vida máxima al instante.';
-      return { icon:iconVial, locked, unlockLevel:ANTIDOTE_MINOR_UNLOCK, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.antidoteMinor, onClick: () => buyAntidoteQuick('minor'), name:'Antídoto', desc };
-    }
-    if(id === 'antidoteMajor'){
-      const locked = state.maxLevelEverReached < ANTIDOTE_MAJOR_UNLOCK;
-      const capped = state.consumables.antidoteMajor >= 5;
-      const cost = antidoteMajorCost();
-      const desc = locked ? `Antídoto mayor. Se desbloquea en el nivel ${ANTIDOTE_MAJOR_UNLOCK}.` : 'Usalo durante una corrida para curar 40% de tu vida máxima al instante.';
-      return { icon:iconVialPlus, locked, unlockLevel:ANTIDOTE_MAJOR_UNLOCK, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.antidoteMajor, onClick: () => buyAntidoteQuick('major'), name:'Antídoto mayor', desc };
-    }
-    if(id === 'shield'){
-      const locked = state.prestige < 1;
-      const capped = state.consumables.shield >= 3;
-      const cost = shieldCost();
-      const desc = locked ? 'Escudo. Se desbloquea con el primer prestigio.' : 'Usalo durante una corrida: 6 segundos sin recibir ningún daño.';
-      return { icon:iconBubble, locked, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.shield, onClick: buyShieldQuick, name:'Escudo', desc };
-    }
-    if(id === 'revive'){
-      const locked = state.maxLevelEverReached < REVIVE_UNLOCK;
-      const capped = state.consumables.revive >= 5;
-      const cost = reviveCost();
-      const desc = locked ? `Reanimador. Se desbloquea en el nivel ${REVIVE_UNLOCK}.` : 'Si tus constantes llegan a cero, te revive al 50% de la vida máxima en el momento.';
-      return { icon:iconHeartPulse, locked, unlockLevel:REVIVE_UNLOCK, cost: capped?'máx':'$'+fmtCoins(cost), affordable: !capped && state.coins>=cost, badge: state.consumables.revive, onClick: buyReviveQuick, name:'Reanimador', desc };
-    }
-    if(id === 'autoContinue'){
-      if(!state.autoContinue.unlocked){
-        return { icon:iconLoop, locked:false, cost:'$500', affordable: state.coins>=500, onClick: buyAutoContinueQuick, name:'Reinicio automático', desc:'Cuando termine una corrida, por muerte o por superar el nivel, arranca la siguiente sola.' };
-      }
-      return { icon:iconLoop, locked:false, cost: state.autoContinue.enabled?'activo':'apagado', affordable:true, auto:true, onClick: () => { state.autoContinue.enabled = !state.autoContinue.enabled; save(); render(); }, name:'Reinicio automático', desc:`Está ${state.autoContinue.enabled?'activado':'apagado'}. Tocá para ${state.autoContinue.enabled?'apagarlo':'prenderlo'}.` };
-    }
-    return null;
-  }
-
-  const QUICKBUY_CATEGORIES = [
-    { name:'defensa',  items:['maxHp','regen','antitox','aislante','blindajeRad'] },
-    { name:'economía', items:['coinRate','accel','harvest'] },
-    { name:'sistema',  items:['autoContinue'] },
-  ];
-
-  let qbTipAnchor = null;
-  function showQbTooltip(btn, text){
-    qbTipAnchor = btn;
-    const tip = els('qbTooltip');
-    tip.textContent = text;
-    tip.classList.add('show');
-    tip.style.left = '-9999px';
-    tip.style.top = '-9999px';
-    const zf = uiZoom, br = btn.getBoundingClientRect(), tr = tip.getBoundingClientRect();
-    const rect = { left: br.left / zf, top: br.top / zf, bottom: br.bottom / zf, width: br.width / zf }, tipRect = { width: tr.width / zf, height: tr.height / zf };
-    let left = rect.left + rect.width/2 - tipRect.width/2;
-    left = Math.max(8, Math.min(left, window.innerWidth / zf - tipRect.width - 8));
-    let top = rect.top - tipRect.height - 8;
-    if(top < 8) top = rect.bottom + 8;
-    tip.style.left = left + 'px';
-    tip.style.top = top + 'px';
-  }
-  function hideQbTooltip(){
-    qbTipAnchor = null;
-    els('qbTooltip').classList.remove('show');
-  }
-
-  const quickBuyDom = new WeakMap();
-
   function consumDefs(){
     const c = state.consumables;
     return [
       { id:'antidoteMinor', cls:'minor',  icon:iconVial,      name:'Antídoto',       unlocked: state.maxLevelEverReached >= ANTIDOTE_MINOR_UNLOCK, count:c.antidoteMinor, cap:9, cost:antidoteMinorCost(), use:() => useAntidote('minor'), buy:() => buyAntidoteQuick('minor'), tip:'Cura 15% de tu vida máxima al instante.', blocked:'sinantidotos' },
       { id:'antidoteMajor', cls:'major',  icon:iconVialPlus,  name:'Antídoto mayor', unlocked: state.maxLevelEverReached >= ANTIDOTE_MAJOR_UNLOCK, count:c.antidoteMajor, cap:5, cost:antidoteMajorCost(), use:() => useAntidote('major'), buy:() => buyAntidoteQuick('major'), tip:'Cura 40% de tu vida máxima al instante.', blocked:'sinantidotos' },
-      { id:'shield',        cls:'shield', icon:iconBubble,    name:'Escudo',         unlocked: state.prestige >= 1, count:c.shield, cap:3, cost:shieldCost(), use:useShield, buy:buyShieldQuick, tip:'6 segundos sin recibir daño.', blocked:'sinantidotos', busy:() => isShielded() },
+      { id:'shield',        cls:'shield', icon:iconBubble,    name:'Burbuja',         unlocked: state.prestige >= 1, count:c.shield, cap:3, cost:shieldCost(), use:useShield, buy:buyShieldQuick, tip:'6 segundos sin recibir daño.', blocked:'sinantidotos', busy:() => isShielded() },
       { id:'revive',        cls:'revive', icon:iconHeartPulse,name:'Reanimador',     unlocked: state.maxLevelEverReached >= REVIVE_UNLOCK, count:c.revive, cap:5, cost:reviveCost(), use:null, buy:buyReviveQuick, tip:'Se usa solo: si llegás a cero, te revive al 50%.' }
     ];
   }
@@ -3565,70 +3500,6 @@
     });
   }
 
-  function renderQuickBuy(){
-    const containers = document.querySelectorAll('.quickbuy-container');
-    if(!containers.length) return;
-
-    const sections = QUICKBUY_CATEGORIES.map(cat => ({
-      name: cat.name,
-      items: cat.items.map(id => ({ id, data: buildQuickBuyItem(id) })).filter(x => x.data && !x.data.locked)
-    })).filter(sec => sec.items.length);
-
-    const signature = sections.map(sec => sec.name + ':' + sec.items.map(x => x.id).join(',')).join('|');
-
-    containers.forEach(container => {
-      let cache = quickBuyDom.get(container);
-
-      if(!cache || cache.signature !== signature){
-        container.innerHTML = '';
-        const buttons = {};
-        sections.forEach(sec => {
-          const label = document.createElement('div');
-          label.className = 'qb-category-label';
-          label.textContent = sec.name;
-          container.appendChild(label);
-
-          const row = document.createElement('div');
-          row.className = 'quickbuy-row';
-          sec.items.forEach(({id}) => {
-            const b = document.createElement('button');
-            b.className = 'qb-btn';
-            b.innerHTML = '<span class="qb-icon"></span><span class="qb-badge"></span><span class="qb-cost"></span>';
-            b.addEventListener('click', () => { if(!b._off && b._onClick){ b._onClick(); const ic = b.querySelector('.qb-icon'); if(ic){ ic.classList.add('pop'); setTimeout(() => ic.classList.remove('pop'), 340); } } });
-            b.addEventListener('mouseenter', () => showQbTooltip(b, b._tip || ''));
-            b.addEventListener('mouseleave', hideQbTooltip);
-            b.addEventListener('focus', () => showQbTooltip(b, b._tip || ''));
-            b.addEventListener('blur', hideQbTooltip);
-            row.appendChild(b);
-            buttons[id] = b;
-          });
-          container.appendChild(row);
-        });
-        cache = { signature, buttons };
-        quickBuyDom.set(container, cache);
-      }
-
-      sections.forEach(sec => sec.items.forEach(({id, data}) => {
-        const b = cache.buttons[id];
-        if(!b) return;
-        b.className = 'qb-btn' + (data.affordable ? '' : ' qb-disabled') + (data.auto ? ' qb-auto' + (state.autoContinue.enabled ? ' qb-active' : '') : '');
-        b._off = !data.affordable;
-        b.setAttribute('aria-disabled', b._off ? 'true' : 'false');
-        b.querySelector('.qb-icon').innerHTML = data.icon;
-        const badgeEl = b.querySelector('.qb-badge');
-        if(data.badge !== undefined){ badgeEl.style.display = ''; badgeEl.textContent = data.badge; }
-        else { badgeEl.style.display = 'none'; }
-        b.querySelector('.qb-cost').textContent = data.cost;
-        b._onClick = data.onClick;
-        b._tip = data.name ? (data.name + '. ' + data.desc) : data.desc;
-      }));
-    });
-    if(qbTipAnchor){
-      if(!qbTipAnchor.isConnected) hideQbTooltip();
-      else { const t = els('qbTooltip'); if(t.textContent !== qbTipAnchor._tip) t.textContent = qbTipAnchor._tip; }
-    }
-  }
-
   function renderPerksSummary(){
     const box = els('prestigePerksSummary');
     box.innerHTML = '';
@@ -3679,7 +3550,7 @@
         state.coins = 60 * essLvl('semilla') + [0,150,350,700][ppLvl('arranque')]; state.hp = 10;
         const oldUp = state.upgrades; state.upgrades = freshUpgrades();
         const keepF = 0.25 * ppLvl('legado');
-        if(keepF > 0) ['maxHp','coinRate','accel','antitox','aislante','blindajeRad','regen'].forEach(k => { state.upgrades[k] = Math.floor((oldUp[k] || 0) * keepF); });
+        if(keepF > 0) ['maxHp','coinRate','shield','healRegen','resist','antitox','aislante','blindajeRad'].forEach(k => { state.upgrades[k] = Math.floor((oldUp[k] || 0) * keepF); });
         state.consumables = { revive:ppLvl('herencia'), antidoteMinor:0, antidoteMajor:0, shield:0 };
         state.treeBought = {};
         state.runs = {}; state.bossBeat = {}; state.consumBought = {};
@@ -3759,439 +3630,124 @@
   function openPanel(name){ returnScreen = ['running','ready','dead','complete'].includes(screen) ? screen : 'ready'; setScreen(name); }
   function closePanel(){ setScreen(returnScreen); }
 
-  /* ===== Árbol de mejoras ===== */
-  const TREE_BR = {
-    salud:{ name:'Salud', color:'#ff7a6e' }, inmunidad:{ name:'Inmunidad', color:'#5aa9e6' }, economia:{ name:'Economía', color:'#e8b65a' },
-    prestigio:{ name:'Prestigio', color:'#4ecdc4' }, esencia:{ name:'Esencia', color:'#a978d8' }, mascota:{ name:'Mascota', color:'#f2a65a' }
-  };
-  const TREE_W = 1000, TREE_H = 1000, TREE_Z = 0.9;
-  const TC = { x:500, y:500 };
-  // Cada sector es una estrella: su nodo principal queda en el medio del sector y el resto se despliega alrededor.
-  // Los sectores alternan grandes y chicos, y cada uno recibe un ángulo según cuántas mejoras tiene, para que no se pisen.
-  const TREE_SECTORS = [
-    { br:'salud',     hub:'maxHp',    kids:['regen'], kidR:120 },
-    { br:'esencia',   hub:'essHub',   kids:['ess:hibernacion','ess:semilla','ess:reserva','ess:eco','ess:pulso','ess:sobrecarga'] },
-    { br:'inmunidad', hub:'antitox',  kids:['aislante','blindajeRad'] },
-    { br:'prestigio', hub:'ppHub',    kids:['pp:dividendos','pp:temple','pp:legado','pp:ritmo','pp:arranque','pp:herencia','pp:ampliar'] },
-    { br:'economia',  hub:'coinRate', kids:['harvest','accel','autoContinue'] },
-    { br:'mascota',   hub:'petHub',   kids:['pet:gato','pet:tortuga','pet:buho','pet:ardilla','pet:murcielago'] },
-  ];
-  // Requisitos: hay que comprar el nodo padre para desbloquear el hijo (las líneas van al padre).
-  const TREE_PARENT = { regen:'maxHp', regenMit:'regen', regenReg:'regen', aislante:'antitox', blindajeRad:'aislante', accel:'coinRate', harvest:'accel', autoContinue:'accel' };
-  // Algunas mejoras son a su vez una estrella chica: sus especializaciones se despliegan desde ellas.
-  const TREE_SUBSTARS = { regen:['regenMit','regenReg'] };
-  const SECTOR_R = 260, KID_R = 155, KID_STEP = 45, KID_SPREAD = 240, SUB_R = 105, SUB_SPREAD = 110;
-  function SP(a, r){ const t = a * Math.PI / 180; return [Math.round(TC.x + r*Math.cos(t)), Math.round(TC.y + r*Math.sin(t))]; }
-  const NP = (id, br, pos, parent) => ({ id, br, x:pos[0], y:pos[1], parent });
-  const TREE_NODES = [], TREE_PILLS = [], SECTOR_HUB = {};
-  (function(){
-    const w = TREE_SECTORS.map(sec => sec.kids.reduce((t, id) => t + 1 + (TREE_SUBSTARS[id] || []).length, 2)), tot = w.reduce((a, b) => a + b, 0);
-    let acc = 0;
-    const rays = TREE_SECTORS.map((sec, k) => { const r = (acc + w[k] / 2) * 360 / tot; acc += w[k]; return r; });
-    const off = -90 - rays[0];
-    TREE_SECTORS.forEach((sec, k) => {
-      const a = rays[k] + off, hp = SP(a, SECTOR_R);
-      SECTOR_HUB[sec.br] = { x:hp[0], y:hp[1] };
-      TREE_NODES.push(Object.assign(NP(sec.hub, sec.br, hp, 'hub'), { from:'hub' }));
-      const pp = SP(a, 150); TREE_PILLS.push({ br:sec.br, x:pp[0], y:pp[1] });
-      const n = sec.kids.length, spread = Math.min(KID_SPREAD, KID_STEP * (n - 1));
-      const kr = sec.kidR || KID_R;
-      sec.kids.forEach((id, i) => {
-        const ad = a + (n > 1 ? spread * (i / (n - 1) - 0.5) : 0), t = ad * Math.PI / 180;
-        const kp = [Math.round(hp[0] + kr * Math.cos(t)), Math.round(hp[1] + kr * Math.sin(t))];
-        TREE_NODES.push(Object.assign(NP(id, sec.br, kp, TREE_PARENT[id] || sec.hub), { from:sec.hub }));
-        const subs = TREE_SUBSTARS[id] || [], m = subs.length;
-        subs.forEach((sid, k) => {
-          const st = (ad + (m > 1 ? SUB_SPREAD * (k / (m - 1) - 0.5) : 0)) * Math.PI / 180;
-          TREE_NODES.push(Object.assign(NP(sid, sec.br, [Math.round(kp[0] + SUB_R * Math.cos(st)), Math.round(kp[1] + SUB_R * Math.sin(st))], TREE_PARENT[sid] || id), { from:id }));
-        });
-      });
-    });
-  })();
-  const ESS_HUB = SECTOR_HUB.esencia, PET_HUB = SECTOR_HUB.mascota, PP_HUB = SECTOR_HUB.prestigio;
-  const TREE_BY_ID = {}; TREE_NODES.forEach(n => TREE_BY_ID[n.id] = n);
-  let petPending = null;
-  let treeSel = null, treeHover = null, treePending = null, treeBuilt = false, treePrev = {};
-
-
-  const TREE_NAMES = { maxHp:'Blindaje vital', regen:'Resistencia', antitox:'Antitoxina', aislante:'Aislante térmico', blindajeRad:'Blindaje de radiación', coinRate:'Extracción pasiva', accel:'Aceleración', harvest:'Cosecha', autoContinue:'Reinicio automático', antidoteMinor:'Antídoto', antidoteMajor:'Antídoto mayor', shield:'Escudo', revive:'Reanimador' };
-  function treeOwnedLevel(id){
-    if(id in REGULAR_UPGRADES) return state.upgrades[id] || 0;
-    if(id === 'regen') return state.upgrades.regen || 0;
-    if(id === 'regenMit') return state.upgrades.regenBranch === 'mitigacion' ? 1 : 0;
-    if(id === 'regenReg') return state.upgrades.regenBranch === 'regeneracion' ? 1 : 0;
-    if(id === 'autoContinue') return state.autoContinue.unlocked ? 1 : 0;
-    if(id.indexOf('pp:') === 0) return ppLvl(id.slice(3));
-    if(id === 'antidoteMinor' || id === 'antidoteMajor' || id === 'shield' || id === 'revive') return state.consumables[id] || 0;
-    return 0;
-  }
-  function treeOwned(id){
-    if(id === 'hub') return true;
-    return !!(state.treeBought && state.treeBought[id]) || treeOwnedLevel(id) > 0;
-  }
-  function treeMarkBought(){
-    if(!state.treeBought) state.treeBought = {};
-    let ch = false;
-    TREE_NODES.forEach(n => { if(!state.treeBought[n.id] && treeOwnedLevel(n.id) > 0){ state.treeBought[n.id] = true; ch = true; } });
-    if(ch) save();
-  }
-
-
-  const REC_W = { coinRate:3, accel:2.6, maxHp:2.2, regen:2, harvest:1.6, antitox:2.4, aislante:2.4, blindajeRad:2.4, antidoteMinor:0.6, antidoteMajor:0.7, shield:0.5, revive:0.8,
-    'ess:eco':2.5, 'ess:pulso':2.2, 'ess:semilla':1.2, 'ess:reserva':1, 'ess:hibernacion':1, 'ess:sobrecarga':1.2, 'pet:gato':2.2, 'pet:tortuga':2.2, 'pet:buho':2.2, 'pet:ardilla':2.2, 'pet:murcielago':2.2 };
-  function treeRecommend(){
-    const best = { coins:null, ess:null }, sc = { coins:-1, ess:-1 };
-    TREE_NODES.forEach(n => {
-      const w = REC_W[n.id]; if(!w) return;
-      const I = treeInfo(n.id);
-      if(I.locked || I.maxed || I.info || I.ck === 'free' || !I.buy) return;
-      const grp = I.ck === 'ess' ? 'ess' : 'coins';
-      let v = w / (1 + 0.25 * I.lvl);
-      if(!I.can) v *= 0.4;
-      if(v > sc[grp]){ sc[grp] = v; best[grp] = n.id; }
-    });
-    return best;
-  }
-  const TF = v => { const r = (Math.round(v * 100) / 100).toFixed(2).replace(/\.?0+$/, ''); return r.replace('.', ','); };
-  function treePreview(id){
-    const G = {
-      maxHp:['Vida máxima', () => computeMaxHp()], coinRate:['Monedas por segundo', () => computeCoinRate()], regen:['Pérdida de vida/seg', () => computeDrain()],
-      antitox:['Daño del veneno/seg', () => hazardMagnitude()*hazardResist('poison')], aislante:['Daño del frío/seg', () => hazardMagnitude()*hazardResist('cold')], blindajeRad:['Daño de la radiación/seg', () => hazardMagnitude()*hazardResist('rad')],
-      accel:['Segundos hasta el ritmo máximo', () => computeGrowthDivisor()*1.5],
-      'ess:eco':['Monedas por segundo', () => computeCoinRate()], 'ess:pulso':['Pérdida de vida/seg', () => computeDrain()],
-      'pp:dividendos':['Monedas por segundo', () => computeCoinRate()], 'pp:temple':['Pérdida de vida/seg', () => computeDrain()],
-      'pet:regen':['Cura por segundo', () => computeHealPerSec()], 'pet:salud':['Vida máxima', () => computeMaxHp()], 'pet:inmu':['Daño del veneno/seg', () => hazardMagnitude()*hazardResist('poison')], 'pet:eco':['Monedas por segundo', () => computeCoinRate()],
-    };
-    let g = G[id];
-    if(id === 'regenMit' && state.upgrades.regenBranch === 'mitigacion') g = ['Pérdida de vida/seg', () => computeDrain()];
-    if(id === 'regenReg' && state.upgrades.regenBranch === 'regeneracion') g = ['Cura por segundo', () => computeHealPerSec()];
-    if(!g) return '';
-    const bump = d => {
-      if(id in REGULAR_UPGRADES || id === 'regen') state.upgrades[id] += d;
-      else if(id === 'regenMit' || id === 'regenReg') state.upgrades.regenPost += d;
-      else if(id.indexOf('ess:') === 0) state.essenceTree[id.slice(4)] = essLvl(id.slice(4)) + d;
-      else if(id.indexOf('pet:') === 0) state.pet[id.slice(4)] = (state.pet[id.slice(4)] || 0) + d;
-      else if(id.indexOf('pp:') === 0) state.ppTree[id.slice(3)] = ppLvl(id.slice(3)) + d;
-    };
-    let a, b;
-    try{ a = g[1](); bump(1); b = g[1](); }finally{ bump(-1); }
-    if(!isFinite(a) || !isFinite(b) || Math.abs(a - b) < 0.0005) return '';
-    return '<div class="ts-pre"><span>' + g[0] + '</span><b>' + TF(a) + ' → ' + TF(b) + '</b></div>';
-  }
-  function bonusSummary(){
-    const rows = [
-      ['Vida máxima', TF(computeMaxHp())], ['Pérdida de vida/seg', TF(computeDrain())], ['Cura por segundo', computeHealPerSec() > 0 ? TF(computeHealPerSec()) : '—'],
-      ['Monedas por segundo (base)', TF(computeCoinRate())],
-      ['Daño veneno · frío · radiación', ['poison','cold','rad'].map(t => TF(hazardMagnitude()*hazardResist(t))).join(' · ')],
-      ['Puntos de prestigio', '✦' + state.pp],
-      ['Compañero', petOn() ? PET_ANIMALS[state.pet.animal].name + ' · ' + PET_FX.reduce((t, f) => t + petLv(f[0]), 0) + ' niv.' : 'sin elegir'],
-    ];
-    return '<div class="ts-sum">' + rows.map(r => '<span>' + r[0] + '</span><b>' + r[1] + '</b>').join('') + '</div>';
-  }
-  let treeQuery = '', treeFilterOn = false;
-  function normTxt(t){ return (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
-  function applyTreeFilter(){
-    const cv = els('treeCanvas'); if(!cv) return;
-    const q = normTxt(treeQuery.trim());
-    if(!q && !treeFilterOn) return;
-    treeFilterOn = !!q;
-    const cache = {};
-    cv.querySelectorAll('.tn,.tl').forEach(el => {
-      const id = el.dataset.id; let hit = true;
-      if(q){
-        if(cache[id] === undefined){ const I = treeInfo(id), n = TREE_BY_ID[id]; cache[id] = normTxt(I.name + ' ' + TREE_BR[n.br].name + ' ' + I.desc).indexOf(q) >= 0; }
-        hit = cache[id];
-      }
-      el.classList.toggle('dim', !!q && !hit);
-      if(el.classList.contains('tn')) el.classList.toggle('hit', !!q && hit);
-    });
-  }
-  function treeFitZ(){ const sc = els('treeScroll'); const w = sc && sc.clientWidth; return w ? Math.max(0.3, Math.min(TREE_Z, (w - 8) / TREE_W, (sc.clientHeight - 8) / TREE_H)) : 0.5; }
-  function treeScrollTo(pt){
-    const sc = els('treeScroll'); if(!sc) return;
-    const z = parseFloat(getComputedStyle(sc).getPropertyValue('--z')) || 1;
-    sc.scrollTo({ left: pt.x * z - sc.clientWidth / 2, top: pt.y * z - sc.clientHeight / 2 + 40, behavior: 'smooth' });
-  }
-
-  function treeInfo(id){
-    const I = { id, name:'', icon:'', lvl:0, max:null, maxed:false, locked:false, lockMsg:'', cost:0, ck:'coins', desc:'', can:false, btn:'Mejorar', btnOn:false, buy:null, tag:'', costText:'', info:false };
-    const coins = state.coins;
-    if(id in REGULAR_UPGRADES){
-      const u = REGULAR_UPGRADES[id];
-      I.name = u.name; I.icon = u.icon; I.lvl = state.upgrades[id]; const mx = upgradeMax(id); I.max = isFinite(mx) ? mx : null;
-      I.maxed = I.max !== null && I.lvl >= I.max;
-      I.locked = u.reqPrestige ? state.prestige < u.reqPrestige : state.maxLevelEverReached < u.unlock;
-      I.lockMsg = u.reqPrestige ? 'Se desbloquea con ' + u.reqPrestige + ' prestigios.' : 'Se desbloquea al llegar al nivel ' + u.unlock + '.';
-      I.cost = costFor(id);
-      I.desc = I.maxed ? 'Ya está al máximo.' : 'Próximo nivel: ' + u.desc(I.lvl);
-      I.can = !I.locked && !I.maxed && coins >= I.cost; I.btnOn = I.can;
-      I.buy = () => buyUpgradeQuick(id);
-    } else if(id === 'regen'){
-      I.name = 'Resistencia'; I.icon = iconShield; I.lvl = state.upgrades.regen; I.max = 3; I.maxed = I.lvl >= 3;
-      I.cost = regenCost();
-      I.desc = I.maxed ? 'Al máximo. Ahora podés elegir cómo especializarla (permanente).' : 'Próximo nivel: -8% de pérdida de vida por segundo (' + (I.lvl+1) + '/3).';
-      I.can = !I.maxed && coins >= I.cost; I.btnOn = I.can;
-      I.buy = () => { if(state.upgrades.regen < 3 && state.coins >= regenCost()){ state.coins -= regenCost(); state.upgrades.regen += 1; bumpQuest('buy', 1); save(); render(); } };
-    } else if(id === 'regenMit' || id === 'regenReg'){
-      const key = id === 'regenMit' ? 'mitigacion' : 'regeneracion', mit = key === 'mitigacion';
-      I.name = mit ? 'Mitigación avanzada' : 'Regeneración celular'; I.icon = mit ? iconShield : iconHeartPlus;
-      const br = state.upgrades.regenBranch;
-      if(state.upgrades.regen < 3){ I.locked = true; I.lockMsg = 'Primero llevá Resistencia al nivel 3.'; }
-      else if(br && br !== key){ I.locked = true; I.lockMsg = 'Elegiste la otra especialización. No se puede cambiar.'; }
-      if(!I.locked){
-        if(br === null){
-          I.ck = 'free'; I.costText = 'gratis'; I.btn = treePending === id ? 'Tocá de nuevo para confirmar' : 'Elegir (permanente)'; I.can = true; I.btnOn = true;
-          I.desc = (mit ? 'Cada nivel baja otro 5% la pérdida de vida por segundo.' : 'Cada nivel cura 0,08% de tu vida máxima por segundo, incluso durante anomalías.') + ' Es una elección permanente: solo podés seguir una de las dos.';
-          I.buy = () => {
-            if(treePending !== id){ treePending = id; return; }
-            treePending = null; state.upgrades.regenBranch = key; save(); render();
-          };
-        } else {
-          I.lvl = state.upgrades.regenPost; I.cost = regenPostCost();
-          I.desc = 'Próximo nivel: ' + (mit ? '-5% más de pérdida de vida por segundo (nivel ' + (I.lvl+1) + ').' : 'cura ' + fmt(computeMaxHp() * 0.0008 * (I.lvl+1)) + ' de vida por segundo, incluso durante anomalías.');
-          I.can = coins >= I.cost; I.btnOn = I.can; I.buy = () => buyRegenPostQuick();
-        }
-      }
-    } else if(id === 'autoContinue'){
-      const own = state.autoContinue.unlocked;
-      I.name = 'Reinicio automático'; I.icon = iconLoop; I.lvl = own ? 1 : 0; I.max = 1; I.maxed = own; I.cost = 500;
-      I.desc = 'Al terminar una corrida arranca la siguiente sola. Se pausa solo cuando podés comprar una mejora recomendada ★, así no te lo perdés.';
-      if(own){ I.btn = state.autoContinue.enabled ? 'Apagar' : 'Activar'; I.btnOn = true; I.costText = state.autoContinue.enabled ? 'activo' : 'apagado'; I.buy = () => { state.autoContinue.enabled = !state.autoContinue.enabled; save(); render(); }; }
-      else { I.can = coins >= I.cost; I.btnOn = I.can; I.buy = () => buyAutoContinueQuick(); }
-    } else if(id === 'antidoteMinor' || id === 'antidoteMajor' || id === 'shield' || id === 'revive'){
-      const D = { antidoteMinor:{ n:'Antídoto', ic:iconVial, key:'antidoteMinor', cap:9, un:ANTIDOTE_MINOR_UNLOCK, cost:antidoteMinorCost, buy:() => buyAntidoteQuick('minor'), d:'Cura 15% de tu vida máxima al instante cuando lo usás durante la partida.' },
-        antidoteMajor:{ n:'Antídoto mayor', ic:iconVialPlus, key:'antidoteMajor', cap:5, un:ANTIDOTE_MAJOR_UNLOCK, cost:antidoteMajorCost, buy:() => buyAntidoteQuick('major'), d:'Cura 40% de tu vida máxima al instante cuando lo usás durante la partida.' },
-        shield:{ n:'Escudo', ic:iconBubble, key:'shield', cap:3, pr:1, cost:shieldCost, buy:buyShieldQuick, d:'Seis segundos sin recibir ningún daño cuando lo usás.' },
-        revive:{ n:'Reanimador', ic:iconHeartPulse, key:'revive', cap:5, un:REVIVE_UNLOCK, cost:reviveCost, buy:buyReviveQuick, d:'Si tus constantes llegan a cero, te revive solo al 50% de la vida máxima.' } }[id];
-      I.name = D.n; I.icon = D.ic; I.lvl = state.consumables[D.key]; I.max = D.cap; I.maxed = I.lvl >= D.cap; I.tag = 'consumible';
-      I.locked = D.pr ? state.prestige < D.pr : state.maxLevelEverReached < D.un;
-      I.lockMsg = D.pr ? 'Se desbloquea con el primer prestigio.' : 'Se desbloquea al llegar al nivel ' + D.un + '.';
-      I.cost = D.cost(); I.desc = D.d + ' Tenés ' + I.lvl + ' (máximo ' + D.cap + '). Cada compra lo encarece hasta el próximo prestigio.';
-      I.btn = 'Comprar +1'; I.can = !I.locked && !I.maxed && coins >= I.cost; I.btnOn = I.can; I.buy = D.buy;
-    } else if(id === 'essHub'){
-      I.name = 'Núcleo de Esencia'; I.icon = iconEssence; I.info = true;
-      I.locked = false;
-      I.desc = 'La Esencia ◆ se gana con las misiones diarias, los objetivos (cepas), los desafíos y al caer con dignidad. Se gasta acá, en mejoras permanentes que no se pierden al hacer prestigio. Tenés ◆' + state.essence + '.';
-    } else if(id.indexOf('ess:') === 0){
-      const k = id.slice(4), n = ESSENCE_NODES[k];
-      I.name = n.name; I.icon = n.icon; I.lvl = essLvl(k); I.max = n.max; I.maxed = I.lvl >= n.max; I.ck = 'ess';
-      I.locked = false;
-      I.cost = essCost(k); I.desc = I.maxed ? 'Al máximo.' : 'Próximo nivel: ' + n.desc(I.lvl);
-      I.can = !I.locked && !I.maxed && state.essence >= I.cost; I.btnOn = I.can; I.buy = () => buyEssence(k); I.tag = 'permanente';
-    } else if(id === 'ppHub'){
-      I.name = 'Mejoras de prestigio'; I.icon = iconEssence; I.info = true;
-      I.locked = state.prestige < 1 && state.pp <= 0; I.lockMsg = 'Hacé tu primer prestigio (llegá al nivel 20) para ganar puntos de prestigio ✦.';
-      I.desc = 'Los puntos de prestigio ✦ solo se ganan haciendo prestigio, y compran mejoras únicas que no se consiguen de otra forma y que nunca se pierden. Tenés ✦' + state.pp + '. Cuanto más alto llegues antes de hacer prestigio, más puntos ganás.';
-    } else if(id.indexOf('pp:') === 0){
-      const k = id.slice(3), U = PP_UP[k];
-      I.name = U.name; I.icon = U.icon; I.lvl = ppLvl(k); I.max = U.max; I.maxed = I.lvl >= U.max; I.ck = 'pp';
-      I.locked = state.prestige < 1 && state.pp <= 0; I.lockMsg = 'Hacé tu primer prestigio (llegá al nivel 20) para ganar puntos de prestigio ✦.';
-      I.cost = ppCost(k); I.desc = I.maxed ? 'Al máximo.' : 'Próximo nivel: ' + U.desc(I.lvl);
-      I.can = !I.locked && !I.maxed && state.pp >= I.cost; I.btnOn = I.can; I.buy = () => buyPP(k); I.tag = 'único';
-    } else if(id === 'petHub'){
-      const a = petOn() ? PET_ANIMALS[state.pet.animal] : null;
-      I.name = 'Compañero'; I.icon = iconPaw; I.info = true;
-      I.desc = a ? 'Tu compañero es ' + a.name + ' · habilidad única: ' + PET_AB[state.pet.animal].name + '. Cambiarlo cuesta ◆' + PET_CHANGE_COST + ' de Esencia. Solo puede mejorar su propia habilidad (con Esencia ◆); las de los otros animales quedan bloqueadas. Si lo cambiás, cada uno guarda su nivel.' : 'Elegí un animalito que te acompañe. Solo podés tener uno, y cada uno tiene una habilidad única que no sabés cuál es hasta elegirlo. Elegir al primero es gratis; cambiarlo después cuesta ◆' + PET_CHANGE_COST + ' de Esencia.';
-    } else if(id.indexOf('pet:') === 0){
-      // Cada animal tiene su propia habilidad: solo se puede mejorar la del compañero elegido.
-      const a = id.slice(4), P = PET_ANIMALS[a], ab = PET_AB[a], known = !!state.pet.known[a], mine = petAb(a);
-      const lv = state.pet.ab[a] || 0, max = PET_UP.hab.max;
-      I.name = known ? ab.name : 'Habilidad secreta'; I.keepIcon = true;
-      I.icon = '<span class="tn-pet" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '</span>';
-      I.lvl = lv; I.max = max; I.maxed = lv >= max; I.ck = 'ess'; I.tag = P.name + ' · habilidad única';
-      I.locked = !mine;
-      I.lockMsg = !petOn() ? 'Elegí un compañero en el nodo «Compañero»: solo vas a poder mejorar su habilidad.'
-        : 'Solo ' + P.name + ' puede aprender ' + (known ? '«' + ab.name + '»' : 'esta habilidad') + '. Tu compañero es ' + PET_ANIMALS[state.pet.animal].name + '.' + (lv ? ' Guarda su nivel ' + lv + ' por si lo volvés a elegir.' : '');
-      I.cost = petAbCost(a);
-      I.desc = I.maxed ? 'Al máximo. ' + ab.desc(lv) : (lv ? 'Ahora: ' + ab.desc(lv) + ' Próximo nivel: ' + ab.desc(lv + 1) : 'Todavía sin mejorar. Primer nivel: ' + ab.desc(1));
-      I.can = mine && !I.maxed && state.essence >= I.cost; I.btnOn = I.can; I.buy = () => buyPetAb(a);
-    } else if(id === 'hub'){
-      I.name = 'Tu núcleo'; I.icon = ''; I.info = true;
-      I.desc = 'Tenés $' + fmtCoins(state.coins) + ' y ◆' + state.essence + '. Las mejoras que brillan se pueden comprar ahora; las apagadas todavía no te alcanzan o están bloqueadas. Los consumibles (antídotos, escudo y reanimador) se compran directo en la partida, en la barra de abajo.';
+  /* ===== Mejoras por pestañas y Tienda de prestigio ===== */
+  const SHOP_TABS = [['salud','❤ Salud'], ['resistencia','🛡 Resistencia'], ['economia','$ Economía'], ['suerte','🍀 Suerte'], ['tienda','✦ Tienda'], ['esencia','◆ Esencia'], ['companero','🐾 Compañero']];
+  let shopTab = 'salud', petArmed = null;
+  const f2 = v => v.toFixed(2).replace('.', ',');
+  function upEffect(id, l){
+    switch(id){
+      case 'maxHp': return '+' + Math.round((Math.pow(1.08, l) - 1) * 100) + '% de vida';
+      case 'shield': return 'escudo: ' + 4 * l + '% de tu vida';
+      case 'healRegen': return 'cura ' + f2(0.08 * l) + '% de vida/s';
+      case 'shieldRegen': return 'recarga ' + 2 * l + '% del escudo/s';
+      case 'resist': return '-' + 5 * l + '% de drenaje';
+      case 'antitox': return '-' + 15 * l + '% daño de veneno';
+      case 'aislante': return '-' + 15 * l + '% daño de frío';
+      case 'blindajeRad': return '-' + 15 * l + '% daño de radiación';
+      case 'bossRes': return 'epidemias ×' + f2(Math.max(1.1, BOSS_MULT - 0.05 * l));
+      case 'coinRate': return f2(0.5 + 0.25 * l) + ' monedas/s';
+      case 'levelBonus': return '+' + 20 * l + '% al superar un nivel';
+      case 'bossLoot': return 'epidemias pagan ×' + fmt(3 * (1 + 0.5 * l));
+      case 'odProfit': return 'Sobrecarga ×' + fmt(3 + 0.5 * l) + ' monedas';
+      case 'goldCaps': return '+' + 50 * l + '% monedas de cápsulas';
+      case 'interest': return '+' + l + '% de tus monedas por nivel';
+      case 'luck': return '+' + 10 * l + '% chances buenas';
+      case 'trapScan': return '-' + 20 * l + '% de trampas';
+      case 'lifeIns': return '-' + 20 * l + '% de muerte súbita';
     }
-    const nd = TREE_BY_ID[id];
-    if(nd && nd.parent !== 'hub' && nd.parent !== 'essHub' && nd.parent !== 'petHub' && nd.parent !== 'ppHub' && id !== 'essHub' && !treeOwned(nd.parent) && !treeOwned(id)){
-      const extra = I.locked ? ' ' + I.lockMsg.replace(/^Se desbloquea/, 'Además se desbloquea') : '';
-      I.lockMsg = 'Primero comprá «' + (TREE_NAMES[nd.parent] || nd.parent) + '».' + extra;
-      I.locked = true; I.can = false; I.btnOn = false; I.buy = null;
+    return '';
+  }
+  function coinItem(id){
+    const u = UPGRADES[id], l = state.upgrades[id] || 0, max = u.max || 0, maxed = !!max && l >= max, cost = costFor(id);
+    const needReq = u.req && !state.upgrades[u.req], locked = state.maxLevelEverReached < u.unlock || needReq;
+    return { key:'c:' + id, icon:u.icon, name:u.name, lvl:l, max, maxed, locked, cost, cur:'$', have:state.coins,
+      lockMsg: needReq ? 'Primero comprá ' + UPGRADES[u.req].name : 'Se desbloquea en el nivel ' + u.unlock,
+      eff: upEffect(id, l), next: maxed ? '' : upEffect(id, l + 1), price: maxed ? 'MÁX' : '$' + fmtCoins(cost), can: !locked && !maxed && state.coins >= cost };
+  }
+  function ppItem(id){
+    const U = PP_UP[id], l = ppLvl(id), maxed = l >= U.max, cost = ppCost(id), locked = state.prestige < 1 && state.pp <= 0;
+    return { key:'p:' + id, icon:U.icon, name:U.name, lvl:l, max:U.max, maxed, locked, cost, cur:'✦', have:state.pp, lockMsg:'Hacé tu primer prestigio',
+      eff: U.eff(l), next: maxed ? '' : U.eff(l + 1), price: maxed ? 'MÁX' : '✦' + cost, can: !locked && !maxed && state.pp >= cost };
+  }
+  function essItem(id){
+    const n = ESSENCE_NODES[id], l = essLvl(id), maxed = l >= n.max, cost = essCost(id);
+    return { key:'e:' + id, icon:n.icon, name:n.name, lvl:l, max:n.max, maxed, locked:false, cost, cur:'◆', have:state.essence,
+      eff: maxed ? 'Al máximo' : n.desc(l), next:'', price: maxed ? 'MÁX' : '◆' + cost, can: !maxed && state.essence >= cost };
+  }
+  function autoItem(){
+    const own = state.autoContinue.unlocked;
+    return { key:'auto', icon:iconLoop, name:'Reinicio automático', lvl: own ? 1 : 0, max:1, maxed:false, locked:false, cost:500, cur:'$', have:state.coins,
+      eff: own ? (state.autoContinue.enabled ? 'activo · tocá para apagar' : 'apagado · tocá para activar') : 'la próxima partida arranca sola', next:'', price: own ? (state.autoContinue.enabled ? 'ON' : 'OFF') : '$500', can: own || state.coins >= 500 };
+  }
+  function petItem(){
+    if(!petOn()) return null;
+    const a = state.pet.animal, ab = PET_AB[a], lv = petLv('hab'), max = PET_UP.hab.max, maxed = lv >= max, cost = petAbCost(a);
+    return { key:'a:hab', icon:iconPaw, name:ab.name, lvl:lv, max, maxed, locked:false, cost, cur:'◆', have:state.essence, eff: ab.desc(Math.max(1, lv)), next: maxed ? '' : 'nivel ' + (lv + 1), price: maxed ? 'MÁX' : '◆' + cost, can: !maxed && state.essence >= cost };
+  }
+  function shopItems(tab){
+    if(tab === 'tienda') return Object.keys(PP_UP).map(ppItem);
+    if(tab === 'esencia') return Object.keys(ESSENCE_NODES).map(essItem);
+    if(tab === 'companero'){ const p = petItem(); return p ? [p] : []; }
+    const list = Object.keys(UPGRADES).filter(id => UPGRADES[id].tab === tab).map(coinItem);
+    if(tab === 'economia') list.push(autoItem());
+    return list;
+  }
+  function itemHTML(it){
+    const detail = it.locked ? '🔒 ' + it.lockMsg : (it.next ? it.eff + ' → ' + it.next : it.eff);
+    return '<button class="up-it' + (it.can ? ' can' : '') + (it.locked ? ' locked' : '') + (it.maxed ? ' maxed' : '') + '" data-buy="' + it.key + '" title="' + esc(it.name + ': ' + detail) + '">'
+      + '<span class="up-ic">' + it.icon + '</span><span class="up-tx"><b>' + esc(it.name) + '</b><small>' + esc(detail) + '</small></span>'
+      + '<span class="up-r"><span class="up-c">' + (it.locked ? '' : it.price) + '</span><span class="up-lv">' + (it.max ? it.lvl + '/' + it.max : 'nv ' + it.lvl) + '</span></span></button>';
+  }
+  function tabAffordable(tab){ return tab !== 'companero' ? shopItems(tab).some(it => it.can && it.key !== 'auto') : !!(petItem() && petItem().can); }
+  function shopAffordable(){ return SHOP_TABS.some(([k]) => tabAffordable(k)); }
+  function shopHTML(){
+    let h = '<div class="sh-tabs">' + SHOP_TABS.map(([k, n]) => '<button class="sh-tab' + (k === shopTab ? ' on' : '') + (tabAffordable(k) ? ' dot' : '') + '" data-tab="' + k + '">' + n + '</button>').join('') + '</div>';
+    if(shopTab === 'tienda') h += '<div class="side-note" style="margin:0 0 6px">Equipamiento permanente: se compra con puntos de prestigio y nunca se pierde. Tenés <b>✦' + state.pp + '</b>.</div>';
+    if(shopTab === 'esencia') h += '<div class="side-note" style="margin:0 0 6px">Mejoras permanentes con Esencia. Tenés <b>◆' + state.essence + '</b>.</div>';
+    if(shopTab === 'companero'){
+      const cur = petOn() ? state.pet.animal : null;
+      h += '<div class="pet-row">' + Object.keys(PET_ANIMALS).map(a => { const P = PET_ANIMALS[a], known = !!state.pet.known[a];
+        return '<button class="pp-btn' + (a === cur ? ' sel' : '') + '" data-pet="' + a + '" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '<span>' + P.name + '</span><small>' + (known ? PET_AB[a].name : '???') + '</small></button>'; }).join('') + '</div>'
+        + '<div class="side-note" style="margin:0 0 6px">' + (cur ? 'Tocá otro animal dos veces para cambiarlo (◆' + PET_CHANGE_COST + '). Cada uno guarda su nivel.' : 'Elegí tu compañero: el primero es gratis y cada uno tiene una habilidad secreta.') + '</div>';
     }
-    if(!I.costText){
-      I.costText = I.locked ? 'bloqueado' : I.maxed ? 'MAX' : I.info ? '' : (I.ck === 'ess' ? '◆' + I.cost : I.ck === 'pp' ? '✦' + I.cost : '$' + fmtCoins(I.cost));
+    h += '<div class="up-grid">' + shopItems(shopTab).map(itemHTML).join('') + '</div>';
+    if(shopTab === 'suerte') h += '<div style="margin-top:8px">' + oddsHTML().replace('<h3>', '<div class="side-sub">').replace('</h3>', '</div>') + '</div>';
+    return h;
+  }
+  function renderShopNow(){
+    const html = shopHTML();
+    setHTML(els('shopInline'), html);
+    if(screen === 'shop'){ setHTML(els('shopModal'), html); setText(els('shopCoins'), fmtCoins(state.coins)); setText(els('shopEss'), String(state.essence)); setText(els('shopPP'), String(state.pp)); }
+  }
+  function shopClick(e){
+    const t = e.target.closest && e.target.closest('[data-tab],[data-buy],[data-pet]'); if(!t) return;
+    if(t.dataset.tab){ shopTab = t.dataset.tab; renderShopNow(); return; }
+    if(t.dataset.pet){
+      const a = t.dataset.pet;
+      if(petOn() && a !== state.pet.animal && petArmed !== a){ petArmed = a; showToast('Tocá de nuevo para cambiar a ' + PET_ANIMALS[a].name + ' (◆' + PET_CHANGE_COST + ')'); return; }
+      petArmed = null; choosePet(a); renderShopNow(); return;
     }
-    I.state = I.locked ? 'locked' : I.maxed ? 'max' : I.can ? 'can' : 'off';
-    return I;
+    const key = t.dataset.buy, [kind, id] = key.split(':');
+    const it = key === 'auto' ? autoItem() : kind === 'c' ? coinItem(id) : kind === 'p' ? ppItem(id) : kind === 'e' ? essItem(id) : petItem();
+    if(!it || it.locked){ if(it) showToast('🔒 ' + it.lockMsg); return; }
+    if(it.maxed){ showToast(it.name + ': ya está al máximo.'); return; }
+    if(key === 'auto' && state.autoContinue.unlocked){ state.autoContinue.enabled = !state.autoContinue.enabled; save(); render(); renderShopNow(); return; }
+    if(!it.can){ showToast('Te faltan ' + it.cur + (it.cur === '$' ? fmtCoins(it.cost - it.have) : (it.cost - it.have)) + ' para ' + it.name + '.'); return; }
+    if(key === 'auto') buyAutoContinueQuick();
+    else if(kind === 'c'){ buyUpgradeQuick(id); playBeep(900, 0.08); if(id === 'shield' && screen === 'running') shieldHp = Math.min(shieldMax(), shieldHp + computeMaxHp() * 0.04); }
+    else if(kind === 'p') buyPP(id); else if(kind === 'e') buyEssence(id); else buyPetAb(state.pet.animal);
+    logEvent('⬆', it.name + ' → nivel ' + (it.lvl + 1), 'info');
+    renderShopNow();
+    const nb = document.querySelector('#' + (screen === 'shop' ? 'shopModal' : 'shopInline') + ' [data-buy="' + key + '"]');
+    if(nb){ nb.classList.add('bought'); setTimeout(() => nb.classList.remove('bought'), 360); }
   }
-  function treeAffordable(){
-    try{ return TREE_NODES.some(n => { const i = treeInfo(n.id); return i.can && !i.info; }); }catch(e){ return false; }
+  function openShop(tab){
+    if(tab) shopTab = tab;
+    closeMenu(); openPanel('shop'); renderShopNow();
   }
-  function buildTree(){
-    const cv = els('treeCanvas'); if(!cv || treeBuilt) return;
-    treeBuilt = true;
-    let h = '<svg class="tree-lines" viewBox="0 0 1000 1000">';
-    TREE_NODES.forEach(n => {
-      const par = n.from === 'hub' ? TC : TREE_BY_ID[n.from];
-      const pts = par.x + ',' + par.y + ' ' + n.x + ',' + n.y;
-      h += '<polyline data-id="' + n.id + '" points="' + pts + '" style="--lc:' + TREE_BR[n.br].color + '"/>';
-    });
-    h += '</svg>';
-    TREE_PILLS.forEach(pl => { h += '<div class="tpill" style="left:' + pl.x + 'px;top:' + pl.y + 'px;--bc:' + TREE_BR[pl.br].color + '">' + TREE_BR[pl.br].name + '</div>'; });
-    h += '<button class="th" id="treeHub" aria-label="Tu núcleo" style="left:' + TC.x + 'px;top:' + TC.y + 'px"><div class="mascot-slot" data-state="ok"></div></button>';
-    TREE_NODES.forEach(n => {
-      h += '<button class="tn" data-id="' + n.id + '"' + (n.parent === 'hub' ? ' data-hub="1"' : '') + ' style="left:' + n.x + 'px;top:' + n.y + 'px;--bc:' + TREE_BR[n.br].color + '"><span class="ti"></span><span class="tb"></span></button>';
-      h += '<div class="tl" data-id="' + n.id + '" style="left:' + n.x + 'px;top:' + (n.y + (n.parent === 'hub' ? 40 : 34)) + 'px"><b></b><span class="tc"></span></div>';
-    });
-    cv.innerHTML = h;
-    const sel = id => { treeSel = id; treePending = null; if(id && !state.treeHintSeen){ state.treeHintSeen = true; save(); } renderTreeSheet(); cv.querySelectorAll('.tn,.th').forEach(b => b.classList.toggle('sel', (b.dataset.id || 'hub') === id)); };
-    const treeScrollEl = els('treeScroll');
-    let moved = false, lastTap = { id:'', t:0 };
-    cv.querySelectorAll('.tn').forEach(b => {
-      b.addEventListener('click', () => {
-        if(moved) return;
-        const nowT = Date.now(), id = b.dataset.id;
-        if(lastTap.id === id && nowT - lastTap.t < 400){ lastTap = { id:'', t:0 }; sel(id); treeDoBuy(id); return; }
-        lastTap = { id, t:nowT };
-        sel(id);
-      });
-    });
-    const hub = els('treeHub');
-    hub.addEventListener('click', () => { if(!moved) sel('hub'); });
-    treeScrollEl.addEventListener('click', e => { if(moved || (e.target.closest && e.target.closest('.tn,.th')) || !treeSel) return; sel(null); });
-    // arrastrar con el mouse (en el celular se desliza con el dedo)
-    let drag = null;
-    treeScrollEl.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse') return; drag = { x:e.clientX, y:e.clientY, sl:treeScrollEl.scrollLeft, st:treeScrollEl.scrollTop }; moved = false; });
-    window.addEventListener('pointermove', e => {
-      if(!drag) return;
-      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-      if(Math.abs(dx) + Math.abs(dy) > 5){ moved = true; treeScrollEl.classList.add('drag'); }
-      if(moved){ treeScrollEl.scrollLeft = drag.sl - dx; treeScrollEl.scrollTop = drag.st - dy; }
-    });
-    window.addEventListener('pointerup', () => { if(drag){ drag = null; treeScrollEl.classList.remove('drag'); setTimeout(() => { moved = false; }, 0); } });
-  }
-  function renderTreeSheet(){
-    const box = els('treeSheet'); if(!box) return;
-    const id = treeHover || treeSel;
-    if(!id){
-      box.style.removeProperty('--bc');
-      box.classList.toggle('compact', !!state.treeHintSeen);
-      box.innerHTML = state.treeHintSeen
-        ? '<div class="ts-hint">Tocá una mejora para ver qué hace · tocala dos veces para comprarla</div>'
-        : '<div class="ts-name">Tocá una mejora para ver qué hace</div><div class="ts-desc">Las que <b style="color:var(--text)">brillan</b> se pueden comprar ahora con lo que tenés. Las apagadas todavía no te alcanzan, y las punteadas están bloqueadas: se desbloquean al comprar la mejora anterior de su rama. A la izquierda, arriba, está tu Compañero: elegirlo es gratis. Abajo, las mejoras únicas de prestigio ✦. Tocá dos veces una mejora para comprarla rápido. Deslizá para recorrer el árbol.</div>';
-      return;
-    }
-    box.classList.remove('compact');
-    if(id !== 'petHub') petPending = null;
-    const I = treeInfo(id), n = id === 'hub' ? null : TREE_BY_ID[id];
-    const bc = n ? TREE_BR[n.br].color : '#9ab';
-    box.style.setProperty('--bc', bc);
-    let lvlTxt = I.info ? '' : (I.max ? ' · nivel ' + I.lvl + '/' + I.max : ' · nivel ' + I.lvl);
-    const R = treeRecommend(), isRec = R.coins === id || R.ess === id;
-    const tag = (n ? TREE_BR[n.br].name : 'Resumen') + (I.tag ? ' · ' + I.tag : '') + lvlTxt + (isRec ? ' · ★ Recomendada' : '');
-    let body;
-    if(I.locked){
-      body = '<div class="ts-desc">🔒 ' + I.lockMsg + '</div>';
-    } else {
-      body = '<div class="ts-desc">' + I.desc + '</div>';
-      if(id === 'hub') body += bonusSummary(); else if(!I.maxed){ try{ body += treePreview(id); }catch(e){} }
-      if(!I.info){
-        let costHtml = I.maxed ? 'Al máximo' : (I.ck === 'free' ? 'Gratis' : (I.ck === 'ess' ? '◆' + I.cost : I.ck === 'pp' ? '✦' + I.cost : '$' + fmtCoins(I.cost)));
-        let small = '';
-        if(!I.maxed && !I.can && I.ck !== 'free' && I.btnOn === false){
-          const have = I.ck === 'ess' ? state.essence : I.ck === 'pp' ? state.pp : state.coins;
-          if(have < I.cost) small = '<small>te faltan ' + (I.ck === 'ess' ? '◆' + (I.cost - have) : I.ck === 'pp' ? '✦' + (I.cost - have) : '$' + fmtCoins(I.cost - have)) + '</small>';
-        }
-        if(I.costText === 'activo' || I.costText === 'apagado') costHtml = I.costText;
-        body += '<div class="ts-act"><div class="ts-cost">' + costHtml + small + '</div>' + ((I.maxed && !I.btnOn) ? '' : '<button class="ts-btn" id="treeBuyBtn"' + (I.btnOn ? '' : ' disabled') + '>' + I.btn + '</button>') + '</div>';
-      }
-    }
-    box.innerHTML = '<div class="ts-top"><span class="ts-ic">' + (I.icon || '') + '</span><div><div class="ts-name">' + I.name + '</div><div class="ts-tag">' + tag + '</div></div></div>' + body;
-    if(id === 'petHub'){
-      const cur = state.pet.animal, sel = petPending && petPending !== cur ? petPending : null;
-      const wrap = document.createElement('div'); wrap.className = 'pet-pick';
-      wrap.innerHTML = Object.keys(PET_ANIMALS).map(a => { const P = PET_ANIMALS[a]; const known = !!state.pet.known[a];
-        return '<button class="pp-btn' + ((sel || cur) === a ? ' sel' : '') + '" data-a="' + a + '" style="--pc:' + P.pc + ';--pd:' + P.pd + '">' + P.svg + '<span>' + P.name + '</span><small>' + (known ? PET_AB[a].name : '???') + '</small></button>'; }).join('');
-      box.appendChild(wrap);
-      wrap.querySelectorAll('.pp-btn').forEach(bt => bt.addEventListener('click', () => { const a = bt.dataset.a; petPending = a === cur ? null : a; renderTreeSheet(); }));
-      const info = document.createElement('div'); info.className = 'pet-ab';
-      if(sel){
-        const P = PET_ANIMALS[sel], kn = !!state.pet.known[sel];
-        info.innerHTML = '<b>' + P.name + '</b> · ' + (kn ? 'Habilidad: ' + PET_AB[sel].name + ' — ' + PET_AB[sel].desc(state.pet.ab[sel] || 0) : 'Su habilidad es un secreto: la descubrís al elegirlo.');
-        const cb = document.createElement('button'); cb.className = 'ts-btn'; cb.id = 'petConfirmBtn';
-        const paid = !!cur;
-        cb.textContent = paid ? 'Cambiar a ' + P.name + ' (◆' + PET_CHANGE_COST + ')' : 'Elegir a ' + P.name + ' (gratis)';
-        if(paid && state.essence < PET_CHANGE_COST){ cb.disabled = true; cb.textContent += ' · te falta Esencia'; }
-        cb.addEventListener('click', () => { if(choosePet(sel)){ petPending = null; renderTree(); } });
-        box.appendChild(info); box.appendChild(cb);
-      } else if(cur){
-        info.innerHTML = 'Habilidad de ' + PET_ANIMALS[cur].name + ': <b>' + PET_AB[cur].name + '</b> — ' + PET_AB[cur].desc(petLv('hab')) + '<br><span style="color:var(--muted)">Tocá otro animal para cambiarlo (◆' + PET_CHANGE_COST + '). Las habilidades que ya descubriste se ven en cada botón.</span>';
-        box.appendChild(info);
-      } else {
-        info.innerHTML = '<span style="color:var(--muted)">Tocá un animal para ver su aspecto y elegirlo. Cada uno tiene una <b>habilidad única secreta</b>: la descubrís al elegirlo, y cambiarlo después cuesta ◆' + PET_CHANGE_COST + '.</span>';
-        box.appendChild(info);
-      }
-    }
-    const bb = els('treeBuyBtn');
-    if(bb) bb.addEventListener('click', () => treeDoBuy(id));
-  }
-  function treeDoBuy(id){
-    const cur = treeInfo(id); if(!cur.btnOn || !cur.buy) return false;
-    cur.buy(); treeMarkBought(); treeSel = id; renderTree();
-    const nb = document.querySelector('#treeCanvas .tn[data-id="' + CSS.escape(id) + '"]');
-    if(nb){ nb.classList.remove('bought'); void nb.offsetWidth; nb.classList.add('bought'); setTimeout(() => nb.classList.remove('bought'), 450); }
-    return true;
-  }
-  function renderTree(){
-    if(!treeBuilt) return;
-    treeMarkBought();
-    setText(els('treeCoins'), fmtCoins(state.coins));
-    setText(els('treeEss'), String(state.essence)); setText(els('treePP'), String(state.pp));
-    const cv = els('treeCanvas');
-    const infos = {};
-    TREE_NODES.forEach(n => { infos[n.id] = treeInfo(n.id); });
-    const REC = treeRecommend();
-    TREE_NODES.forEach(n => {
-      const I = infos[n.id];
-      const b = cv.querySelector('.tn[data-id="' + CSS.escape(n.id) + '"]');
-      const l = cv.querySelector('.tl[data-id="' + CSS.escape(n.id) + '"]');
-      const ln = cv.querySelector('polyline[data-id="' + CSS.escape(n.id) + '"]');
-      const cls = 'tn ' + I.state + (n.id === 'petHub' && !petOn() ? ' free' : '') + (treeSel === n.id ? ' sel' : '') + ((REC.coins === n.id || REC.ess === n.id) ? ' rec' : '');
-      const want = cls + (b.classList.contains('bought') ? ' bought' : '') + (b.classList.contains('unlk') ? ' unlk' : '');
-      if(b.className !== want) b.className = want;
-      const justUnlocked = treePrev[n.id] === 'locked' && I.state !== 'locked';
-      treePrev[n.id] = I.state;
-      if(justUnlocked){ b.classList.remove('unlk'); void b.offsetWidth; b.classList.add('unlk'); setTimeout(() => b.classList.remove('unlk'), 1000); }
-      const ti = b.querySelector('.ti'), icH = (I.locked && !I.keepIcon) ? iconLock : I.icon;
-      if(ti._ic !== icH){ ti._ic = icH; ti.innerHTML = icH; }
-      const tb = b.querySelector('.tb');
-      const badge = I.locked ? '' : (I.maxed ? '✓' : (I.info ? '' : String(I.lvl)));
-      tb.style.display = (badge === '' || (!I.maxed && I.lvl === 0 && n.id.indexOf('regen') !== 0 && I.state !== 'max' && badge === '0')) ? 'none' : '';
-      if(tb.textContent !== badge) tb.textContent = badge;
-      l.className = 'tl ' + I.state;
-      const bn = l.querySelector('b'); if(bn.textContent !== I.name) bn.textContent = I.name;
-      const tc = l.querySelector('.tc'); if(tc.textContent !== I.costText) tc.textContent = I.costText;
-      const par = n.parent === 'hub' ? null : infos[n.parent];
-      const reached = !par || treeOwned(n.parent) || (par.info && !par.locked);
-      ln.setAttribute('class', ((!I.locked && reached) ? 'on' : '') + (justUnlocked ? ' fresh' : ''));
-      if(justUnlocked) setTimeout(() => ln.classList.remove('fresh'), 900);
-    });
-    applyTreeFilter();
-    renderTreeSheet();
-  }
-  function openTree(focus){
-    if(screen === 'running'){ showToast('Las mejoras se compran al terminar la partida.'); return; }
-    petPending = null;
-    closeMenu(); buildTree(); treeSel = focus === 'esencia' ? 'essHub' : focus === 'mascota' ? 'petHub' : focus === 'prestigio' ? 'ppHub' : null; treeHover = null; treePending = null; treePrev = {}; treeQuery = '';
-    renderTree(); openPanel('tree');
-    const sc = els('treeScroll');
-    const t = focus === 'esencia' ? ESS_HUB : focus === 'mascota' ? PET_HUB : focus === 'prestigio' ? PP_HUB : TC;
-    sc.style.setProperty('--z', String(TREE_Z));
-    const z = TREE_Z;
-    requestAnimationFrame(() => { sc.scrollLeft = Math.max(0, t.x * z - sc.clientWidth / 2); sc.scrollTop = Math.max(0, t.y * z - sc.clientHeight / 2 + 40); });
-    const cv = els('treeCanvas'); cv.querySelectorAll('.tn,.th').forEach(b => b.classList.toggle('sel', (b.dataset.id || 'hub') === treeSel));
-  }
+  function openTree(focus){ openShop(focus === 'mascota' ? 'companero' : focus === 'esencia' ? 'esencia' : focus === 'prestigio' ? 'tienda' : null); }
 
-  function openEssence(){
-    openTree('esencia');
-  }
+  function openEssence(){ openShop('esencia'); }
   function openMenu(){ els('menuBackdrop').classList.add('open'); els('menuPanel').classList.add('open'); render(); }
   function closeMenu(){ els('menuBackdrop').classList.remove('open'); els('menuPanel').classList.remove('open'); }
 
@@ -4223,7 +3779,6 @@
 
   function init(){
     buildScene();
-    buildTree();
     initMascots();
     scheduleDrip();
     document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('paused', document.hidden));
@@ -4315,18 +3870,6 @@
       setScreen('difficulty');
     });
 
-    els('branchMitigacion').addEventListener('click', () => {
-      state.upgrades.regenBranch='mitigacion'; save();
-      els('branchOverlay').classList.add('hidden');
-      render();
-    });
-    els('branchRegeneracion').addEventListener('click', () => {
-      state.upgrades.regenBranch='regeneracion'; save();
-      els('branchOverlay').classList.add('hidden');
-      render();
-    });
-    els('branchMitigacion').querySelector('.icon-badge').innerHTML = iconShield;
-    els('branchRegeneracion').querySelector('.icon-badge').innerHTML = iconHeartPlus;
 
     els('startBtn').addEventListener('click', startRun);
     els('deathRetryBtn').addEventListener('click', startRun);
@@ -4350,15 +3893,9 @@
     els('menuTreeBtn').addEventListener('click', () => openTree());
     els('menuPetBtn').addEventListener('click', () => openTree('mascota'));
     els('menuLiteBtn').addEventListener('click', () => { state.lite = !state.lite; if(screen === 'running') startTicker(); save(); render(); showToast(state.lite ? 'Modo ahorro activado' : 'Modo ahorro desactivado'); });
-    els('treeCenterBtn').addEventListener('click', () => treeScrollTo(TC));
-    els('closeTreeBtn').addEventListener('click', () => { if(!state.treeHintSeen){ state.treeHintSeen = true; save(); } closePanel(); });
-    els('treeZoomBtn').addEventListener('click', () => {
-      const sc = els('treeScroll');
-      const fit = treeFitZ(), z0 = parseFloat(getComputedStyle(sc).getPropertyValue('--z')) || 1, z1 = z0 > fit + 0.02 ? fit : TREE_Z;
-      const cx = (sc.scrollLeft + sc.clientWidth / 2) / z0, cy = (sc.scrollTop + sc.clientHeight / 2) / z0;
-      sc.style.setProperty('--z', String(z1));
-      sc.scrollLeft = cx * z1 - sc.clientWidth / 2; sc.scrollTop = cy * z1 - sc.clientHeight / 2;
-    });
+    els('closeShopBtn').addEventListener('click', closePanel);
+    els('shopInline').addEventListener('click', shopClick);
+    els('shopModal').addEventListener('click', shopClick);
     document.querySelectorAll('.open-tree-btn').forEach(b => b.addEventListener('click', () => openTree()));
     els('essenceChip').addEventListener('click', openEssence);
     els('closeEssenceBtn').addEventListener('click', closePanel);
